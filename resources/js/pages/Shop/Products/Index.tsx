@@ -32,16 +32,18 @@ const PRICE_RANGES = [
 ];
 
 export default function ProductsIndex({ products, categories, currentCategory, filters }: Props) {
+    const safeFilters = Array.isArray(filters) ? {} : filters;
+
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [showFilters, setShowFilters] = useState(false);
-    const [searchQuery, setSearchQuery] = useState(filters.filter?.name || '');
+    const [searchQuery, setSearchQuery] = useState(safeFilters.filter?.name || '');
     const [selectedCategory, setSelectedCategory] = useState<number | null>(
-        filters.filter?.category_id || currentCategory?.id || null
+        safeFilters.filter?.category_id || currentCategory?.id || null
     );
-    const [selectedSort, setSelectedSort] = useState(filters.sort || '-created_at');
+    const [selectedSort, setSelectedSort] = useState(safeFilters.sort || '-created_at');
     const [priceRange, setPriceRange] = useState<{ min?: number; max?: number }>({
-        min: filters.filter?.price_min,
-        max: filters.filter?.price_max,
+        min: safeFilters.filter?.price_min,
+        max: safeFilters.filter?.price_max,
     });
 
     const applyFilters = useCallback(() => {
@@ -66,12 +68,12 @@ export default function ProductsIndex({ products, categories, currentCategory, f
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (searchQuery !== (filters.filter?.name || '')) {
+            if (searchQuery !== (safeFilters.filter?.name || '')) {
                 applyFilters();
             }
         }, 500);
         return () => clearTimeout(timer);
-    }, [searchQuery, applyFilters, filters.filter?.name]);
+    }, [searchQuery, applyFilters, safeFilters.filter?.name]);
 
     const hasActiveFilters = searchQuery || selectedCategory || priceRange.min || priceRange.max;
 
@@ -341,7 +343,7 @@ function ProductCard({ product, viewMode, index }: ProductCardProps) {
                             <div className="flex items-center gap-2 mt-3">
                                 <div className="flex items-center gap-1">
                                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-sm font-medium">{product.average_rating.toFixed(1)}</span>
+                                    <span className="text-sm font-medium">{Number(product.average_rating || 0).toFixed(1)}</span>
                                 </div>
                                 <span className="text-terra-300">•</span>
                                 <span className="text-sm text-terra-500">{product.sold_count} terjual</span>
@@ -416,7 +418,7 @@ function ProductCard({ product, viewMode, index }: ProductCardProps) {
                     <div className="flex items-center gap-2 mb-2">
                         <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{product.average_rating.toFixed(1)}</span>
+                            <span className="text-sm font-medium">{Number(product.average_rating || 0).toFixed(1)}</span>
                         </div>
                         <span className="text-terra-300">•</span>
                         <span className="text-sm text-terra-500">{product.sold_count} terjual</span>

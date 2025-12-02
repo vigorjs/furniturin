@@ -173,7 +173,7 @@ function ProductInfo({ product, quantity, setQuantity, isWishlisted, setIsWishli
             <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                     <div className="flex">{[1,2,3,4,5].map(s => <Star key={s} size={18} className={s <= Math.round(product.average_rating) ? 'fill-yellow-400 text-yellow-400' : 'text-terra-200'} />)}</div>
-                    <span className="font-medium">{product.average_rating.toFixed(1)}</span>
+                    <span className="font-medium">{Number(product.average_rating || 0).toFixed(1)}</span>
                     <span className="text-terra-500">({product.review_count} ulasan)</span>
                 </div>
                 <span className="text-terra-300">|</span>
@@ -282,7 +282,7 @@ function CustomerReviews({ reviews, averageRating, reviewCount }: CustomerReview
                 {/* Rating Summary */}
                 <div className="bg-sand-50 rounded-2xl p-6">
                     <div className="text-center mb-6">
-                        <div className="text-5xl font-bold text-terra-900 mb-2">{averageRating.toFixed(1)}</div>
+                        <div className="text-5xl font-bold text-terra-900 mb-2">{Number(averageRating || 0).toFixed(1)}</div>
                         <div className="flex justify-center mb-2">
                             {[1, 2, 3, 4, 5].map(s => (
                                 <Star key={s} size={20} className={s <= Math.round(averageRating) ? 'fill-yellow-400 text-yellow-400' : 'text-terra-200'} />

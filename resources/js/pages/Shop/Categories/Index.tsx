@@ -5,7 +5,7 @@ import { Header, Footer } from '@/components/shop';
 import { ApiCategory } from '@/types/shop';
 
 interface Props {
-    categories: ApiCategory[];
+    categories: ApiCategory[] | { data: ApiCategory[] };
 }
 
 // Placeholder images untuk kategori
@@ -21,6 +21,8 @@ const CATEGORY_IMAGES: Record<string, string> = {
 };
 
 export default function CategoriesIndex({ categories }: Props) {
+    const categoriesList = Array.isArray(categories) ? categories : categories.data;
+
     return (
         <>
             <Head title="Kategori - Latif Living" />
@@ -39,13 +41,13 @@ export default function CategoriesIndex({ categories }: Props) {
 
                     {/* Categories Grid - Bento Style */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {categories.map((category, index) => (
+                        {categoriesList.map((category, index) => (
                             <CategoryCard key={category.id} category={category} index={index} />
                         ))}
                     </div>
 
                     {/* Empty State */}
-                    {categories.length === 0 && (
+                    {categoriesList.length === 0 && (
                         <div className="text-center py-20">
                             <h3 className="text-xl font-medium text-terra-900 mb-2">Belum ada kategori</h3>
                             <p className="text-terra-500">Kategori produk akan segera tersedia</p>

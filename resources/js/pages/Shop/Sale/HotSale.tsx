@@ -11,20 +11,21 @@ interface Props {
 }
 
 export default function HotSale({ products, categories, filters }: Props) {
+    const safeFilters = Array.isArray(filters) ? {} : filters;
     const [showFilters, setShowFilters] = useState(false);
 
     const handleSort = (sort: string) => {
-        router.get('/shop/hot-sale', { ...filters, sort }, { preserveState: true });
+        router.get('/shop/hot-sale', { ...safeFilters, sort }, { preserveState: true });
     };
 
     const handleCategoryFilter = (categoryId: number | null) => {
-        const newFilters = { ...filters.filter };
+        const newFilters = { ...safeFilters.filter };
         if (categoryId) {
             newFilters.category_id = String(categoryId);
         } else {
             delete newFilters.category_id;
         }
-        router.get('/shop/hot-sale', { filter: newFilters, sort: filters.sort }, { preserveState: true });
+        router.get('/shop/hot-sale', { filter: newFilters, sort: safeFilters.sort }, { preserveState: true });
     };
 
     return (
@@ -56,7 +57,7 @@ export default function HotSale({ products, categories, filters }: Props) {
                             </button>
                             <span className="text-terra-500">{products.meta.total} produk</span>
                         </div>
-                        <select value={filters.sort || ''} onChange={(e) => handleSort(e.target.value)} className="px-4 py-2 bg-white rounded-full border border-terra-200 outline-none">
+                        <select value={safeFilters.sort || ''} onChange={(e) => handleSort(e.target.value)} className="px-4 py-2 bg-white rounded-full border border-terra-200 outline-none">
                             <option value="">Urutkan</option>
                             <option value="-discount_percentage">Diskon Terbesar</option>
                             <option value="-sold_count">Terlaris</option>
@@ -70,11 +71,11 @@ export default function HotSale({ products, categories, filters }: Props) {
                         <div className="bg-white rounded-2xl p-6 mb-8">
                             <h3 className="font-medium text-terra-900 mb-4">Kategori</h3>
                             <div className="flex flex-wrap gap-2">
-                                <button onClick={() => handleCategoryFilter(null)} className={`px-4 py-2 rounded-full text-sm ${!filters.filter?.category_id ? 'bg-terra-900 text-white' : 'bg-terra-100 text-terra-700 hover:bg-terra-200'}`}>
+                                <button onClick={() => handleCategoryFilter(null)} className={`px-4 py-2 rounded-full text-sm ${!safeFilters.filter?.category_id ? 'bg-terra-900 text-white' : 'bg-terra-100 text-terra-700 hover:bg-terra-200'}`}>
                                     Semua
                                 </button>
                                 {categories.map((cat) => (
-                                    <button key={cat.id} onClick={() => handleCategoryFilter(cat.id)} className={`px-4 py-2 rounded-full text-sm ${filters.filter?.category_id === String(cat.id) ? 'bg-terra-900 text-white' : 'bg-terra-100 text-terra-700 hover:bg-terra-200'}`}>
+                                    <button key={cat.id} onClick={() => handleCategoryFilter(cat.id)} className={`px-4 py-2 rounded-full text-sm ${safeFilters.filter?.category_id === String(cat.id) ? 'bg-terra-900 text-white' : 'bg-terra-100 text-terra-700 hover:bg-terra-200'}`}>
                                         {cat.name}
                                     </button>
                                 ))}
