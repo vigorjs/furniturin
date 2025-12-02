@@ -18,3 +18,9 @@ export { ProductsSection } from './sections/ProductsSection';
 export { TestimonialsSection } from './sections/TestimonialsSection';
 export { NewsletterSection } from './sections/NewsletterSection';
 
+// Marketing Components
+export { FlashSaleCountdown, FlashSaleCountdownCompact } from './FlashSaleCountdown';
+export { PromoBanner } from './PromoBanner';
+export { RecentlyViewedSection, saveToRecentlyViewed, getRecentlyViewed } from './RecentlyViewed';
+export { WhatsAppButton } from './WhatsAppButton';
+

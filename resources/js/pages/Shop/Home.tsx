@@ -10,6 +10,8 @@ import {
     ProductDetail,
     CheckoutView,
     SuccessView,
+    PromoBanner,
+    WhatsAppButton,
 } from '@/components/shop';
 
 // --- Main App Component ---
@@ -83,6 +85,9 @@ export default function Home() {
         <>
             <Head title="Latif Living - Furniture Premium Indonesia" />
 
+            {/* Promo Banner */}
+            <PromoBanner type="banner" storageKey="home_promo_banner" />
+
             {/* Noise Overlay */}
             <div className="bg-noise" />
 
@@ -129,6 +134,15 @@ export default function Home() {
             </main>
 
             <Footer />
+
+            {/* WhatsApp Floating Button */}
+            <WhatsAppButton
+                phoneNumber="6281234567890"
+                message="Halo, saya tertarik dengan produk di Latif Living"
+            />
+
+            {/* Promo Popup - shows after 5 seconds */}
+            <PromoBanner type="popup" storageKey="home_promo_popup" delayPopup={5000} />
         </>
     );
 }

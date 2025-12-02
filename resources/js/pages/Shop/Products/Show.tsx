@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Star, Heart, ShoppingBag, Minus, Plus, ChevronLeft, ChevronRight,
     Truck, Shield, RotateCcw, Check, Share2, ZoomIn, X
 } from 'lucide-react';
-import { Header, Footer } from '@/components/shop';
+import { Header, Footer, RecentlyViewedSection, saveToRecentlyViewed, WhatsAppButton } from '@/components/shop';
 import { ApiProduct, ProductImage } from '@/types/shop';
 
 interface Props {
@@ -18,6 +18,12 @@ export default function ProductShow({ product, relatedProducts }: Props) {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
     const [isWishlisted, setIsWishlisted] = useState(false);
+
+    // Save to recently viewed on mount
+    useEffect(() => {
+        saveToRecentlyViewed(product);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [product.id]);
 
     const images = product.images?.length
         ? product.images
@@ -60,6 +66,9 @@ export default function ProductShow({ product, relatedProducts }: Props) {
 
                     {relatedProducts.length > 0 && <RelatedProducts products={relatedProducts} />}
                 </div>
+
+                {/* Recently Viewed Section */}
+                <RecentlyViewedSection excludeProductId={product.id} className="bg-sand-50" />
             </main>
 
             <ZoomModal
@@ -70,6 +79,12 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                 setCurrentIndex={setSelectedImageIndex}
             />
             <Footer />
+
+            {/* WhatsApp Button */}
+            <WhatsAppButton
+                phoneNumber="6281234567890"
+                message={`Halo, saya tertarik dengan produk ${product.name}`}
+            />
         </>
     );
 }

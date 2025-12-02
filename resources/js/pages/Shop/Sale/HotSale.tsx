@@ -1,8 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Flame, Filter, ChevronDown, Star } from 'lucide-react';
 import { useState } from 'react';
-import { Header, Footer } from '@/components/shop';
+import { Header, Footer, FlashSaleCountdown, WhatsAppButton } from '@/components/shop';
 import { ApiProduct, ApiCategory, PaginatedResponse } from '@/types/shop';
+
+// Calculate end date outside component to avoid impure function in render
+const SALE_END_DATE = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
 interface Props {
     products: PaginatedResponse<ApiProduct>;
@@ -45,6 +48,15 @@ export default function HotSale({ products, categories, filters }: Props) {
                         </div>
                         <p className="text-xl opacity-90">Diskon hingga 70% untuk produk pilihan!</p>
                         <p className="text-sm mt-2 opacity-75">Penawaran terbatas, buruan sebelum kehabisan!</p>
+
+                        {/* Flash Sale Countdown */}
+                        <div className="mt-8 max-w-xl mx-auto">
+                            <FlashSaleCountdown
+                                endDate={SALE_END_DATE}
+                                title="Penawaran Berakhir Dalam"
+                                className="bg-white/10 backdrop-blur-sm"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -113,6 +125,7 @@ export default function HotSale({ products, categories, filters }: Props) {
             </main>
 
             <Footer />
+            <WhatsAppButton phoneNumber="6281234567890" message="Halo, saya tertarik dengan produk Hot Sale di Latif Living" />
         </>
     );
 }
