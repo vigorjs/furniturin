@@ -1,6 +1,6 @@
 # Latif Living - E-Commerce Furniture
 
-Platform e-commerce modern untuk penjualan furniture dan perabotan rumah tangga. Dibangun dengan Laravel 12, React 19, Inertia.js, dan TypeScript.
+Latif Living adalah platform e-commerce modern yang dirancang untuk penjualan furniture dan perabotan rumah tangga berkualitas tinggi. Proyek ini dibangun dengan stack teknologi terkini untuk memastikan kinerja, skalabilitas, dan pengalaman pengguna.
 
 ## 🚀 Fitur
 
