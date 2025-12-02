@@ -88,11 +88,12 @@ export const Header: React.FC<HeaderProps> = ({ cartCount, onCartClick, onLogoCl
         <>
             <nav className={`fixed ${topPosition} w-full z-40 transition-all duration-500 border-b ${scrolled ? 'bg-white/80 backdrop-blur-md py-4 border-terra-200' : 'bg-transparent py-6 border-transparent'}`}>
                 <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex justify-between items-center">
-                    <div className="flex items-center gap-1 cursor-pointer group" onClick={onLogoClick}>
-                        <span className="font-serif text-3xl font-bold tracking-tight text-terra-900 relative z-10">
-                            Latif
-                            <span className="text-wood group-hover:text-terra-900 transition-colors">.</span>
-                        </span>
+                    <div className="flex items-center cursor-pointer group" onClick={onLogoClick}>
+                        <img
+                            src="/assets/images/logo.webp"
+                            alt="Latif Living"
+                            className="h-7 md:h-8 w-auto object-contain"
+                        />
                     </div>
 
                     <div className="hidden md:flex items-center gap-8">

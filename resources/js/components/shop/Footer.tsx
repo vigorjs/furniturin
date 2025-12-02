@@ -5,7 +5,11 @@ export const Footer = () => (
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-12 border-b border-white/10 pb-16">
                 <div className="md:col-span-5">
-                    <h3 className="font-serif text-4xl text-white mb-6">Latif Living.</h3>
+                    <img
+                        src="/assets/images/logo.webp"
+                        alt="Latif Living"
+                        className="h-10 w-auto object-contain mb-6 brightness-0 invert"
+                    />
                     <p className="text-lg text-terra-400 font-light leading-relaxed max-w-md">
                         Furniture berkualitas tinggi untuk hunian modern. Kami percaya pada furniture yang bercerita—cerita Anda.
                     </p>
