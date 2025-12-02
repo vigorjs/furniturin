@@ -1,6 +1,7 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { GitCompare, Star, ShoppingBag, X, ArrowLeft, Check, Minus } from 'lucide-react';
 import { Header, Footer, WhatsAppButton } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 import { ApiProduct } from '@/types/shop';
 
 interface Props {
@@ -31,7 +32,11 @@ export default function Compare({ products }: Props) {
 
     return (
         <>
-            <Head title="Bandingkan Produk - Latif Living" />
+            <SEOHead
+                title="Bandingkan Produk"
+                description="Bandingkan spesifikasi dan harga produk furnitur di Latif Living. Pilih produk terbaik sesuai kebutuhan Anda."
+                noindex={true}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 
@@ -106,9 +111,9 @@ export default function Compare({ products }: Props) {
                             {Array.from(allSpecs).map((spec) => (
                                 <CompareRow key={spec} label={spec} products={products} render={(p) => {
                                     const value = p.specifications?.[spec];
-                                    if (value === true) return <Check size={20} className="text-green-500" />;
-                                    if (value === false) return <Minus size={20} className="text-terra-300" />;
-                                    return <span className="text-terra-700">{value || '-'}</span>;
+                                    if (value === 'true' || value === 'yes' || value === 'Ya') return <Check size={20} className="text-green-500" />;
+                                    if (value === 'false' || value === 'no' || value === 'Tidak' || !value) return <Minus size={20} className="text-terra-300" />;
+                                    return <span className="text-terra-700">{value}</span>;
                                 }} />
                             ))}
 

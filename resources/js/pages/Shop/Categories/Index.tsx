@@ -1,7 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Header, Footer } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 import { ApiCategory } from '@/types/shop';
 
 interface Props {
@@ -25,7 +26,11 @@ export default function CategoriesIndex({ categories }: Props) {
 
     return (
         <>
-            <Head title="Kategori - Latif Living" />
+            <SEOHead
+                title="Kategori Produk"
+                description="Jelajahi kategori furnitur Latif Living. Temukan koleksi untuk ruang tamu, ruang makan, kamar tidur, kantor, outdoor, dan lainnya."
+                keywords={['kategori furnitur', 'ruang tamu', 'ruang makan', 'kamar tidur', 'furnitur kantor', 'outdoor furniture']}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 

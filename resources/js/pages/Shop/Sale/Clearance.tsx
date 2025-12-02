@@ -1,7 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Tag, Filter, ChevronDown, Star, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { Header, Footer } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 import { ApiProduct, ApiCategory, PaginatedResponse } from '@/types/shop';
 
 interface Props {
@@ -30,7 +31,11 @@ export default function Clearance({ products, categories, filters }: Props) {
 
     return (
         <>
-            <Head title="Clearance Sale - Latif Living" />
+            <SEOHead
+                title="Clearance Sale - Cuci Gudang"
+                description="Clearance Sale Latif Living! Cuci gudang furnitur berkualitas dengan diskon hingga 70%. Stok terbatas, buruan sebelum kehabisan!"
+                keywords={['clearance sale', 'cuci gudang', 'diskon furnitur', 'obral mebel', 'sale latif living']}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 

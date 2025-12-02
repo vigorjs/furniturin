@@ -1,7 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Package, Filter, ChevronDown, Star, Warehouse } from 'lucide-react';
 import { useState } from 'react';
 import { Header, Footer, WhatsAppButton } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 import { ApiProduct, ApiCategory, PaginatedResponse } from '@/types/shop';
 
 interface Props {
@@ -30,7 +31,11 @@ export default function StockSale({ products, categories, filters }: Props) {
 
     return (
         <>
-            <Head title="Stock Sale - Harga Pabrik | Latif Living" />
+            <SEOHead
+                title="Stock Sale - Harga Pabrik"
+                description="Stock Sale Latif Living! Beli furnitur langsung dari pabrik dengan harga grosir. Cocok untuk reseller, kontraktor, dan pembelian dalam jumlah besar."
+                keywords={['stock sale', 'harga pabrik', 'grosir furnitur', 'harga grosir mebel', 'reseller furniture']}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 
@@ -45,7 +50,7 @@ export default function StockSale({ products, categories, filters }: Props) {
                         </div>
                         <p className="text-xl opacity-90">Harga Pabrik Langsung! Stok Gudang Ready</p>
                         <p className="text-sm mt-2 opacity-75">Dapatkan furniture berkualitas dengan harga grosir</p>
-                        
+
                         {/* Benefits */}
                         <div className="flex flex-wrap justify-center gap-6 mt-8">
                             <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">

@@ -1,7 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 import { Header, Footer } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 import { ApiProduct } from '@/types/shop';
 import { useState } from 'react';
 
@@ -33,7 +34,11 @@ export default function WishlistIndex({ products: initialProducts }: Props) {
 
     return (
         <>
-            <Head title="Wishlist - Latif Living" />
+            <SEOHead
+                title="Wishlist Saya"
+                description="Daftar produk favorit Anda di Latif Living. Simpan produk yang Anda sukai dan beli kapan saja."
+                noindex={true}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 

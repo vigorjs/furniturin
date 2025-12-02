@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
     Search, SlidersHorizontal, Grid3X3, LayoutList, X,
     Star, ShoppingBag, Heart, ChevronLeft, ChevronRight, Eye
 } from 'lucide-react';
 import { Header, Footer, QuickViewModal } from '@/components/shop';
+import { SEOHead, BreadcrumbStructuredData } from '@/components/seo';
 import { ApiProduct, ApiCategory, PaginatedResponse, ProductFilters } from '@/types/shop';
 
 interface Props {
@@ -78,9 +79,30 @@ export default function ProductsIndex({ products, categories, currentCategory, f
 
     const hasActiveFilters = searchQuery || selectedCategory || priceRange.min || priceRange.max;
 
+    // SEO Data
+    const pageTitle = currentCategory ? currentCategory.name : 'Semua Produk';
+    const pageDescription = currentCategory
+        ? `Koleksi ${currentCategory.name} berkualitas tinggi di Latif Living. Temukan berbagai pilihan ${currentCategory.name.toLowerCase()} dengan harga terbaik.`
+        : 'Jelajahi koleksi lengkap furnitur berkualitas di Latif Living. Kursi, meja, lemari, dan berbagai furnitur lainnya dengan harga terjangkau.';
+    const breadcrumbItems = [
+        { name: 'Beranda', url: typeof window !== 'undefined' ? `${window.location.origin}/shop` : '/shop' },
+        ...(currentCategory
+            ? [{ name: currentCategory.name, url: typeof window !== 'undefined' ? `${window.location.origin}/shop/category/${currentCategory.slug}` : `/shop/category/${currentCategory.slug}` }]
+            : [{ name: 'Semua Produk', url: typeof window !== 'undefined' ? `${window.location.origin}/shop/products` : '/shop/products' }]
+        ),
+    ];
+
     return (
         <>
-            <Head title={currentCategory ? `${currentCategory.name} - Latif Living` : 'Produk - Latif Living'} />
+            <SEOHead
+                title={pageTitle}
+                description={pageDescription}
+                keywords={currentCategory
+                    ? [currentCategory.name, 'furnitur', 'latif living', 'mebel']
+                    : ['furnitur', 'furniture', 'mebel', 'latif living', 'kursi', 'meja', 'lemari']
+                }
+            />
+            <BreadcrumbStructuredData items={breadcrumbItems} />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 

@@ -1,7 +1,8 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Header, Footer, WhatsAppButton } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 
 const CONTACT_INFO = [
     { icon: MapPin, title: 'Alamat', lines: ['Jl. Furniture Indah No. 123', 'Jepara, Jawa Tengah 59411'] },
@@ -13,7 +14,7 @@ const CONTACT_INFO = [
 export default function Contact() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     const { data, setData, reset } = useForm({
         name: '',
         email: '',
@@ -34,7 +35,11 @@ export default function Contact() {
 
     return (
         <>
-            <Head title="Kontak Kami - Latif Living" />
+            <SEOHead
+                title="Kontak Kami"
+                description="Hubungi Latif Living untuk pertanyaan, pemesanan, atau konsultasi furnitur. Alamat: Jl. Furniture Indah No. 123, Jepara. Telepon: +62 812-3456-7890. Email: hello@latifliving.com"
+                keywords={['kontak latif living', 'alamat toko furnitur', 'telepon latif living', 'email latif living']}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 
@@ -83,7 +88,7 @@ export default function Contact() {
                         <div className="lg:col-span-2">
                             <div className="bg-white rounded-2xl p-8 border border-terra-100">
                                 <h2 className="font-serif text-2xl text-terra-900 mb-6">Kirim Pesan</h2>
-                                
+
                                 {isSuccess ? (
                                     <div className="text-center py-12">
                                         <div className="w-20 h-20 bg-wood/20 rounded-full flex items-center justify-center mx-auto mb-6">

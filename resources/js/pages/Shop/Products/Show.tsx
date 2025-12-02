@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Star, Heart, ShoppingBag, Minus, Plus, ChevronLeft, ChevronRight,
     Truck, Shield, RotateCcw, Check, Share2, ZoomIn, X
 } from 'lucide-react';
 import { Header, Footer, RecentlyViewedSection, saveToRecentlyViewed, WhatsAppButton, ShareModal } from '@/components/shop';
+import { SEOHead, ProductStructuredData, BreadcrumbStructuredData } from '@/components/seo';
 import { ApiProduct, ProductImage } from '@/types/shop';
 
 interface Props {
@@ -34,9 +35,51 @@ export default function ProductShow({ product, relatedProducts }: Props) {
         router.post('/shop/cart', { product_id: product.id, quantity }, { preserveScroll: true });
     };
 
+    // SEO Data
+    const productUrl = typeof window !== 'undefined' ? `${window.location.origin}/shop/products/${product.slug}` : `/shop/products/${product.slug}`;
+    const productImages = images.map(img => img.image_url);
+    const breadcrumbItems = [
+        { name: 'Beranda', url: typeof window !== 'undefined' ? `${window.location.origin}/shop` : '/shop' },
+        { name: 'Produk', url: typeof window !== 'undefined' ? `${window.location.origin}/shop/products` : '/shop/products' },
+        ...(product.category ? [{ name: product.category.name, url: typeof window !== 'undefined' ? `${window.location.origin}/shop/category/${product.category.slug}` : `/shop/category/${product.category.slug}` }] : []),
+        { name: product.name, url: productUrl },
+    ];
+
     return (
         <>
-            <Head title={`${product.name} - Latif Living`} />
+            {/* SEO */}
+            <SEOHead
+                title={product.name}
+                description={product.short_description || product.description?.replace(/<[^>]*>/g, '').substring(0, 160) || `Beli ${product.name} dengan harga terbaik di Latif Living`}
+                keywords={[product.name, product.category?.name || 'furnitur', 'latif living', product.sku].filter(Boolean) as string[]}
+                image={images[0]?.image_url}
+                url={productUrl}
+                type="product"
+                product={{
+                    price: product.final_price,
+                    currency: 'IDR',
+                    availability: product.is_in_stock ? 'in stock' : 'out of stock',
+                    brand: 'Latif Living',
+                    category: product.category?.name,
+                    sku: product.sku,
+                }}
+            />
+            <ProductStructuredData
+                data={{
+                    name: product.name,
+                    description: product.short_description || product.description?.replace(/<[^>]*>/g, '') || '',
+                    image: productImages,
+                    sku: product.sku,
+                    brand: 'Latif Living',
+                    category: product.category?.name,
+                    price: product.final_price,
+                    priceCurrency: 'IDR',
+                    availability: product.is_in_stock ? 'InStock' : 'OutOfStock',
+                    url: productUrl,
+                    rating: product.review_count > 0 ? { value: product.average_rating, count: product.review_count } : undefined,
+                }}
+            />
+            <BreadcrumbStructuredData items={breadcrumbItems} />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 

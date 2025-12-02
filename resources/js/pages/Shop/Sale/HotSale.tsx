@@ -1,7 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Flame, Filter, ChevronDown, Star } from 'lucide-react';
 import { useState } from 'react';
 import { Header, Footer, FlashSaleCountdown, WhatsAppButton } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 import { ApiProduct, ApiCategory, PaginatedResponse } from '@/types/shop';
 
 // Calculate end date outside component to avoid impure function in render
@@ -33,7 +34,11 @@ export default function HotSale({ products, categories, filters }: Props) {
 
     return (
         <>
-            <Head title="Hot Sale - Latif Living" />
+            <SEOHead
+                title="Hot Sale - Diskon Besar"
+                description="Promo Hot Sale Latif Living! Dapatkan diskon hingga 50% untuk furnitur berkualitas. Penawaran terbatas, segera belanja sekarang!"
+                keywords={['hot sale', 'diskon furnitur', 'promo mebel', 'sale latif living', 'furnitur murah']}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 

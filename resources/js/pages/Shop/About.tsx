@@ -1,6 +1,7 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Award, Users, Leaf, Heart, Target, Clock } from 'lucide-react';
 import { Header, Footer, WhatsAppButton } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 
 const VALUES = [
     { icon: Award, title: 'Kualitas Premium', desc: 'Material terbaik dengan standar produksi tinggi' },
@@ -19,7 +20,11 @@ const MILESTONES = [
 export default function About() {
     return (
         <>
-            <Head title="Tentang Kami - Latif Living" />
+            <SEOHead
+                title="Tentang Kami"
+                description="Latif Living - Toko furnitur premium Indonesia sejak 2010. Menghadirkan furniture berkualitas tinggi dengan sentuhan seni untuk hunian modern Indonesia. Pengrajin berpengalaman dari Jepara."
+                keywords={['tentang latif living', 'furnitur jepara', 'mebel indonesia', 'furniture premium', 'pengrajin mebel']}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 
@@ -41,15 +46,15 @@ export default function About() {
                             <h2 className="font-serif text-3xl text-terra-900 mb-6">Cerita Kami</h2>
                             <div className="space-y-4 text-terra-600 leading-relaxed">
                                 <p>
-                                    <strong className="text-terra-900">Latif Living</strong> lahir dari passion terhadap seni furniture dan 
+                                    <strong className="text-terra-900">Latif Living</strong> lahir dari passion terhadap seni furniture dan
                                     keinginan untuk menghadirkan produk berkualitas tinggi yang dapat dijangkau oleh keluarga Indonesia.
                                 </p>
                                 <p>
-                                    Berawal dari workshop kecil di Jepara, kota yang terkenal dengan keahlian ukir kayunya, 
+                                    Berawal dari workshop kecil di Jepara, kota yang terkenal dengan keahlian ukir kayunya,
                                     kami tumbuh menjadi brand furniture terpercaya yang melayani pelanggan di seluruh Indonesia.
                                 </p>
                                 <p>
-                                    Setiap produk Latif Living dibuat dengan teliti oleh pengrajin berpengalaman, 
+                                    Setiap produk Latif Living dibuat dengan teliti oleh pengrajin berpengalaman,
                                     menggunakan material pilihan dan proses quality control yang ketat.
                                 </p>
                             </div>
@@ -73,7 +78,7 @@ export default function About() {
                             </div>
                             <h3 className="font-serif text-2xl text-terra-900 mb-4">Visi</h3>
                             <p className="text-terra-600 leading-relaxed">
-                                Menjadi brand furniture terdepan di Indonesia yang menghadirkan produk berkualitas premium 
+                                Menjadi brand furniture terdepan di Indonesia yang menghadirkan produk berkualitas premium
                                 dengan harga terjangkau, serta berkontribusi pada pelestarian seni kerajinan kayu tradisional.
                             </p>
                         </div>

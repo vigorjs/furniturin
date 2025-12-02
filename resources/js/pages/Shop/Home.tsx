@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Head } from '@inertiajs/react';
 import { Product, CartItem, ViewState } from '@/types/shop';
 import {
     Header,
@@ -13,6 +12,7 @@ import {
     PromoBanner,
     WhatsAppButton,
 } from '@/components/shop';
+import { SEOHead, WebsiteStructuredData, OrganizationStructuredData } from '@/components/seo';
 
 // --- Main App Component ---
 
@@ -84,7 +84,44 @@ export default function Home() {
 
     return (
         <>
-            <Head title="Latif Living - Furniture Premium Indonesia" />
+            {/* SEO Head */}
+            <SEOHead
+                title="Furniture Premium Berkualitas"
+                description="Latif Living - Toko furnitur premium Indonesia. Temukan koleksi kursi, meja, lemari, dan furnitur custom berkualitas tinggi dengan harga terjangkau. Gratis ongkir untuk pembelian di atas Rp 5 juta."
+                keywords={['furnitur', 'furniture', 'mebel', 'latif living', 'kursi', 'meja', 'lemari', 'furnitur custom', 'furniture indonesia', 'mebel jepara']}
+                type="website"
+            />
+
+            {/* Structured Data */}
+            <WebsiteStructuredData
+                data={{
+                    name: 'Latif Living',
+                    url: typeof window !== 'undefined' ? window.location.origin : '',
+                    searchUrl: typeof window !== 'undefined' ? `${window.location.origin}/shop/products` : '',
+                }}
+            />
+            <OrganizationStructuredData
+                data={{
+                    name: 'Latif Living',
+                    url: typeof window !== 'undefined' ? window.location.origin : '',
+                    logo: typeof window !== 'undefined' ? `${window.location.origin}/images/logo.png` : '',
+                    description: 'Toko furnitur premium Indonesia dengan koleksi berkualitas tinggi',
+                    email: 'info@latifliving.com',
+                    phone: '+6281234567890',
+                    address: {
+                        street: 'Jl. Mebel No. 123',
+                        city: 'Jepara',
+                        region: 'Jawa Tengah',
+                        postalCode: '59411',
+                        country: 'ID',
+                    },
+                    socialMedia: [
+                        'https://www.facebook.com/latifliving',
+                        'https://www.instagram.com/latifliving',
+                        'https://www.twitter.com/latifliving',
+                    ],
+                }}
+            />
 
             {/* Promo Banner */}
             <PromoBanner type="banner" storageKey="home_promo_banner" onVisibilityChange={setBannerVisible} />

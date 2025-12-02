@@ -1,7 +1,8 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { Palette, Ruler, Upload, Send, CheckCircle, X } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Header, Footer, WhatsAppButton } from '@/components/shop';
+import { SEOHead } from '@/components/seo';
 
 const FURNITURE_TYPES = [
     'Kursi', 'Meja', 'Lemari', 'Sofa', 'Rak', 'Tempat Tidur', 'Meja TV', 'Nakas', 'Lainnya'
@@ -71,7 +72,10 @@ export default function CustomOrder() {
     if (isSuccess) {
         return (
             <>
-                <Head title="Custom Order Berhasil - Latif Living" />
+                <SEOHead
+                    title="Custom Order Berhasil"
+                    description="Permintaan custom order Anda telah terkirim. Tim Latif Living akan menghubungi Anda dalam 1-2 hari kerja."
+                />
                 <div className="bg-noise" />
                 <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
                 <main className="min-h-screen bg-sand-50 pt-28 pb-20 flex items-center justify-center">
@@ -95,7 +99,11 @@ export default function CustomOrder() {
 
     return (
         <>
-            <Head title="Custom Order - Latif Living" />
+            <SEOHead
+                title="Custom Order - Pesan Furnitur Sesuai Keinginan"
+                description="Pesan furnitur custom sesuai keinginan Anda di Latif Living. Pilih material, ukuran, dan desain. Konsultasi gratis dengan tim ahli kami."
+                keywords={['custom order', 'furnitur custom', 'pesan mebel', 'furniture custom jepara', 'desain furnitur']}
+            />
             <div className="bg-noise" />
             <Header cartCount={0} onCartClick={() => {}} onLogoClick={() => router.visit('/shop')} />
 
