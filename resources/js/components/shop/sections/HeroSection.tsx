@@ -17,7 +17,7 @@ export const HeroSection = () => {
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     >
                         <span className="inline-block px-3 py-1 mb-6 border border-terra-800/30 rounded-full text-xs font-semibold uppercase tracking-widest text-terra-800">
-                            Koleksi Terbaru 2024
+                            Koleksi Terbaru 2025
                         </span>
                         <h1 className="font-serif text-6xl md:text-8xl leading-[1.1] mb-8 text-terra-900">
                             Desain yang <br />

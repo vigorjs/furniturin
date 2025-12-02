@@ -100,4 +100,62 @@ class ProductController extends Controller
             'filters' => $request->only(['filter', 'sort']),
         ]);
     }
+
+    public function hotSale(Request $request): Response
+    {
+        $products = QueryBuilder::for(Product::class)
+            ->allowedFilters([
+                AllowedFilter::partial('name'),
+                AllowedFilter::exact('category_id'),
+                AllowedFilter::scope('price_min', 'priceMin'),
+                AllowedFilter::scope('price_max', 'priceMax'),
+            ])
+            ->allowedSorts(['name', 'price', 'created_at', 'sold_count', 'average_rating', 'discount_percentage'])
+            ->active()
+            ->where('sale_type', 'hot_sale')
+            ->with(['category', 'images'])
+            ->paginate(12)
+            ->withQueryString();
+
+        $categories = Category::where('is_active', true)
+            ->whereNull('parent_id')
+            ->with('children')
+            ->orderBy('sort_order')
+            ->get();
+
+        return Inertia::render('Shop/Sale/HotSale', [
+            'products' => ProductResource::collection($products),
+            'categories' => CategoryResource::collection($categories),
+            'filters' => $request->only(['filter', 'sort']),
+        ]);
+    }
+
+    public function clearance(Request $request): Response
+    {
+        $products = QueryBuilder::for(Product::class)
+            ->allowedFilters([
+                AllowedFilter::partial('name'),
+                AllowedFilter::exact('category_id'),
+                AllowedFilter::scope('price_min', 'priceMin'),
+                AllowedFilter::scope('price_max', 'priceMax'),
+            ])
+            ->allowedSorts(['name', 'price', 'created_at', 'sold_count', 'average_rating', 'discount_percentage'])
+            ->active()
+            ->where('sale_type', 'clearance')
+            ->with(['category', 'images'])
+            ->paginate(12)
+            ->withQueryString();
+
+        $categories = Category::where('is_active', true)
+            ->whereNull('parent_id')
+            ->with('children')
+            ->orderBy('sort_order')
+            ->get();
+
+        return Inertia::render('Shop/Sale/Clearance', [
+            'products' => ProductResource::collection($products),
+            'categories' => CategoryResource::collection($categories),
+            'filters' => $request->only(['filter', 'sort']),
+        ]);
+    }
 }

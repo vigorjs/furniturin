@@ -38,7 +38,7 @@ export const Footer = () => (
                 </div>
             </div>
             <div className="flex flex-col md:flex-row justify-between items-center pt-8 text-xs text-terra-500">
-                <p>&copy; 2024 Latif Living. Hak cipta dilindungi.</p>
+                <p>&copy; 2025 Latif Living. Hak cipta dilindungi.</p>
                 <div className="flex gap-6 mt-4 md:mt-0">
                     <span className="cursor-pointer hover:text-terra-300">Kebijakan Privasi</span>
                     <span className="cursor-pointer hover:text-terra-300">Syarat & Ketentuan</span>

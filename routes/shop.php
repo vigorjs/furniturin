@@ -7,6 +7,7 @@ use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\OrderController;
 use App\Http\Controllers\Shop\ProductController;
+use App\Http\Controllers\Shop\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,7 +27,25 @@ Route::prefix('shop')->name('shop.')->group(function () {
     // Products
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+
+    // Categories
+    Route::get('/categories', function () {
+        $categories = \App\Models\Category::where('is_active', true)
+            ->whereNull('parent_id')
+            ->with('children')
+            ->withCount('products')
+            ->orderBy('sort_order')
+            ->get();
+
+        return \Inertia\Inertia::render('Shop/Categories/Index', [
+            'categories' => \App\Http\Resources\CategoryResource::collection($categories),
+        ]);
+    })->name('categories.index');
     Route::get('/category/{category:slug}', [ProductController::class, 'byCategory'])->name('products.category');
+
+    // Sale Pages
+    Route::get('/hot-sale', [ProductController::class, 'hotSale'])->name('products.hot-sale');
+    Route::get('/clearance', [ProductController::class, 'clearance'])->name('products.clearance');
 
     // Cart (accessible by guests and authenticated users)
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -38,6 +57,12 @@ Route::prefix('shop')->name('shop.')->group(function () {
 
     // Authenticated routes
     Route::middleware(['auth', 'verified'])->group(function () {
+        // Wishlist
+        Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+        Route::post('/wishlist/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+        Route::delete('/wishlist/{product}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
+        Route::get('/wishlist/check/{product}', [WishlistController::class, 'check'])->name('wishlist.check');
+
         // Checkout
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');

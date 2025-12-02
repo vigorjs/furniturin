@@ -109,7 +109,7 @@ export const TESTIMONIALS = [
 export const NAV_ITEMS = [
     { label: 'Koleksi', href: '/shop/products' },
     { label: 'Kategori', href: '/shop/categories' },
-    { label: 'Tentang Kami', href: '/about' },
-    { label: 'Kontak', href: '/contact' },
+    { label: 'Hot Sale', href: '/shop/hot-sale' },
+    { label: 'Clearance', href: '/shop/clearance' },
 ];
 

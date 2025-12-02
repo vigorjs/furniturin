@@ -1,3 +1,7 @@
+// ========================================
+// Static types (untuk template/mock data)
+// ========================================
+
 export interface Product {
     id: string;
     name: string;
@@ -48,5 +52,143 @@ export interface Testimonial {
     author: string;
     location: string;
     avatar?: string;
+}
+
+// ========================================
+// API types (dari Laravel Backend)
+// ========================================
+
+export interface ProductImage {
+    id: number;
+    product_id: number;
+    image_path: string;
+    image_url: string;
+    alt_text: string | null;
+    sort_order: number;
+    is_primary: boolean;
+}
+
+export interface ApiCategory {
+    id: number;
+    parent_id: number | null;
+    name: string;
+    slug: string;
+    description: string | null;
+    image_url: string | null;
+    is_active: boolean;
+    is_featured: boolean;
+    sort_order: number;
+    products_count?: number;
+    children?: ApiCategory[];
+    parent?: ApiCategory;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ProductReview {
+    id: number;
+    user_id: number;
+    product_id: number;
+    rating: number;
+    title: string | null;
+    comment: string | null;
+    is_approved: boolean;
+    user?: {
+        id: number;
+        name: string;
+    };
+    created_at: string;
+}
+
+export interface ApiProduct {
+    id: number;
+    category_id: number;
+    sku: string;
+    name: string;
+    slug: string;
+    short_description: string | null;
+    description: string | null;
+    specifications: Record<string, string> | null;
+    price: number;
+    price_formatted: string;
+    discount_percentage: number;
+    discount_starts_at: string | null;
+    discount_ends_at: string | null;
+    final_price: number;
+    final_price_formatted: string;
+    has_discount: boolean;
+    stock_quantity: number;
+    low_stock_threshold: number;
+    track_stock: boolean;
+    is_in_stock: boolean;
+    is_low_stock: boolean;
+    weight: number | null;
+    dimensions: {
+        length?: number;
+        width?: number;
+        height?: number;
+    } | null;
+    status: {
+        value: string;
+        label: string;
+    };
+    sale_type: {
+        value: string;
+        label: string;
+    };
+    is_featured: boolean;
+    average_rating: number;
+    review_count: number;
+    view_count: number;
+    sold_count: number;
+    meta_title: string | null;
+    meta_description: string | null;
+    category?: ApiCategory;
+    images?: ProductImage[];
+    primary_image?: ProductImage | null;
+    reviews?: ProductReview[];
+    created_at: string;
+    updated_at: string;
+}
+
+// Pagination types
+export interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface PaginationMeta {
+    current_page: number;
+    from: number;
+    last_page: number;
+    links: PaginationLink[];
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    links: {
+        first: string;
+        last: string;
+        prev: string | null;
+        next: string | null;
+    };
+    meta: PaginationMeta;
+}
+
+// Filter types
+export interface ProductFilters {
+    filter?: {
+        name?: string;
+        category_id?: number;
+        sale_type?: string;
+        price_min?: number;
+        price_max?: number;
+    };
+    sort?: string;
 }
 
