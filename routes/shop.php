@@ -20,8 +20,11 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes - Produk
 Route::prefix('shop')->name('shop.')->group(function () {
+    // Homepage - Landing page with products
+    Route::get('/', fn() => \Inertia\Inertia::render('Shop/Home'))->name('home');
+
     // Products
-    Route::get('/', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
     Route::get('/category/{category:slug}', [ProductController::class, 'byCategory'])->name('products.category');
 

@@ -7,11 +7,39 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Google Fonts - Playfair Display & Inter */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+
 @theme {
-    --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+    /* Font Families */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
+
+    /* Terra Colors - Earth Tones */
+    --color-terra-50: #fafaf9;
+    --color-terra-100: #f5f5f4;
+    --color-terra-200: #e7e5e4;
+    --color-terra-300: #d6d3d1;
+    --color-terra-400: #a8a29e;
+    --color-terra-500: #78716c;
+    --color-terra-600: #57534e;
+    --color-terra-700: #44403c;
+    --color-terra-800: #292524;
+    --color-terra-900: #1c1917;
+
+    /* Wood Colors */
+    --color-wood-light: #D4C5B0;
+    --color-wood: #A68A64;
+    --color-wood-dark: #5D4037;
+
+    /* Sand Colors */
+    --color-sand-50: #fdfbf7;
+    --color-sand-100: #f8f5f0;
+    --color-sand-200: #eee8dd;
+
+    /* Animations */
+    --animate-spin-slow: spin 12s linear infinite;
+    --animate-float: float 6s ease-in-out infinite;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -140,4 +168,53 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Shop-specific styles */
+@layer utilities {
+    /* Hide scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Custom scrollbar for cart */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--color-terra-200);
+        border-radius: 2px;
+    }
+
+    /* Text outline effect */
+    .text-outline-terra {
+        -webkit-text-stroke: 1px #292524;
+        color: transparent;
+    }
+}
+
+/* Noise background overlay */
+.bg-noise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Float animation keyframes */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
 }
