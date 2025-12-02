@@ -51,8 +51,14 @@ class OrderController extends Controller implements HasMiddleware
         return Inertia::render('Admin/Orders/Index', [
             'orders' => OrderResource::collection($orders),
             'filters' => $request->only(['filter', 'sort']),
-            'statuses' => OrderStatus::cases(),
-            'paymentStatuses' => PaymentStatus::cases(),
+            'statuses' => collect(OrderStatus::cases())->map(fn ($status) => [
+                'value' => $status->value,
+                'name' => $status->label(),
+            ])->all(),
+            'paymentStatuses' => collect(PaymentStatus::cases())->map(fn ($status) => [
+                'value' => $status->value,
+                'name' => $status->label(),
+            ])->all(),
         ]);
     }
 
@@ -62,8 +68,14 @@ class OrderController extends Controller implements HasMiddleware
 
         return Inertia::render('Admin/Orders/Show', [
             'order' => new OrderResource($order),
-            'statuses' => OrderStatus::cases(),
-            'paymentStatuses' => PaymentStatus::cases(),
+            'statuses' => collect(OrderStatus::cases())->map(fn ($status) => [
+                'value' => $status->value,
+                'name' => $status->label(),
+            ])->all(),
+            'paymentStatuses' => collect(PaymentStatus::cases())->map(fn ($status) => [
+                'value' => $status->value,
+                'name' => $status->label(),
+            ])->all(),
         ]);
     }
 

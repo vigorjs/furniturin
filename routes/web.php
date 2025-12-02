@@ -23,6 +23,10 @@ Route::get('/welcome', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
+        // Redirect admin users to admin dashboard
+        if (auth()->user()->hasAnyRole(['super-admin', 'admin', 'manager', 'staff'])) {
+            return redirect('/admin');
+        }
         return Inertia::render('dashboard');
     })->name('dashboard');
 });

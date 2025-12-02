@@ -60,8 +60,14 @@ class ProductController extends Controller implements HasMiddleware
             'products' => ProductResource::collection($products),
             'categories' => CategoryResource::collection($categories),
             'filters' => $request->only(['filter', 'sort']),
-            'statuses' => ProductStatus::cases(),
-            'saleTypes' => SaleType::cases(),
+            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
+                'value' => $status->value,
+                'name' => $status->label(),
+            ])->all(),
+            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
+                'value' => $type->value,
+                'name' => $type->label(),
+            ])->all(),
         ]);
     }
 
@@ -71,8 +77,14 @@ class ProductController extends Controller implements HasMiddleware
 
         return Inertia::render('Admin/Products/Create', [
             'categories' => CategoryResource::collection($categories),
-            'statuses' => ProductStatus::cases(),
-            'saleTypes' => SaleType::cases(),
+            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
+                'value' => $status->value,
+                'name' => $status->label(),
+            ])->all(),
+            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
+                'value' => $type->value,
+                'name' => $type->label(),
+            ])->all(),
         ]);
     }
 
@@ -105,8 +117,14 @@ class ProductController extends Controller implements HasMiddleware
         return Inertia::render('Admin/Products/Edit', [
             'product' => new ProductResource($product),
             'categories' => CategoryResource::collection($categories),
-            'statuses' => ProductStatus::cases(),
-            'saleTypes' => SaleType::cases(),
+            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
+                'value' => $status->value,
+                'name' => $status->label(),
+            ])->all(),
+            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
+                'value' => $type->value,
+                'name' => $type->label(),
+            ])->all(),
         ]);
     }
 
