@@ -63,5 +63,61 @@ class SettingsController extends Controller
 
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }
+
+    /**
+     * Homepage settings page
+     */
+    public function homepage(): Response
+    {
+        $settings = Setting::all()->pluck('value', 'key')->toArray();
+
+        return Inertia::render('Admin/Settings/Homepage', [
+            'settings' => [
+                // Hero Section
+                'hero_badge' => $settings['hero_badge'] ?? 'Koleksi Terbaru 2025',
+                'hero_title' => $settings['hero_title'] ?? 'Desain yang',
+                'hero_title_highlight' => $settings['hero_title_highlight'] ?? 'bernafas.',
+                'hero_description' => $settings['hero_description'] ?? 'Furniture minimalis dari bahan berkelanjutan. Dibuat untuk mereka yang menemukan kemewahan dalam kesederhanaan.',
+                'hero_image_main' => $settings['hero_image_main'] ?? 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=2000&auto=format&fit=crop',
+                'hero_image_secondary' => $settings['hero_image_secondary'] ?? 'https://images.unsplash.com/photo-1567225557594-88d73e55f2cb?q=80&w=600&auto=format&fit=crop',
+                'hero_product_name' => $settings['hero_product_name'] ?? 'Kursi Santai Premium',
+                // Trust Logos (JSON array)
+                'trust_logos' => $settings['trust_logos'] ?? '["Kompas", "Tempo", "Forbes Indonesia", "Bisnis Indonesia", "The Jakarta Post"]',
+                // Values (JSON array)
+                'home_values' => $settings['home_values'] ?? json_encode([
+                    ['icon' => 'leaf', 'title' => 'Bahan Berkelanjutan', 'desc' => 'Setiap produk menggunakan kayu dari hutan yang dikelola secara bertanggung jawab dan bahan daur ulang.'],
+                    ['icon' => 'truck', 'title' => 'Gratis Pengiriman', 'desc' => 'Pengiriman gratis untuk pembelian di atas Rp 5 juta ke seluruh Indonesia.'],
+                    ['icon' => 'shield-check', 'title' => 'Garansi Selamanya', 'desc' => 'Garansi seumur hidup untuk semua kerusakan struktural karena kami percaya dengan kualitas kami.'],
+                ]),
+            ],
+        ]);
+    }
+
+    /**
+     * Update homepage settings
+     */
+    public function updateHomepage(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'hero_badge' => ['nullable', 'string', 'max:100'],
+            'hero_title' => ['nullable', 'string', 'max:100'],
+            'hero_title_highlight' => ['nullable', 'string', 'max:100'],
+            'hero_description' => ['nullable', 'string', 'max:500'],
+            'hero_image_main' => ['nullable', 'url', 'max:500'],
+            'hero_image_secondary' => ['nullable', 'url', 'max:500'],
+            'hero_product_name' => ['nullable', 'string', 'max:100'],
+            'trust_logos' => ['nullable', 'string'],
+            'home_values' => ['nullable', 'string'],
+        ]);
+
+        foreach ($validated as $key => $value) {
+            Setting::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value ?? '']
+            );
+        }
+
+        return back()->with('success', 'Pengaturan homepage berhasil disimpan.');
+    }
 }
 

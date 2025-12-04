@@ -58,5 +58,9 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->prefix('admin
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // Homepage Settings
+    Route::get('/settings/homepage', [SettingsController::class, 'homepage'])->name('settings.homepage');
+    Route::post('/settings/homepage', [SettingsController::class, 'updateHomepage'])->name('settings.homepage.update');
 });
 

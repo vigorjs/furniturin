@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head, useForm } from '@inertiajs/react';
-import { Save, Store, Mail, Phone, MapPin, Globe } from 'lucide-react';
+import { Head, useForm, Link } from '@inertiajs/react';
+import { Save, Store, Mail, Phone, MapPin, Globe, Home, ChevronRight } from 'lucide-react';
 
 interface SettingsIndexProps {
     settings: {
@@ -33,6 +33,25 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
                 <div>
                     <h1 className="text-2xl font-bold text-terra-900">Pengaturan Situs</h1>
                     <p className="text-terra-500 mt-1">Kelola pengaturan umum toko Anda</p>
+                </div>
+
+                {/* Quick Links */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Link
+                        href="/admin/settings/homepage"
+                        className="flex items-center justify-between p-4 bg-white rounded-2xl border border-terra-100 hover:border-wood hover:shadow-md transition-all group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-wood/10 rounded-lg flex items-center justify-center">
+                                <Home className="w-5 h-5 text-wood" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-terra-900">Pengaturan Homepage</h3>
+                                <p className="text-sm text-terra-500">Hero, Trust Logos, Values</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-terra-400 group-hover:text-wood transition-colors" />
+                    </Link>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">

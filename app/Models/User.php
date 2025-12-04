@@ -32,6 +32,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'avatar_path',
+        'city',
         'birth_date',
         'gender',
         'is_active',

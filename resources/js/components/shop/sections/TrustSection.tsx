@@ -1,13 +1,17 @@
 import { motion } from 'framer-motion';
 
-export const TrustSection = () => (
+interface TrustSectionProps {
+    logos: string[];
+}
+
+export const TrustSection: React.FC<TrustSectionProps> = ({ logos }) => (
     <>
         {/* Trust / Press Logos Section */}
         <section className="py-12 border-y border-terra-100 bg-white">
             <div className="max-w-[1400px] mx-auto px-6 md:px-12">
                 <p className="text-center text-terra-400 text-xs font-bold uppercase tracking-[0.2em] mb-8">Dipercaya oleh Rumah Modern & Ditampilkan Di</p>
                 <div className="flex flex-wrap justify-center md:justify-between items-center gap-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-                    {['Kompas', 'Tempo', 'Forbes Indonesia', 'Bisnis Indonesia', 'The Jakarta Post'].map((name) => (
+                    {logos.map((name) => (
                         <span key={name} className="font-serif text-2xl md:text-3xl font-bold text-terra-900 cursor-default">{name}</span>
                     ))}
                 </div>

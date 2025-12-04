@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Product } from '@/types/shop';
+import { Product, ApiProduct, ApiCategory, HomeTestimonial, HeroSettings, HomeValue } from '@/types/shop';
 import { HeroSection } from './sections/HeroSection';
 import { TrustSection } from './sections/TrustSection';
 import { CategoriesSection } from './sections/CategoriesSection';
@@ -10,9 +10,23 @@ import { NewsletterSection } from './sections/NewsletterSection';
 
 interface LandingViewProps {
     onProductClick: (product: Product) => void;
+    featuredProducts: ApiProduct[];
+    featuredCategories: ApiCategory[];
+    testimonials: HomeTestimonial[];
+    heroSettings: HeroSettings;
+    trustLogos: string[];
+    values: HomeValue[];
 }
 
-export const LandingView: React.FC<LandingViewProps> = ({ onProductClick }) => {
+export const LandingView: React.FC<LandingViewProps> = ({
+    onProductClick,
+    featuredProducts,
+    featuredCategories,
+    testimonials,
+    heroSettings,
+    trustLogos,
+    values,
+}) => {
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -20,12 +34,12 @@ export const LandingView: React.FC<LandingViewProps> = ({ onProductClick }) => {
             exit={{ opacity: 0 }}
             className="overflow-hidden"
         >
-            <HeroSection />
-            <TrustSection />
-            <CategoriesSection />
-            <ValuesSection />
-            <ProductsSection onProductClick={onProductClick} />
-            <TestimonialsSection />
+            <HeroSection settings={heroSettings} />
+            <TrustSection logos={trustLogos} />
+            <CategoriesSection categories={featuredCategories} />
+            <ValuesSection values={values} />
+            <ProductsSection products={featuredProducts} onProductClick={onProductClick} />
+            <TestimonialsSection testimonials={testimonials} />
             <NewsletterSection />
         </motion.div>
     );

@@ -192,3 +192,50 @@ export interface ProductFilters {
     sort?: string;
 }
 
+// ========================================
+// Home Page Types
+// ========================================
+
+export interface HeroSettings {
+    badge: string;
+    title: string;
+    title_highlight: string;
+    description: string;
+    image_main: string;
+    image_secondary: string;
+    product_name: string;
+}
+
+export interface HomeValue {
+    icon: 'leaf' | 'truck' | 'shield-check';
+    title: string;
+    desc: string;
+}
+
+export interface HomeTestimonial {
+    id: number;
+    text: string;
+    rating: number;
+    author: string;
+    location: string;
+}
+
+export interface SiteSettings {
+    name: string;
+    description: string;
+    phone: string;
+    email: string;
+    address: string;
+    whatsapp: string;
+}
+
+export interface HomePageProps {
+    featuredProducts: { data: ApiProduct[] };
+    featuredCategories: { data: ApiCategory[] };
+    testimonials: HomeTestimonial[];
+    heroSettings: HeroSettings;
+    trustLogos: string[];
+    values: HomeValue[];
+    siteSettings: SiteSettings;
+}
+

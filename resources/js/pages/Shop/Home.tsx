@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Product, CartItem, ViewState } from '@/types/shop';
+import { Product, CartItem, ViewState, HomePageProps } from '@/types/shop';
 import {
     Header,
     Footer,
@@ -16,7 +16,15 @@ import { SEOHead, WebsiteStructuredData, OrganizationStructuredData } from '@/co
 
 // --- Main App Component ---
 
-export default function Home() {
+export default function Home({
+    featuredProducts,
+    featuredCategories,
+    testimonials,
+    heroSettings,
+    trustLogos,
+    values,
+    siteSettings,
+}: HomePageProps) {
     const [view, setView] = useState<ViewState>('landing');
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -87,7 +95,7 @@ export default function Home() {
             {/* SEO Head */}
             <SEOHead
                 title="Furniture Premium Berkualitas"
-                description="Latif Living - Toko furnitur premium Indonesia. Temukan koleksi kursi, meja, lemari, dan furnitur custom berkualitas tinggi dengan harga terjangkau. Gratis ongkir untuk pembelian di atas Rp 5 juta."
+                description={siteSettings.description || "Latif Living - Toko furnitur premium Indonesia. Temukan koleksi kursi, meja, lemari, dan furnitur custom berkualitas tinggi dengan harga terjangkau."}
                 keywords={['furnitur', 'furniture', 'mebel', 'latif living', 'kursi', 'meja', 'lemari', 'furnitur custom', 'furniture indonesia', 'mebel jepara']}
                 type="website"
             />
@@ -95,21 +103,21 @@ export default function Home() {
             {/* Structured Data */}
             <WebsiteStructuredData
                 data={{
-                    name: 'Latif Living',
+                    name: siteSettings.name,
                     url: typeof window !== 'undefined' ? window.location.origin : '',
                     searchUrl: typeof window !== 'undefined' ? `${window.location.origin}/shop/products` : '',
                 }}
             />
             <OrganizationStructuredData
                 data={{
-                    name: 'Latif Living',
+                    name: siteSettings.name,
                     url: typeof window !== 'undefined' ? window.location.origin : '',
                     logo: typeof window !== 'undefined' ? `${window.location.origin}/images/logo.png` : '',
-                    description: 'Toko furnitur premium Indonesia dengan koleksi berkualitas tinggi',
-                    email: 'info@latifliving.com',
-                    phone: '+6281234567890',
+                    description: siteSettings.description,
+                    email: siteSettings.email || 'info@latifliving.com',
+                    phone: siteSettings.phone || '+6281234567890',
                     address: {
-                        street: 'Jl. Mebel No. 123',
+                        street: siteSettings.address || 'Jl. Mebel No. 123',
                         city: 'Jepara',
                         region: 'Jawa Tengah',
                         postalCode: '59411',
@@ -148,7 +156,16 @@ export default function Home() {
             <main className="bg-white min-h-screen">
                 <AnimatePresence mode="wait">
                     {view === 'landing' && (
-                        <LandingView key="landing" onProductClick={handleProductClick} />
+                        <LandingView
+                            key="landing"
+                            onProductClick={handleProductClick}
+                            featuredProducts={featuredProducts.data}
+                            featuredCategories={featuredCategories.data}
+                            testimonials={testimonials}
+                            heroSettings={heroSettings}
+                            trustLogos={trustLogos}
+                            values={values}
+                        />
                     )}
                     {view === 'detail' && selectedProduct && (
                         <ProductDetail
@@ -176,8 +193,8 @@ export default function Home() {
 
             {/* WhatsApp Floating Button */}
             <WhatsAppButton
-                phoneNumber="6281234567890"
-                message="Halo, saya tertarik dengan produk di Latif Living"
+                phoneNumber={siteSettings.whatsapp || "6281234567890"}
+                message={`Halo, saya tertarik dengan produk di ${siteSettings.name}`}
             />
 
             {/* Promo Popup - shows after 5 seconds */}

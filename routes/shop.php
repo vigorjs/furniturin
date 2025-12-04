@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Controllers\Shop\AddressController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\HomeController;
+use App\Http\Controllers\Shop\NewsletterController;
 use App\Http\Controllers\Shop\OrderController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\WishlistController;
@@ -22,7 +24,7 @@ use Illuminate\Support\Facades\Route;
 // Public routes - Produk
 Route::prefix('shop')->name('shop.')->group(function () {
     // Homepage - Landing page with products
-    Route::get('/', fn() => \Inertia\Inertia::render('Shop/Home'))->name('home');
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
     // Products
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -57,6 +59,10 @@ Route::prefix('shop')->name('shop.')->group(function () {
 
     // Compare Products
     Route::get('/compare', [ProductController::class, 'compare'])->name('products.compare');
+
+    // Newsletter
+    Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+    Route::post('/newsletter/unsubscribe', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 
     // Cart (accessible by guests and authenticated users)
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
