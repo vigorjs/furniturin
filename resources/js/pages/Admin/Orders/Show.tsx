@@ -47,7 +47,13 @@ interface ShowOrderProps {
 }
 
 export default function ShowOrder({ order, statuses }: ShowOrderProps) {
-    const { data, setData, put, processing } = useForm({ status: order.status.value });
+    // Safe access to nested objects
+    const status = order.status || { value: 'pending', label: 'Menunggu' };
+    const paymentStatus = order.payment_status || { value: 'pending', label: 'Menunggu' };
+    const paymentMethod = order.payment_method || { value: 'unknown', label: 'Unknown' };
+    const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
+
+    const { data, setData, put, processing } = useForm({ status: status.value });
 
     const handleStatusChange = (newStatus: string) => {
         setData('status', newStatus);
@@ -82,7 +88,7 @@ export default function ShowOrder({ order, statuses }: ShowOrderProps) {
                         <div className="bg-white rounded-2xl shadow-sm border border-terra-100">
                             <div className="p-6 border-b border-terra-100"><h2 className="text-lg font-semibold text-terra-900">Item Pesanan</h2></div>
                             <div className="divide-y divide-terra-100">
-                                {order.items.map((item) => (
+                                {items.map((item) => (
                                     <div key={item.id} className="p-4 flex items-center gap-4">
                                         <div className="w-16 h-16 bg-terra-100 rounded-lg flex items-center justify-center overflow-hidden">
                                             {item.product?.images?.[0]?.image_url ? (
@@ -127,8 +133,8 @@ export default function ShowOrder({ order, statuses }: ShowOrderProps) {
                         <div className="bg-white rounded-2xl p-6 shadow-sm border border-terra-100">
                             <div className="flex items-center gap-3 mb-4"><CreditCard className="w-5 h-5 text-terra-500" /><h2 className="font-semibold text-terra-900">Pembayaran</h2></div>
                             <div className="text-sm space-y-2">
-                                <div className="flex justify-between"><span className="text-terra-600">Metode</span><span className="text-terra-900">{order.payment_method.label}</span></div>
-                                <div className="flex justify-between"><span className="text-terra-600">Status</span><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${order.payment_status.value === 'paid' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{order.payment_status.label}</span></div>
+                                <div className="flex justify-between"><span className="text-terra-600">Metode</span><span className="text-terra-900">{paymentMethod.label}</span></div>
+                                <div className="flex justify-between"><span className="text-terra-600">Status</span><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${paymentStatus.value === 'paid' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{paymentStatus.label}</span></div>
                             </div>
                         </div>
                         {order.tracking_number && (

@@ -67,7 +67,7 @@ class OrderController extends Controller implements HasMiddleware
         $order->load(['user', 'items.product.images']);
 
         return Inertia::render('Admin/Orders/Show', [
-            'order' => new OrderResource($order),
+            'order' => (new OrderResource($order))->resolve(),
             'statuses' => collect(OrderStatus::cases())->map(fn ($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
