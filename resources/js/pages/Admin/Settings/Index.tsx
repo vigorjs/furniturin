@@ -1,6 +1,6 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { Save, Store, Mail, Phone, MapPin, Globe, Home, ChevronRight } from 'lucide-react';
+import { Save, Store, Mail, Phone, MapPin, Globe, Home, ChevronRight, CreditCard } from 'lucide-react';
 
 interface SettingsIndexProps {
     settings: {
@@ -48,6 +48,21 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
                             <div>
                                 <h3 className="font-semibold text-terra-900">Pengaturan Homepage</h3>
                                 <p className="text-sm text-terra-500">Hero, Trust Logos, Values</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-terra-400 group-hover:text-wood transition-colors" />
+                    </Link>
+                    <Link
+                        href="/admin/settings/payment"
+                        className="flex items-center justify-between p-4 bg-white rounded-2xl border border-terra-100 hover:border-wood hover:shadow-md transition-all group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <CreditCard className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-terra-900">Pengaturan Pembayaran</h3>
+                                <p className="text-sm text-terra-500">Rekening Bank, COD, Deadline</p>
                             </div>
                         </div>
                         <ChevronRight className="w-5 h-5 text-terra-400 group-hover:text-wood transition-colors" />

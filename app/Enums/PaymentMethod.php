@@ -10,10 +10,7 @@ namespace App\Enums;
 enum PaymentMethod: string
 {
     case BANK_TRANSFER = 'bank_transfer';
-    case E_WALLET = 'e_wallet';
     case COD = 'cod';
-    case CREDIT_CARD = 'credit_card';
-    case VIRTUAL_ACCOUNT = 'virtual_account';
 
     /**
      * Get label untuk ditampilkan di UI (Bahasa Indonesia).
@@ -22,10 +19,18 @@ enum PaymentMethod: string
     {
         return match ($this) {
             self::BANK_TRANSFER => 'Transfer Bank',
-            self::E_WALLET => 'E-Wallet',
             self::COD => 'Bayar di Tempat (COD)',
-            self::CREDIT_CARD => 'Kartu Kredit',
-            self::VIRTUAL_ACCOUNT => 'Virtual Account',
+        };
+    }
+
+    /**
+     * Get description untuk UI.
+     */
+    public function description(): string
+    {
+        return match ($this) {
+            self::BANK_TRANSFER => 'Transfer ke rekening bank kami, konfirmasi via WhatsApp',
+            self::COD => 'Bayar tunai saat barang diterima',
         };
     }
 
@@ -36,10 +41,7 @@ enum PaymentMethod: string
     {
         return match ($this) {
             self::BANK_TRANSFER => 'building-library',
-            self::E_WALLET => 'wallet',
-            self::COD => 'truck',
-            self::CREDIT_CARD => 'credit-card',
-            self::VIRTUAL_ACCOUNT => 'document-text',
+            self::COD => 'banknotes',
         };
     }
 
@@ -48,7 +50,7 @@ enum PaymentMethod: string
      */
     public function requiresManualVerification(): bool
     {
-        return in_array($this, [self::BANK_TRANSFER, self::COD]);
+        return true; // Both methods require manual verification
     }
 }
 

@@ -8,6 +8,7 @@ use App\Actions\Order\CancelOrderAction;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Http\RedirectResponse;
@@ -55,6 +56,14 @@ class OrderController extends Controller implements HasMiddleware
 
         return Inertia::render('Shop/Orders/Show', [
             'order' => (new OrderResource($order))->resolve(),
+            'paymentSettings' => [
+                'bank_name' => Setting::get('bank_name', 'BCA'),
+                'bank_account_number' => Setting::get('bank_account_number', ''),
+                'bank_account_name' => Setting::get('bank_account_name', ''),
+                'cod_fee' => (int) Setting::get('cod_fee', '5000'),
+                'payment_deadline_hours' => (int) Setting::get('payment_deadline_hours', '24'),
+                'whatsapp' => Setting::get('contact_whatsapp', ''),
+            ],
         ]);
     }
 

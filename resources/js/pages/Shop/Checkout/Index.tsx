@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { MapPin, CreditCard, Truck, Plus, Check, ArrowLeft, Loader2, Package } from 'lucide-react';
+import { MapPin, CreditCard, Truck, Plus, Check, ArrowLeft, Loader2, Package, Banknote, Building2 } from 'lucide-react';
 import { ShopLayout } from '@/layouts/ShopLayout';
 
 interface Address {
@@ -37,15 +37,23 @@ interface Cart {
 interface PaymentMethod {
     value: string;
     name: string;
+    description: string;
+    fee: number;
+}
+
+interface PaymentSettings {
+    cod_fee: number;
+    payment_deadline_hours: number;
 }
 
 interface Props {
     cart: Cart;
     addresses: Address[];
     paymentMethods: PaymentMethod[];
+    paymentSettings: PaymentSettings;
 }
 
-export default function CheckoutIndex({ cart, addresses, paymentMethods }: Props) {
+export default function CheckoutIndex({ cart, addresses, paymentMethods, paymentSettings }: Props) {
     // Ensure addresses is always an array
     const addressList = Array.isArray(addresses) ? addresses : [];
     const paymentList = Array.isArray(paymentMethods) ? paymentMethods : [];
@@ -149,7 +157,7 @@ export default function CheckoutIndex({ cart, addresses, paymentMethods }: Props
                             </div>
 
                             {/* Order Summary */}
-                            <OrderSummary cart={safeCart} getProductImage={getProductImage} processing={processing} selectedAddress={data.address_id} selectedPayment={data.payment_method} selectedShipping={data.shipping_method} errors={errors} />
+                            <OrderSummary cart={safeCart} getProductImage={getProductImage} processing={processing} selectedAddress={data.address_id} selectedPayment={data.payment_method} selectedShipping={data.shipping_method} paymentSettings={paymentSettings} errors={errors} />
                         </div>
                     </form>
                 </div>
@@ -215,28 +223,30 @@ interface PaymentSectionProps {
 }
 
 function PaymentSection({ paymentMethods, selectedPayment, setSelectedPayment, error }: PaymentSectionProps) {
-    const paymentIcons: Record<string, React.ReactNode> = {
-        bank_transfer: <CreditCard className="w-5 h-5" />,
-        e_wallet: <CreditCard className="w-5 h-5" />,
-        cod: <Truck className="w-5 h-5" />,
-        credit_card: <CreditCard className="w-5 h-5" />,
-        virtual_account: <CreditCard className="w-5 h-5" />,
-    };
-
     return (
         <div className="bg-white rounded-2xl p-6">
             <h2 className="font-serif text-xl text-terra-900 flex items-center gap-2 mb-4">
                 <CreditCard className="w-5 h-5" /> Metode Pembayaran
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-3">
                 {paymentMethods.map((method) => (
-                    <label key={method.value} className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedPayment === method.value ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedPayment === method.value ? 'border-wood bg-wood' : 'border-terra-300'}`}>
-                            {selectedPayment === method.value && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {paymentIcons[method.value]}
-                            <span className="text-terra-900">{method.name}</span>
+                    <label key={method.value} className={`block p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedPayment === method.value ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
+                        <div className="flex items-start gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${selectedPayment === method.value ? 'border-wood bg-wood' : 'border-terra-300'}`}>
+                                {selectedPayment === method.value && <Check className="w-3 h-3 text-white" />}
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                    {method.value === 'bank_transfer' ? <Building2 className="w-5 h-5 text-blue-600" /> : <Banknote className="w-5 h-5 text-green-600" />}
+                                    <span className="font-medium text-terra-900">{method.name}</span>
+                                    {method.fee > 0 && (
+                                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                                            +{formatCurrency(method.fee)}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-sm text-terra-500">{method.description}</p>
+                            </div>
                         </div>
                         <input type="radio" name="payment" value={method.value} checked={selectedPayment === method.value} onChange={() => setSelectedPayment(method.value)} className="hidden" />
                     </label>
@@ -254,14 +264,16 @@ interface OrderSummaryProps {
     selectedAddress: number | null;
     selectedPayment: string;
     selectedShipping: string;
+    paymentSettings: PaymentSettings;
     errors: Record<string, string>;
 }
 
-function OrderSummary({ cart, getProductImage, processing, selectedAddress, selectedPayment, selectedShipping, errors }: OrderSummaryProps) {
+function OrderSummary({ cart, getProductImage, processing, selectedAddress, selectedPayment, selectedShipping, paymentSettings, errors }: OrderSummaryProps) {
     const hasErrors = Object.keys(errors).length > 0;
     const shippingCost = getShippingCost(selectedShipping);
+    const codFee = selectedPayment === 'cod' ? (paymentSettings?.cod_fee || 0) : 0;
     const subtotal = cart.subtotal || 0;
-    const total = subtotal + shippingCost;
+    const total = subtotal + shippingCost + codFee;
 
     return (
         <div className="lg:col-span-1">
@@ -295,6 +307,12 @@ function OrderSummary({ cart, getProductImage, processing, selectedAddress, sele
                             {shippingCost > 0 ? formatCurrency(shippingCost) : 'Gratis'}
                         </span>
                     </div>
+                    {codFee > 0 && (
+                        <div className="flex justify-between text-terra-600">
+                            <span>Biaya COD</span>
+                            <span className="text-orange-600">{formatCurrency(codFee)}</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="border-t border-terra-100 pt-4 mb-6">

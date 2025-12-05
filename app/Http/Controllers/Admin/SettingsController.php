@@ -21,17 +21,13 @@ class SettingsController extends Controller
             'settings' => [
                 'site_name' => $settings['site_name'] ?? 'Latif Living',
                 'site_description' => $settings['site_description'] ?? '',
-                'site_email' => $settings['site_email'] ?? '',
-                'site_phone' => $settings['site_phone'] ?? '',
-                'site_address' => $settings['site_address'] ?? '',
-                'shipping_cost' => $settings['shipping_cost'] ?? 0,
-                'free_shipping_threshold' => $settings['free_shipping_threshold'] ?? 0,
-                'tax_rate' => $settings['tax_rate'] ?? 0,
-                'currency' => $settings['currency'] ?? 'IDR',
-                'social_facebook' => $settings['social_facebook'] ?? '',
-                'social_instagram' => $settings['social_instagram'] ?? '',
-                'social_twitter' => $settings['social_twitter'] ?? '',
-                'social_whatsapp' => $settings['social_whatsapp'] ?? '',
+                'contact_email' => $settings['contact_email'] ?? '',
+                'contact_phone' => $settings['contact_phone'] ?? '',
+                'contact_whatsapp' => $settings['contact_whatsapp'] ?? '',
+                'address' => $settings['address'] ?? '',
+                'facebook_url' => $settings['facebook_url'] ?? '',
+                'instagram_url' => $settings['instagram_url'] ?? '',
+                'tiktok_url' => $settings['tiktok_url'] ?? '',
             ],
         ]);
     }
@@ -41,17 +37,13 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'site_name' => ['required', 'string', 'max:255'],
             'site_description' => ['nullable', 'string', 'max:500'],
-            'site_email' => ['nullable', 'email', 'max:255'],
-            'site_phone' => ['nullable', 'string', 'max:20'],
-            'site_address' => ['nullable', 'string', 'max:500'],
-            'shipping_cost' => ['nullable', 'numeric', 'min:0'],
-            'free_shipping_threshold' => ['nullable', 'numeric', 'min:0'],
-            'tax_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'currency' => ['nullable', 'string', 'max:10'],
-            'social_facebook' => ['nullable', 'url', 'max:255'],
-            'social_instagram' => ['nullable', 'url', 'max:255'],
-            'social_twitter' => ['nullable', 'url', 'max:255'],
-            'social_whatsapp' => ['nullable', 'string', 'max:20'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
+            'contact_phone' => ['nullable', 'string', 'max:20'],
+            'contact_whatsapp' => ['nullable', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'facebook_url' => ['nullable', 'url', 'max:255'],
+            'instagram_url' => ['nullable', 'url', 'max:255'],
+            'tiktok_url' => ['nullable', 'url', 'max:255'],
         ]);
 
         foreach ($validated as $key => $value) {
@@ -118,6 +110,50 @@ class SettingsController extends Controller
         }
 
         return back()->with('success', 'Pengaturan homepage berhasil disimpan.');
+    }
+
+    /**
+     * Payment settings page
+     */
+    public function payment(): Response
+    {
+        $settings = Setting::all()->pluck('value', 'key')->toArray();
+
+        return Inertia::render('Admin/Settings/Payment', [
+            'settings' => [
+                // Bank Account
+                'bank_name' => $settings['bank_name'] ?? 'BCA',
+                'bank_account_number' => $settings['bank_account_number'] ?? '',
+                'bank_account_name' => $settings['bank_account_name'] ?? '',
+                // COD Settings
+                'cod_fee' => (int) ($settings['cod_fee'] ?? 5000),
+                // Payment Deadline
+                'payment_deadline_hours' => (int) ($settings['payment_deadline_hours'] ?? 24),
+            ],
+        ]);
+    }
+
+    /**
+     * Update payment settings
+     */
+    public function updatePayment(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'bank_name' => ['required', 'string', 'max:100'],
+            'bank_account_number' => ['required', 'string', 'max:50'],
+            'bank_account_name' => ['required', 'string', 'max:100'],
+            'cod_fee' => ['required', 'integer', 'min:0'],
+            'payment_deadline_hours' => ['required', 'integer', 'min:1', 'max:168'],
+        ]);
+
+        foreach ($validated as $key => $value) {
+            Setting::updateOrCreate(
+                ['key' => $key],
+                ['value' => (string) $value]
+            );
+        }
+
+        return back()->with('success', 'Pengaturan pembayaran berhasil disimpan.');
     }
 }
 

@@ -13,6 +13,7 @@ use App\Http\Resources\CartResource;
 use App\Http\Resources\OrderResource;
 use App\Models\Address;
 use App\Models\Cart;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Http\RedirectResponse;
@@ -47,13 +48,21 @@ class CheckoutController extends Controller implements HasMiddleware
 
         $addresses = $user->addresses()->orderByDesc('is_default')->get();
 
+        $codFee = (int) Setting::get('cod_fee', '5000');
+
         return Inertia::render('Shop/Checkout/Index', [
             'cart' => (new CartResource($cart))->resolve(),
             'addresses' => AddressResource::collection($addresses)->resolve(),
             'paymentMethods' => collect(PaymentMethod::cases())->map(fn ($method) => [
                 'value' => $method->value,
                 'name' => $method->label(),
+                'description' => $method->description(),
+                'fee' => $method === PaymentMethod::COD ? $codFee : 0,
             ])->all(),
+            'paymentSettings' => [
+                'cod_fee' => $codFee,
+                'payment_deadline_hours' => (int) Setting::get('payment_deadline_hours', '24'),
+            ],
         ]);
     }
 

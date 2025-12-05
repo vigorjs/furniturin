@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Package, MapPin, CreditCard, Truck, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, CreditCard, Truck, Clock, CheckCircle, XCircle, AlertCircle, Copy, MessageCircle, Building2, Banknote } from 'lucide-react';
 import { ShopLayout } from '@/layouts/ShopLayout';
 import { useState } from 'react';
 
@@ -33,6 +33,7 @@ interface Order {
     discount_formatted: string;
     shipping_cost_formatted: string;
     total_formatted: string;
+    total: number;
     shipping_name: string;
     shipping_phone: string;
     shipping_address: string;
@@ -49,8 +50,18 @@ interface Order {
     cancellation_reason?: string;
 }
 
+interface PaymentSettings {
+    bank_name: string;
+    bank_account_number: string;
+    bank_account_name: string;
+    cod_fee: number;
+    payment_deadline_hours: number;
+    whatsapp: string;
+}
+
 interface Props {
     order: Order;
+    paymentSettings: PaymentSettings;
 }
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
@@ -61,8 +72,9 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
     cancelled: <XCircle size={20} />,
 };
 
-export default function OrderShow({ order }: Props) {
+export default function OrderShow({ order, paymentSettings }: Props) {
     const [cancelling, setCancelling] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const handleCancel = async () => {
         if (!confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
@@ -72,6 +84,12 @@ export default function OrderShow({ order }: Props) {
         });
     };
 
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     // Safe access to status with fallback
     const status = order.status || { value: 'pending', label: 'Menunggu', color: 'bg-yellow-100 text-yellow-800' };
     const paymentStatus = order.payment_status || { value: 'pending', label: 'Menunggu', color: 'bg-yellow-100 text-yellow-800' };
@@ -79,6 +97,22 @@ export default function OrderShow({ order }: Props) {
     const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
 
     const canCancel = status.value === 'pending';
+    const needsPayment = paymentStatus.value === 'pending' && status.value !== 'cancelled';
+    const isBankTransfer = paymentMethod.value === 'bank_transfer';
+    const isCOD = paymentMethod.value === 'cod';
+
+    // Generate WhatsApp message
+    const generateWhatsAppMessage = () => {
+        if (isBankTransfer) {
+            return `Halo Latif Living! 👋%0A%0ASaya sudah transfer untuk pesanan:%0A📦 Order: %23${order.order_number}%0A💰 Total: ${order.total_formatted}%0A🏦 Ke: ${paymentSettings.bank_name} ${paymentSettings.bank_account_number}%0A%0AMohon dikonfirmasi. Terima kasih! 🙏`;
+        } else {
+            return `Halo Latif Living! 👋%0A%0ASaya mau konfirmasi pesanan COD:%0A📦 Order: %23${order.order_number}%0A💰 Total: ${order.total_formatted}%0A📍 Alamat: ${order.shipping_address}, ${order.shipping_city}%0A%0AMohon diproses. Terima kasih! 🙏`;
+        }
+    };
+
+    const whatsappUrl = paymentSettings?.whatsapp
+        ? `https://wa.me/${paymentSettings.whatsapp}?text=${generateWhatsAppMessage()}`
+        : '#';
 
     return (
         <>
@@ -188,7 +222,10 @@ export default function OrderShow({ order }: Props) {
                                 </h2>
                                 <div className="flex justify-between text-sm mb-2">
                                     <span className="text-terra-500">Metode</span>
-                                    <span className="text-terra-900">{paymentMethod.label}</span>
+                                    <span className="text-terra-900 flex items-center gap-1">
+                                        {isBankTransfer ? <Building2 size={14} /> : <Banknote size={14} />}
+                                        {paymentMethod.label}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between text-sm mb-2">
                                     <span className="text-terra-500">Status</span>
@@ -209,6 +246,82 @@ export default function OrderShow({ order }: Props) {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Bank Transfer Info */}
+                            {needsPayment && isBankTransfer && paymentSettings?.bank_account_number && (
+                                <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
+                                    <h2 className="font-medium text-blue-900 mb-4 flex items-center gap-2">
+                                        <Building2 size={18} />Transfer ke Rekening
+                                    </h2>
+                                    <div className="space-y-3">
+                                        <div className="bg-white rounded-xl p-4">
+                                            <p className="text-xs text-blue-600 mb-1">Bank</p>
+                                            <p className="font-semibold text-blue-900">{paymentSettings.bank_name}</p>
+                                        </div>
+                                        <div className="bg-white rounded-xl p-4">
+                                            <p className="text-xs text-blue-600 mb-1">Nomor Rekening</p>
+                                            <div className="flex items-center justify-between">
+                                                <p className="font-semibold text-blue-900 font-mono">{paymentSettings.bank_account_number}</p>
+                                                <button
+                                                    onClick={() => copyToClipboard(paymentSettings.bank_account_number)}
+                                                    className="text-blue-600 hover:text-blue-800 p-1"
+                                                    title="Salin"
+                                                >
+                                                    <Copy size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white rounded-xl p-4">
+                                            <p className="text-xs text-blue-600 mb-1">Atas Nama</p>
+                                            <p className="font-semibold text-blue-900">{paymentSettings.bank_account_name}</p>
+                                        </div>
+                                        <div className="bg-white rounded-xl p-4">
+                                            <p className="text-xs text-blue-600 mb-1">Jumlah Transfer</p>
+                                            <div className="flex items-center justify-between">
+                                                <p className="font-bold text-xl text-blue-900">{order.total_formatted}</p>
+                                                <button
+                                                    onClick={() => copyToClipboard(String(order.total || 0))}
+                                                    className="text-blue-600 hover:text-blue-800 p-1"
+                                                    title="Salin"
+                                                >
+                                                    <Copy size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-blue-600 mt-4 text-center">
+                                        ⏰ Selesaikan pembayaran dalam {paymentSettings.payment_deadline_hours} jam
+                                    </p>
+                                    {copied && (
+                                        <p className="text-xs text-green-600 mt-2 text-center">✓ Tersalin!</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* COD Info */}
+                            {needsPayment && isCOD && (
+                                <div className="bg-green-50 rounded-2xl p-6 border border-green-100">
+                                    <h2 className="font-medium text-green-900 mb-3 flex items-center gap-2">
+                                        <Banknote size={18} />Bayar di Tempat (COD)
+                                    </h2>
+                                    <p className="text-sm text-green-700">
+                                        Siapkan uang tunai sebesar <strong>{order.total_formatted}</strong> saat barang diterima.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* WhatsApp Confirmation */}
+                            {needsPayment && paymentSettings?.whatsapp && (
+                                <a
+                                    href={whatsappUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-medium transition-colors"
+                                >
+                                    <MessageCircle size={20} />
+                                    {isBankTransfer ? 'Konfirmasi Transfer via WhatsApp' : 'Konfirmasi Pesanan via WhatsApp'}
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>
