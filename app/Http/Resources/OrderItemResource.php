@@ -27,7 +27,9 @@ class OrderItemResource extends JsonResource
             'subtotal' => $this->subtotal,
             'subtotal_formatted' => $this->formatted_subtotal,
             'options' => $this->options,
-            'product' => new ProductResource($this->whenLoaded('product')),
+            'product' => $this->relationLoaded('product') && $this->product
+                ? (new ProductResource($this->product))->resolve()
+                : null,
         ];
     }
 }

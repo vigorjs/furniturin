@@ -1,7 +1,6 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { MapPin, CreditCard, Truck, Plus, Check, ArrowLeft, Loader2 } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { MapPin, CreditCard, Truck, Plus, Check, ArrowLeft, Loader2, Package } from 'lucide-react';
 import { ShopLayout } from '@/layouts/ShopLayout';
-import { useState } from 'react';
 
 interface Address {
     id: number;
@@ -30,6 +29,7 @@ interface CartItem {
 
 interface Cart {
     items_count: number;
+    subtotal: number;
     subtotal_formatted: string;
     items: CartItem[];
 }
@@ -53,27 +53,27 @@ export default function CheckoutIndex({ cart, addresses, paymentMethods }: Props
     // Ensure cart has items array
     const safeCart: Cart = {
         items_count: cart?.items_count || 0,
+        subtotal: cart?.subtotal || 0,
         subtotal_formatted: cart?.subtotal_formatted || 'Rp 0',
         items: Array.isArray(cart?.items) ? cart.items : [],
     };
 
-    const [selectedAddress, setSelectedAddress] = useState<number | null>(
-        addressList.find(a => a.is_default)?.id || addressList[0]?.id || null
-    );
-    const [selectedPayment, setSelectedPayment] = useState<string>(paymentList[0]?.value || '');
+    const defaultAddress = addressList.find(a => a.is_default)?.id || addressList[0]?.id || null;
+    const defaultPayment = paymentList[0]?.value || '';
 
-    const { processing } = useForm({});
+    const { data, setData, post, processing, errors } = useForm({
+        address_id: defaultAddress,
+        payment_method: defaultPayment,
+        shipping_method: 'regular',
+        customer_notes: '',
+    });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedAddress || !selectedPayment) return;
+        if (!data.address_id || !data.payment_method) return;
 
-        router.post('/shop/checkout', {
-            address_id: selectedAddress,
-            payment_method: selectedPayment,
-            notes: '',
-        }, {
-            onSuccess: () => router.visit('/shop/checkout/success'),
+        post('/shop/checkout', {
+            preserveScroll: true,
         });
     };
 
@@ -111,10 +111,10 @@ export default function CheckoutIndex({ cart, addresses, paymentMethods }: Props
                                     {addressList.length > 0 ? (
                                         <div className="space-y-3">
                                             {addressList.map((addr) => (
-                                                <label key={addr.id} className={`block p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedAddress === addr.id ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
+                                                <label key={addr.id} className={`block p-4 border-2 rounded-xl cursor-pointer transition-colors ${data.address_id === addr.id ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
                                                     <div className="flex items-start gap-3">
-                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${selectedAddress === addr.id ? 'border-wood bg-wood' : 'border-terra-300'}`}>
-                                                            {selectedAddress === addr.id && <Check className="w-3 h-3 text-white" />}
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${data.address_id === addr.id ? 'border-wood bg-wood' : 'border-terra-300'}`}>
+                                                            {data.address_id === addr.id && <Check className="w-3 h-3 text-white" />}
                                                         </div>
                                                         <div className="flex-1">
                                                             <div className="flex items-center gap-2 mb-1">
@@ -125,7 +125,7 @@ export default function CheckoutIndex({ cart, addresses, paymentMethods }: Props
                                                             <p className="text-terra-500 text-sm">{addr.full_address}</p>
                                                         </div>
                                                     </div>
-                                                    <input type="radio" name="address" value={addr.id} checked={selectedAddress === addr.id} onChange={() => setSelectedAddress(addr.id)} className="hidden" />
+                                                    <input type="radio" name="address" value={addr.id} checked={data.address_id === addr.id} onChange={() => setData('address_id', addr.id)} className="hidden" />
                                                 </label>
                                             ))}
                                         </div>
@@ -138,14 +138,18 @@ export default function CheckoutIndex({ cart, addresses, paymentMethods }: Props
                                             </Link>
                                         </div>
                                     )}
+                                    {errors.address_id && <p className="text-red-500 text-sm mt-2">{errors.address_id}</p>}
                                 </div>
 
+                                {/* Shipping Method */}
+                                <ShippingSection selectedShipping={data.shipping_method} setSelectedShipping={(v) => setData('shipping_method', v)} error={errors.shipping_method} />
+
                                 {/* Payment Method */}
-                                <PaymentSection paymentMethods={paymentList} selectedPayment={selectedPayment} setSelectedPayment={setSelectedPayment} />
+                                <PaymentSection paymentMethods={paymentList} selectedPayment={data.payment_method} setSelectedPayment={(v) => setData('payment_method', v)} error={errors.payment_method} />
                             </div>
 
                             {/* Order Summary */}
-                            <OrderSummary cart={safeCart} getProductImage={getProductImage} processing={processing} selectedAddress={selectedAddress} selectedPayment={selectedPayment} />
+                            <OrderSummary cart={safeCart} getProductImage={getProductImage} processing={processing} selectedAddress={data.address_id} selectedPayment={data.payment_method} selectedShipping={data.shipping_method} errors={errors} />
                         </div>
                     </form>
                 </div>
@@ -155,13 +159,62 @@ export default function CheckoutIndex({ cart, addresses, paymentMethods }: Props
     );
 }
 
+// Shipping methods data
+const SHIPPING_METHODS = [
+    { value: 'regular', name: 'Reguler (3-5 hari)', price: 0, priceLabel: 'Gratis' },
+    { value: 'express', name: 'Express (1-2 hari)', price: 50000, priceLabel: 'Rp 50.000' },
+];
+
+const getShippingCost = (method: string): number => {
+    return SHIPPING_METHODS.find(m => m.value === method)?.price || 0;
+};
+
+const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+};
+
+interface ShippingSectionProps {
+    selectedShipping: string;
+    setSelectedShipping: (value: string) => void;
+    error?: string;
+}
+
+function ShippingSection({ selectedShipping, setSelectedShipping, error }: ShippingSectionProps) {
+    return (
+        <div className="bg-white rounded-2xl p-6">
+            <h2 className="font-serif text-xl text-terra-900 flex items-center gap-2 mb-4">
+                <Package className="w-5 h-5" /> Metode Pengiriman
+            </h2>
+            <div className="space-y-3">
+                {SHIPPING_METHODS.map((method) => (
+                    <label key={method.value} className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedShipping === method.value ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
+                        <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedShipping === method.value ? 'border-wood bg-wood' : 'border-terra-300'}`}>
+                                {selectedShipping === method.value && <Check className="w-3 h-3 text-white" />}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Truck className="w-5 h-5" />
+                                <span className="text-terra-900">{method.name}</span>
+                            </div>
+                        </div>
+                        <span className="text-wood font-medium">{method.priceLabel}</span>
+                        <input type="radio" name="shipping" value={method.value} checked={selectedShipping === method.value} onChange={() => setSelectedShipping(method.value)} className="hidden" />
+                    </label>
+                ))}
+            </div>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        </div>
+    );
+}
+
 interface PaymentSectionProps {
     paymentMethods: PaymentMethod[];
     selectedPayment: string;
     setSelectedPayment: (value: string) => void;
+    error?: string;
 }
 
-function PaymentSection({ paymentMethods, selectedPayment, setSelectedPayment }: PaymentSectionProps) {
+function PaymentSection({ paymentMethods, selectedPayment, setSelectedPayment, error }: PaymentSectionProps) {
     const paymentIcons: Record<string, React.ReactNode> = {
         bank_transfer: <CreditCard className="w-5 h-5" />,
         e_wallet: <CreditCard className="w-5 h-5" />,
@@ -189,6 +242,7 @@ function PaymentSection({ paymentMethods, selectedPayment, setSelectedPayment }:
                     </label>
                 ))}
             </div>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </div>
     );
 }
@@ -199,9 +253,16 @@ interface OrderSummaryProps {
     processing: boolean;
     selectedAddress: number | null;
     selectedPayment: string;
+    selectedShipping: string;
+    errors: Record<string, string>;
 }
 
-function OrderSummary({ cart, getProductImage, processing, selectedAddress, selectedPayment }: OrderSummaryProps) {
+function OrderSummary({ cart, getProductImage, processing, selectedAddress, selectedPayment, selectedShipping, errors }: OrderSummaryProps) {
+    const hasErrors = Object.keys(errors).length > 0;
+    const shippingCost = getShippingCost(selectedShipping);
+    const subtotal = cart.subtotal || 0;
+    const total = subtotal + shippingCost;
+
     return (
         <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl p-6 sticky top-28">
@@ -230,14 +291,16 @@ function OrderSummary({ cart, getProductImage, processing, selectedAddress, sele
                     </div>
                     <div className="flex justify-between text-terra-600">
                         <span>Ongkos Kirim</span>
-                        <span className="text-terra-500">Gratis</span>
+                        <span className={shippingCost > 0 ? 'text-terra-900' : 'text-terra-500'}>
+                            {shippingCost > 0 ? formatCurrency(shippingCost) : 'Gratis'}
+                        </span>
                     </div>
                 </div>
 
                 <div className="border-t border-terra-100 pt-4 mb-6">
                     <div className="flex justify-between">
                         <span className="font-medium text-terra-900">Total</span>
-                        <span className="font-serif text-2xl text-terra-900">{cart.subtotal_formatted}</span>
+                        <span className="font-serif text-2xl text-terra-900">{formatCurrency(total)}</span>
                     </div>
                 </div>
 
@@ -255,6 +318,17 @@ function OrderSummary({ cart, getProductImage, processing, selectedAddress, sele
                     <p className="text-red-500 text-sm text-center mt-3">
                         {!selectedAddress ? 'Pilih alamat pengiriman' : 'Pilih metode pembayaran'}
                     </p>
+                )}
+
+                {hasErrors && (
+                    <div className="mt-3 p-3 bg-red-50 rounded-lg">
+                        <p className="text-red-600 text-sm font-medium mb-1">Terjadi kesalahan:</p>
+                        <ul className="text-red-500 text-sm list-disc list-inside">
+                            {Object.values(errors).map((error, i) => (
+                                <li key={i}>{error}</li>
+                            ))}
+                        </ul>
+                    </div>
                 )}
             </div>
         </div>

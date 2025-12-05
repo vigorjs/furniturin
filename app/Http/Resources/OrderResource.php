@@ -58,7 +58,9 @@ class OrderResource extends JsonResource
             'delivered_at' => $this->delivered_at?->toISOString(),
             'cancelled_at' => $this->cancelled_at?->toISOString(),
             'cancellation_reason' => $this->cancellation_reason,
-            'items' => OrderItemResource::collection($this->whenLoaded('items')),
+            'items' => $this->relationLoaded('items')
+                ? OrderItemResource::collection($this->items)->resolve()
+                : [],
             'user' => $this->when(
                 $this->relationLoaded('user'),
                 function () {

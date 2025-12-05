@@ -54,7 +54,7 @@ class OrderController extends Controller implements HasMiddleware
         $order->load('items.product.images');
 
         return Inertia::render('Shop/Orders/Show', [
-            'order' => new OrderResource($order),
+            'order' => (new OrderResource($order))->resolve(),
         ]);
     }
 

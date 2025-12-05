@@ -72,7 +72,13 @@ export default function OrderShow({ order }: Props) {
         });
     };
 
-    const canCancel = order.status.value === 'pending';
+    // Safe access to status with fallback
+    const status = order.status || { value: 'pending', label: 'Menunggu', color: 'bg-yellow-100 text-yellow-800' };
+    const paymentStatus = order.payment_status || { value: 'pending', label: 'Menunggu', color: 'bg-yellow-100 text-yellow-800' };
+    const paymentMethod = order.payment_method || { value: 'unknown', label: 'Unknown' };
+    const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
+
+    const canCancel = status.value === 'pending';
 
     return (
         <>
@@ -99,9 +105,9 @@ export default function OrderShow({ order }: Props) {
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${order.status.color}`}>
-                                    {STATUS_ICONS[order.status.value]}
-                                    {order.status.label}
+                                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${status.color}`}>
+                                    {STATUS_ICONS[status.value]}
+                                    {status.label}
                                 </span>
                                 {canCancel && (
                                     <button
@@ -139,7 +145,7 @@ export default function OrderShow({ order }: Props) {
                                 <Package size={18} />Produk Dipesan
                             </h2>
                             <div className="space-y-4">
-                                {order.items.map((item) => {
+                                {items.map((item) => {
                                     const imageUrl = item.product?.images?.[0]?.image_url || '/images/placeholder-product.svg';
                                     return (
                                         <div key={item.id} className="flex gap-4 pb-4 border-b border-terra-100 last:border-0 last:pb-0">
@@ -182,11 +188,11 @@ export default function OrderShow({ order }: Props) {
                                 </h2>
                                 <div className="flex justify-between text-sm mb-2">
                                     <span className="text-terra-500">Metode</span>
-                                    <span className="text-terra-900">{order.payment_method.label}</span>
+                                    <span className="text-terra-900">{paymentMethod.label}</span>
                                 </div>
                                 <div className="flex justify-between text-sm mb-2">
                                     <span className="text-terra-500">Status</span>
-                                    <span className={order.payment_status.color}>{order.payment_status.label}</span>
+                                    <span className={paymentStatus.color}>{paymentStatus.label}</span>
                                 </div>
                                 <div className="border-t border-terra-100 pt-3 mt-3 space-y-2">
                                     <div className="flex justify-between text-sm">

@@ -55,13 +55,18 @@ class ProductResource extends JsonResource
             'sold_count' => $this->sold_count,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
-            'category' => new CategoryResource($this->whenLoaded('category')),
-            'images' => ProductImageResource::collection($this->whenLoaded('images')),
-            'primary_image' => $this->when(
-                $this->relationLoaded('images'),
-                fn () => $this->primary_image ? new ProductImageResource($this->primary_image) : null
-            ),
-            'reviews' => ProductReviewResource::collection($this->whenLoaded('reviews')),
+            'category' => $this->relationLoaded('category') && $this->category
+                ? (new CategoryResource($this->category))->resolve()
+                : null,
+            'images' => $this->relationLoaded('images')
+                ? ProductImageResource::collection($this->images)->resolve()
+                : [],
+            'primary_image' => $this->relationLoaded('images') && $this->primary_image
+                ? (new ProductImageResource($this->primary_image))->resolve()
+                : null,
+            'reviews' => $this->relationLoaded('reviews')
+                ? ProductReviewResource::collection($this->reviews)->resolve()
+                : [],
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];
