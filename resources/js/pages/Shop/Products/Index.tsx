@@ -365,7 +365,7 @@ function ProductCard({ product, viewMode, index, onQuickView }: ProductCardProps
                         />
                         <button
                             onClick={(e) => { e.preventDefault(); onQuickView(product); }}
-                            className="absolute bottom-2 right-2 p-2 rounded-full bg-white/90 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
+                            className="absolute bottom-2 right-2 p-2 rounded-full bg-white/90 hover:bg-white text-terra-900 transition-colors opacity-0 group-hover:opacity-100"
                             title="Quick View"
                         >
                             <Eye size={16} />
@@ -434,14 +434,14 @@ function ProductCard({ product, viewMode, index, onQuickView }: ProductCardProps
                     <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                             onClick={(e) => { e.preventDefault(); onQuickView(product); }}
-                            className="p-3 rounded-full bg-white/90 hover:bg-white transition-colors"
+                            className="p-3 rounded-full bg-white/90 hover:bg-white text-terra-900 transition-colors"
                             title="Quick View"
                         >
                             <Eye size={18} />
                         </button>
                         <button
                             onClick={(e) => { e.preventDefault(); }}
-                            className="p-3 rounded-full bg-white/90 hover:bg-white transition-colors"
+                            className="p-3 rounded-full bg-white/90 hover:bg-white text-terra-900 transition-colors"
                         >
                             <Heart size={18} />
                         </button>

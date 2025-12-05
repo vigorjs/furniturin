@@ -223,13 +223,13 @@ function ImageGallery({ images, selectedIndex, setSelectedIndex, onZoom, product
                         <span className="bg-wood text-white px-4 py-2 rounded-full font-medium">{product.sale_type.label}</span>
                     )}
                 </div>
-                <button className="absolute bottom-6 right-6 p-3 bg-white/90 rounded-full hover:bg-white"><ZoomIn size={20} /></button>
+                <button className="absolute bottom-6 right-6 p-3 bg-white/90 rounded-full hover:bg-white text-terra-900"><ZoomIn size={20} /></button>
                 {images.length > 1 && (
                     <>
                         <button onClick={(e) => { e.stopPropagation(); setSelectedIndex(selectedIndex > 0 ? selectedIndex - 1 : images.length - 1); }}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 rounded-full hover:bg-white"><ChevronLeft size={20} /></button>
+                            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 rounded-full hover:bg-white text-terra-900"><ChevronLeft size={20} /></button>
                         <button onClick={(e) => { e.stopPropagation(); setSelectedIndex(selectedIndex < images.length - 1 ? selectedIndex + 1 : 0); }}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 rounded-full hover:bg-white"><ChevronRight size={20} /></button>
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 rounded-full hover:bg-white text-terra-900"><ChevronRight size={20} /></button>
                     </>
                 )}
             </div>

@@ -69,8 +69,8 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
                                 <img src={images[currentImageIndex]?.image_url} alt={product.name} className="w-full h-full object-cover" />
                                 {images.length > 1 && (
                                     <>
-                                        <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center hover:bg-white shadow-lg"><ChevronLeft size={20} /></button>
-                                        <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center hover:bg-white shadow-lg"><ChevronRight size={20} /></button>
+                                        <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center hover:bg-white text-terra-900 shadow-lg"><ChevronLeft size={20} /></button>
+                                        <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center hover:bg-white text-terra-900 shadow-lg"><ChevronRight size={20} /></button>
                                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                                             {images.map((_, idx) => (<button key={idx} onClick={() => setCurrentImageIndex(idx)} className={`w-2 h-2 rounded-full transition-colors ${idx === currentImageIndex ? 'bg-terra-900' : 'bg-white/60'}`} />))}
                                         </div>
