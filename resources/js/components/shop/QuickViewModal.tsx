@@ -81,7 +81,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
 
                             {/* Info Section */}
                             <div className="p-6 md:p-8 flex flex-col max-h-[90vh] md:max-h-none overflow-y-auto">
-                                <button onClick={onClose} className="absolute top-4 right-4 w-10 h-10 bg-terra-100 hover:bg-terra-200 rounded-full flex items-center justify-center transition-colors"><X size={20} /></button>
+                                <button onClick={onClose} className="absolute top-4 right-4 w-10 h-10 bg-terra-100 hover:bg-terra-200 text-terra-900 rounded-full flex items-center justify-center transition-colors"><X size={20} /></button>
 
                                 <p className="text-sm text-wood uppercase tracking-wider mb-2">{product.category?.name}</p>
                                 <h2 className="font-serif text-2xl md:text-3xl text-terra-900 mb-3">{product.name}</h2>
@@ -113,7 +113,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen,
                                 {/* Quantity */}
                                 <div className="flex items-center gap-4 mb-6">
                                     <span className="text-sm text-terra-600">Jumlah:</span>
-                                    <div className="flex items-center border border-terra-200 rounded-full">
+                                    <div className="flex items-center border border-terra-200 rounded-full text-terra-900">
                                         <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 flex items-center justify-center hover:bg-terra-50 rounded-l-full"><Minus size={16} /></button>
                                         <span className="w-12 text-center font-medium">{quantity}</span>
                                         <button onClick={() => setQuantity(Math.min(product.stock_quantity || 99, quantity + 1))} className="w-10 h-10 flex items-center justify-center hover:bg-terra-50 rounded-r-full"><Plus size={16} /></button>

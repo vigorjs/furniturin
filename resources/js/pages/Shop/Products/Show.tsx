@@ -319,7 +319,7 @@ function ProductInfo({ product, quantity, setQuantity, isWishlisted, setIsWishli
                 )}
             </AnimatePresence>
             <div className="flex items-center gap-4">
-                <div className="flex items-center border border-terra-200 rounded-full">
+                <div className="flex items-center border border-terra-200 rounded-full text-terra-900">
                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-3 hover:bg-terra-50 rounded-l-full" disabled={isAddingToCart}><Minus size={18} /></button>
                     <span className="w-12 text-center font-medium">{quantity}</span>
                     <button onClick={() => setQuantity(quantity + 1)} disabled={(product.track_stock && quantity >= product.stock_quantity) || isAddingToCart} className="p-3 hover:bg-terra-50 rounded-r-full disabled:opacity-50"><Plus size={18} /></button>

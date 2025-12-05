@@ -199,7 +199,7 @@ function CartItemCard({ item, loading, onUpdateQuantity, onRemove, onSaveForLate
                     )}
                 </div>
                 <div className="flex items-center gap-4 mt-3">
-                    <div className="flex items-center border border-terra-200 rounded-lg">
+                    <div className="flex items-center border border-terra-200 rounded-lg text-terra-900">
                         <button onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} disabled={loading || item.quantity <= 1} className="p-2 hover:bg-terra-50 disabled:opacity-50">
                             <Minus className="w-4 h-4" />
                         </button>
