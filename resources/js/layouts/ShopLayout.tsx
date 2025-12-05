@@ -39,6 +39,7 @@ interface ShopLayoutProps {
     showWhatsApp?: boolean;
     whatsAppPhone?: string;
     whatsAppMessage?: string;
+    bannerVisible?: boolean;
 }
 
 export function ShopLayout({
@@ -46,7 +47,8 @@ export function ShopLayout({
     showFooter = true,
     showWhatsApp = true,
     whatsAppPhone = "6281234567890",
-    whatsAppMessage = "Halo, saya ingin bertanya tentang produk"
+    whatsAppMessage = "Halo, saya ingin bertanya tentang produk",
+    bannerVisible = false
 }: ShopLayoutProps) {
     const { cart } = usePage<{ cart: SharedCart }>().props;
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -101,6 +103,7 @@ export function ShopLayout({
                 cartCount={cart?.items_count || 0}
                 onCartClick={() => setIsCartOpen(true)}
                 onLogoClick={() => router.visit('/shop')}
+                bannerVisible={bannerVisible}
             />
 
             {children}

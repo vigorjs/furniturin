@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Product, ApiProduct, ApiCategory, HomeTestimonial, HeroSettings, HomeValue } from '@/types/shop';
+import { ApiProduct, ApiCategory, HomeTestimonial, HeroSettings, HomeValue } from '@/types/shop';
 import { HeroSection } from './sections/HeroSection';
 import { TrustSection } from './sections/TrustSection';
 import { CategoriesSection } from './sections/CategoriesSection';
@@ -9,7 +9,6 @@ import { TestimonialsSection } from './sections/TestimonialsSection';
 import { NewsletterSection } from './sections/NewsletterSection';
 
 interface LandingViewProps {
-    onProductClick: (product: Product) => void;
     featuredProducts: ApiProduct[];
     featuredCategories: ApiCategory[];
     testimonials: HomeTestimonial[];
@@ -19,7 +18,6 @@ interface LandingViewProps {
 }
 
 export const LandingView: React.FC<LandingViewProps> = ({
-    onProductClick,
     featuredProducts,
     featuredCategories,
     testimonials,
@@ -38,7 +36,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <TrustSection logos={trustLogos} />
             <CategoriesSection categories={featuredCategories} />
             <ValuesSection values={values} />
-            <ProductsSection products={featuredProducts} onProductClick={onProductClick} />
+            <ProductsSection products={featuredProducts} />
             <TestimonialsSection testimonials={testimonials} />
             <NewsletterSection />
         </motion.div>
