@@ -231,13 +231,18 @@ class Order extends Model
         ]);
     }
 
-    public function markAsShipped(string $trackingNumber): void
+    public function markAsShipped(?string $trackingNumber = null): void
     {
-        $this->update([
+        $data = [
             'status' => OrderStatus::SHIPPED,
-            'tracking_number' => $trackingNumber,
             'shipped_at' => now(),
-        ]);
+        ];
+
+        if ($trackingNumber) {
+            $data['tracking_number'] = $trackingNumber;
+        }
+
+        $this->update($data);
     }
 
     public function markAsDelivered(): void
