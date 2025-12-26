@@ -1,6 +1,6 @@
-# Latif Living - E-Commerce Furniture
+# Furniturin - E-Commerce Furniture
 
-Latif Living adalah platform e-commerce modern yang dirancang untuk penjualan furniture dan perabotan rumah tangga berkualitas tinggi. Proyek ini dibangun dengan stack teknologi terkini untuk memastikan kinerja, skalabilitas, dan pengalaman pengguna.
+Furniturin adalah platform e-commerce modern yang dirancang untuk penjualan furniture dan perabotan rumah tangga berkualitas tinggi. Proyek ini dibangun dengan stack teknologi terkini untuk memastikan kinerja, skalabilitas, dan pengalaman pengguna.
 
 ## 🚀 Fitur
 
@@ -180,7 +180,7 @@ Project ini dilisensikan di bawah [MIT License](LICENSE).
 
 ## 👨‍💻 Author
 
-**Latif Living Team**
+**Furniturin Team**
 
 ---
 
