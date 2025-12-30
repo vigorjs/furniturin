@@ -169,7 +169,7 @@ Setiap card berisi:
 
 **Style:**
 
-- Rounded halus
+- Sharp corners tidak rounded
 - Shadow tipis
 - Hover subtle (scale / shadow)
 

@@ -1,5 +1,6 @@
-import { Leaf, Truck, ShieldCheck, LucideIcon } from 'lucide-react';
 import { HomeValue } from '@/types/shop';
+import { motion } from 'framer-motion';
+import { Leaf, LucideIcon, ShieldCheck, Truck } from 'lucide-react';
 
 interface ValuesSectionProps {
     values: HomeValue[];
@@ -7,35 +8,85 @@ interface ValuesSectionProps {
 
 // Icon mapping
 const iconMap: Record<string, LucideIcon> = {
-    'leaf': Leaf,
-    'truck': Truck,
+    leaf: Leaf,
+    truck: Truck,
     'shield-check': ShieldCheck,
 };
 
+// Animation variants
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.15 },
+    },
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.6, ease: 'easeOut' as const },
+    },
+};
+
 export const ValuesSection: React.FC<ValuesSectionProps> = ({ values }) => (
-    <section className="py-24 bg-sand-100">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-            <div className="text-center mb-16">
-                <span className="text-wood font-medium uppercase tracking-widest text-xs">Mengapa Kami</span>
-                <h2 className="font-serif text-5xl text-terra-900 mt-2">Filosofi Kami</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <section className="bg-white py-24">
+        <div className="mx-auto max-w-[1400px] px-6 md:px-12">
+            {/* Section Header */}
+            <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                variants={containerVariants}
+                className="mb-16 text-center"
+            >
+                <motion.span
+                    variants={itemVariants}
+                    className="text-xs font-medium tracking-[0.15em] text-teal-500 uppercase"
+                >
+                    Why Choose Us
+                </motion.span>
+                <motion.h2
+                    variants={itemVariants}
+                    className="mt-3 font-display text-4xl font-semibold tracking-tight text-neutral-800 md:text-5xl"
+                >
+                    Our Philosophy
+                </motion.h2>
+            </motion.div>
+
+            {/* Values Grid */}
+            <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={containerVariants}
+                className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8"
+            >
                 {values.map((item, i) => {
                     const IconComponent = iconMap[item.icon] || Leaf;
                     return (
-                        <div key={i} className="bg-white p-10 rounded-3xl text-center group hover:shadow-2xl hover:shadow-terra-900/5 transition-all duration-300">
-                            <div className="w-16 h-16 mx-auto bg-terra-100 rounded-2xl flex items-center justify-center text-wood group-hover:bg-wood group-hover:text-white transition-colors">
-                                <IconComponent />
+                        <motion.div
+                            key={i}
+                            variants={itemVariants}
+                            className="group rounded-sm bg-neutral-50 p-10 text-center transition-all duration-300 hover:bg-teal-500 hover:shadow-xl"
+                        >
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-sm bg-teal-500/10 text-teal-500 transition-colors group-hover:bg-white group-hover:text-teal-500">
+                                <IconComponent size={28} />
                             </div>
-                            <h3 className="font-serif text-2xl text-terra-900 mt-6 mb-3">{item.title}</h3>
-                            <p className="text-terra-500 leading-relaxed">{item.desc}</p>
-                        </div>
+                            <h3 className="mt-6 mb-3 font-display text-xl font-semibold text-neutral-800 transition-colors group-hover:text-white">
+                                {item.title}
+                            </h3>
+                            <p className="leading-relaxed text-neutral-500 transition-colors group-hover:text-teal-100">
+                                {item.desc}
+                            </p>
+                        </motion.div>
                     );
                 })}
-            </div>
+            </motion.div>
         </div>
     </section>
 );
 
 export default ValuesSection;
-

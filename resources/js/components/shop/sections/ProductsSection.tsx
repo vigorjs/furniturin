@@ -1,65 +1,149 @@
-import { Link } from '@inertiajs/react';
-import { ShoppingBag, Star, ArrowRight } from 'lucide-react';
 import { ApiProduct } from '@/types/shop';
+import { Link } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Star } from 'lucide-react';
 
-// Placeholder untuk produk tanpa gambar
-const PLACEHOLDER_PRODUCT = '/images/placeholder-product.svg';
+// Placeholder images for products without images
+const PLACEHOLDER_PRODUCTS = [
+    '/images/placeholders/product-sofa.png',
+    '/images/placeholders/product-dining-table.png',
+    '/images/placeholders/product-chair.png',
+];
 
 interface ProductsSectionProps {
     products: ApiProduct[];
 }
 
-export const ProductsSection: React.FC<ProductsSectionProps> = ({ products }) => {
+// Animation variants
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+        },
+    },
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.6, ease: 'easeOut' as const },
+    },
+};
+
+export const ProductsSection: React.FC<ProductsSectionProps> = ({
+    products,
+}) => {
     if (products.length === 0) {
         return null;
     }
 
     return (
-        <section className="py-24 px-6 md:px-12">
-            <div className="max-w-[1400px] mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-16">
-                    <div>
-                        <span className="text-wood font-medium uppercase tracking-widest text-xs">Terlaris</span>
-                        <h2 className="font-serif text-5xl text-terra-900 mt-2">Produk Unggulan</h2>
-                    </div>
-                    <Link href="/shop/products" className="mt-4 md:mt-0 text-terra-900 font-medium flex items-center gap-2 hover:gap-4 transition-all">
-                        Lihat Semua <ArrowRight size={18} />
-                    </Link>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {products.map((apiProduct) => (
+        <section className="bg-white px-6 py-24 md:px-12">
+            <div className="mx-auto max-w-[1400px]">
+                {/* Section Header */}
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                    variants={containerVariants}
+                    className="mb-16 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end"
+                >
+                    <motion.div variants={itemVariants}>
+                        <span className="text-xs font-medium tracking-[0.15em] text-teal-500 uppercase">
+                            Best Sellers
+                        </span>
+                        <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-neutral-800 md:text-5xl">
+                            Featured Products
+                        </h2>
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                        <Link
+                            href="/shop/products"
+                            className="group flex items-center gap-2 font-medium text-neutral-800 transition-colors hover:text-teal-500"
+                        >
+                            View All
+                            <ArrowRight
+                                size={18}
+                                className="transition-transform group-hover:translate-x-1"
+                            />
+                        </Link>
+                    </motion.div>
+                </motion.div>
+
+                {/* Product Grid - 3-4 columns per design.md */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-3 xl:grid-cols-4">
+                    {products.map((apiProduct, index) => (
                         <Link
                             key={apiProduct.id}
                             href={`/shop/products/${apiProduct.slug}`}
-                            className="group"
+                            className="group block"
                         >
-                            <div className="aspect-[4/5] bg-terra-100 rounded-3xl overflow-hidden mb-5 relative">
-                                <img
-                                    src={apiProduct.primary_image?.image_url || apiProduct.images?.[0]?.image_url || PLACEHOLDER_PRODUCT}
-                                    alt={apiProduct.name}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                />
-                                {apiProduct.has_discount && (
-                                    <span className="absolute top-4 left-4 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                                        -{apiProduct.discount_percentage}%
-                                    </span>
-                                )}
-                                <div className="absolute top-4 right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-                                    <ShoppingBag size={18} className="text-terra-900" />
+                            {/* Product Card - Sharp corners, shadow hover per design.md */}
+                            <div className="relative mb-4 overflow-hidden rounded-sm bg-neutral-50">
+                                {/* Image Container */}
+                                <div className="aspect-[4/5] overflow-hidden">
+                                    <img
+                                        src={
+                                            apiProduct.primary_image
+                                                ?.image_url ||
+                                            apiProduct.images?.[0]?.image_url ||
+                                            PLACEHOLDER_PRODUCTS[
+                                                index %
+                                                    PLACEHOLDER_PRODUCTS.length
+                                            ]
+                                        }
+                                        alt={apiProduct.name}
+                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
                                 </div>
-                            </div>
-                            <span className="text-xs text-wood uppercase font-medium tracking-wider">{apiProduct.category?.name}</span>
-                            <h3 className="font-serif text-xl text-terra-900 mt-1 mb-2">{apiProduct.name}</h3>
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-terra-700 font-medium">{apiProduct.final_price_formatted}</span>
+
+                                {/* Badges */}
+                                <div className="absolute top-3 left-3 flex flex-col gap-2">
                                     {apiProduct.has_discount && (
-                                        <span className="text-terra-400 text-sm line-through">{apiProduct.price_formatted}</span>
+                                        <span className="rounded-sm bg-red-500 px-2.5 py-1 text-xs font-medium text-white">
+                                            -{apiProduct.discount_percentage}%
+                                        </span>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <Star size={14} className="text-yellow-500 fill-yellow-500" />
-                                    <span className="text-sm text-terra-500">{Number(apiProduct.average_rating || 0).toFixed(1)}</span>
+
+                                {/* Hover Overlay */}
+                                <div className="absolute inset-0 bg-teal-500/0 transition-colors duration-300 group-hover:bg-teal-500/5" />
+                            </div>
+
+                            {/* Product Info */}
+                            <div className="space-y-1.5">
+                                <span className="text-xs font-medium tracking-wider text-teal-500 uppercase">
+                                    {apiProduct.category?.name}
+                                </span>
+                                <h3 className="font-display text-lg leading-snug font-medium text-neutral-800 transition-colors group-hover:text-teal-500">
+                                    {apiProduct.name}
+                                </h3>
+                                <div className="flex items-center justify-between pt-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-neutral-800">
+                                            {apiProduct.final_price_formatted}
+                                        </span>
+                                        {apiProduct.has_discount && (
+                                            <span className="text-sm text-neutral-400 line-through">
+                                                {apiProduct.price_formatted}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Star
+                                            size={14}
+                                            className="fill-accent-500 text-accent-500"
+                                        />
+                                        <span className="text-sm text-neutral-500">
+                                            {Number(
+                                                apiProduct.average_rating || 0,
+                                            ).toFixed(1)}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </Link>
@@ -71,4 +155,3 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({ products }) =>
 };
 
 export default ProductsSection;
-

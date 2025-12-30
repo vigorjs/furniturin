@@ -27,7 +27,8 @@ interface HeaderProps {
     cartCount: number;
     onCartClick: () => void;
     onLogoClick: () => void;
-    bannerVisible?: boolean; // When promo banner is visible, shift header down
+    bannerVisible?: boolean;
+    isHeroPage?: boolean; // If true, header is transparent initially (for pages with hero)
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,13 +36,14 @@ export const Header: React.FC<HeaderProps> = ({
     onCartClick,
     onLogoClick,
     bannerVisible = false,
+    isHeroPage = false, // Default to solid header for inner pages
 }) => {
     const { auth, wishlistCount, siteSettings } = usePage<{
         auth?: { user?: AuthUser };
         wishlistCount?: number;
         siteSettings?: SiteSettings;
     }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const user = auth?.user;
 
     const [scrolled, setScrolled] = useState(false);
@@ -57,7 +59,6 @@ export const Header: React.FC<HeaderProps> = ({
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (
@@ -72,14 +73,12 @@ export const Header: React.FC<HeaderProps> = ({
             document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Focus search input when opened
     useEffect(() => {
         if (searchOpen && searchInputRef.current) {
             searchInputRef.current.focus();
         }
     }, [searchOpen]);
 
-    // Handle keyboard shortcut (Ctrl+K or Cmd+K)
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -109,15 +108,22 @@ export const Header: React.FC<HeaderProps> = ({
         }
     };
 
-    // Calculate top position based on banner visibility
     const topPosition = bannerVisible ? 'top-10' : 'top-0';
+
+    // Determine if header should be solid (scrolled OR not a hero page)
+    const isSolidHeader = scrolled || !isHeroPage;
 
     return (
         <>
             <nav
-                className={`fixed ${topPosition} z-40 w-full border-b transition-all duration-500 ${scrolled ? 'border-terra-200 bg-white/80 py-4 backdrop-blur-md' : 'border-transparent bg-transparent py-6'}`}
+                className={`fixed ${topPosition} z-40 w-full transition-all duration-300 ${
+                    isSolidHeader
+                        ? 'border-b border-neutral-100 bg-white/95 py-3 shadow-sm backdrop-blur-md'
+                        : 'bg-transparent py-5'
+                }`}
             >
                 <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-12">
+                    {/* Logo */}
                     <div
                         className="group flex cursor-pointer items-center"
                         onClick={onLogoClick}
@@ -125,54 +131,77 @@ export const Header: React.FC<HeaderProps> = ({
                         <img
                             src="/assets/images/logo.webp"
                             alt={siteName}
-                            className="h-7 w-auto object-contain md:h-8"
+                            className={`h-7 w-auto object-contain transition-all md:h-8 ${
+                                isSolidHeader ? '' : 'brightness-0 invert'
+                            }`}
                         />
                     </div>
 
-                    <div className="hidden items-center gap-8 md:flex">
+                    {/* Navigation Links */}
+                    <div className="hidden items-center gap-8 lg:flex">
                         {NAV_ITEMS.map((item) => (
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className="text-sm font-medium text-terra-600 transition-all hover:text-wood"
+                                className={`text-sm font-medium transition-colors ${
+                                    isSolidHeader
+                                        ? 'text-neutral-600 hover:text-teal-500'
+                                        : 'text-white/90 hover:text-white'
+                                }`}
                             >
                                 {item.label}
                             </Link>
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-2 md:gap-4">
+                    {/* Right Side Icons */}
+                    <div className="flex items-center gap-1 md:gap-2">
+                        {/* Search */}
                         <button
                             onClick={() => setSearchOpen(true)}
-                            className="rounded-full p-2 text-terra-900 transition-colors hover:bg-terra-100"
+                            className={`rounded-sm p-2.5 transition-colors ${
+                                isSolidHeader
+                                    ? 'text-neutral-700 hover:bg-neutral-100'
+                                    : 'text-white hover:bg-white/10'
+                            }`}
                         >
                             <Search size={20} />
                         </button>
 
+                        {/* Wishlist */}
                         {user && (
                             <Link
                                 href="/shop/wishlist"
-                                className="relative hidden rounded-full p-2 text-terra-900 transition-colors hover:bg-terra-100 md:flex"
+                                className={`relative hidden rounded-sm p-2.5 transition-colors md:flex ${
+                                    isSolidHeader
+                                        ? 'text-neutral-700 hover:bg-neutral-100'
+                                        : 'text-white hover:bg-white/10'
+                                }`}
                             >
                                 <Heart size={20} />
                                 {(wishlistCount ?? 0) > 0 && (
-                                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-wood text-[10px] text-white shadow-sm">
+                                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 text-[10px] font-medium text-white">
                                         {wishlistCount}
                                     </span>
                                 )}
                             </Link>
                         )}
 
+                        {/* Cart */}
                         <button
                             onClick={onCartClick}
-                            className="group relative rounded-full p-2 text-terra-900 transition-colors hover:bg-terra-100"
+                            className={`group relative rounded-sm p-2.5 transition-colors ${
+                                isSolidHeader
+                                    ? 'text-neutral-700 hover:bg-neutral-100'
+                                    : 'text-white hover:bg-white/10'
+                            }`}
                         >
                             <ShoppingBag
                                 size={20}
-                                className="transition-transform group-hover:scale-110"
+                                className="transition-transform group-hover:scale-105"
                             />
                             {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-wood text-[10px] text-white shadow-sm">
+                                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent-500 text-[10px] font-semibold text-neutral-800">
                                     {cartCount}
                                 </span>
                             )}
@@ -188,19 +217,27 @@ export const Header: React.FC<HeaderProps> = ({
                                     onClick={() =>
                                         setUserMenuOpen(!userMenuOpen)
                                     }
-                                    className="flex items-center gap-2 rounded-full p-2 text-terra-900 transition-colors hover:bg-terra-100"
+                                    className={`flex items-center gap-2 rounded-sm p-2 transition-colors ${
+                                        isSolidHeader
+                                            ? 'text-neutral-700 hover:bg-neutral-100'
+                                            : 'text-white hover:bg-white/10'
+                                    }`}
                                 >
                                     {user.avatar_url ? (
                                         <img
                                             src={user.avatar_url}
                                             alt={user.name}
-                                            className="h-8 w-8 rounded-full object-cover"
+                                            className="h-8 w-8 rounded-sm object-cover"
                                         />
                                     ) : (
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-terra-100">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-teal-500/20">
                                             <User
                                                 size={18}
-                                                className="text-terra-600"
+                                                className={
+                                                    isSolidHeader
+                                                        ? 'text-teal-500'
+                                                        : 'text-white'
+                                                }
                                             />
                                         </div>
                                     )}
@@ -211,25 +248,25 @@ export const Header: React.FC<HeaderProps> = ({
                                 </button>
 
                                 {userMenuOpen && (
-                                    <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-terra-100 bg-white py-2 shadow-lg">
-                                        <div className="border-b border-terra-100 px-4 py-3">
-                                            <p className="truncate font-medium text-terra-900">
+                                    <div className="absolute right-0 z-50 mt-2 w-56 rounded-sm border border-neutral-100 bg-white py-2 shadow-lg">
+                                        <div className="border-b border-neutral-100 px-4 py-3">
+                                            <p className="truncate font-medium text-neutral-800">
                                                 {user.name}
                                             </p>
-                                            <p className="truncate text-sm text-terra-500">
+                                            <p className="truncate text-sm text-neutral-500">
                                                 {user.email}
                                             </p>
                                         </div>
                                         <Link
                                             href="/shop/orders"
-                                            className="flex items-center gap-3 px-4 py-2.5 text-terra-700 transition-colors hover:bg-terra-50"
+                                            className="flex items-center gap-3 px-4 py-2.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-teal-500"
                                         >
                                             <Package size={18} />
-                                            <span>Pesanan Saya</span>
+                                            <span>My Orders</span>
                                         </Link>
                                         <Link
                                             href="/shop/wishlist"
-                                            className="flex items-center gap-3 px-4 py-2.5 text-terra-700 transition-colors hover:bg-terra-50"
+                                            className="flex items-center gap-3 px-4 py-2.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-teal-500"
                                         >
                                             <Heart size={18} />
                                             <span>Wishlist</span>
@@ -245,18 +282,18 @@ export const Header: React.FC<HeaderProps> = ({
                                                     ? '/admin/settings'
                                                     : '/settings/profile'
                                             }
-                                            className="flex items-center gap-3 px-4 py-2.5 text-terra-700 transition-colors hover:bg-terra-50"
+                                            className="flex items-center gap-3 px-4 py-2.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-teal-500"
                                         >
                                             <Settings size={18} />
-                                            <span>Pengaturan</span>
+                                            <span>Settings</span>
                                         </Link>
-                                        <div className="mt-2 border-t border-terra-100 pt-2">
+                                        <div className="mt-2 border-t border-neutral-100 pt-2">
                                             <button
                                                 onClick={handleLogout}
                                                 className="flex w-full items-center gap-3 px-4 py-2.5 text-red-600 transition-colors hover:bg-red-50"
                                             >
                                                 <LogOut size={18} />
-                                                <span>Keluar</span>
+                                                <span>Logout</span>
                                             </button>
                                         </div>
                                     </div>
@@ -265,15 +302,26 @@ export const Header: React.FC<HeaderProps> = ({
                         ) : (
                             <Link
                                 href="/login"
-                                className="hidden items-center gap-2 rounded-full bg-terra-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-wood md:flex"
+                                className={`hidden items-center gap-2 rounded-sm px-5 py-2.5 text-sm font-medium transition-all md:flex ${
+                                    isSolidHeader
+                                        ? 'bg-teal-500 text-white hover:bg-teal-600'
+                                        : 'bg-white text-teal-500 hover:bg-accent-500 hover:text-neutral-800'
+                                }`}
                             >
                                 <User size={16} />
-                                <span>Masuk</span>
+                                <span>Sign In</span>
                             </Link>
                         )}
 
-                        <button className="p-2 text-terra-900 md:hidden">
-                            <Menu size={20} />
+                        {/* Mobile Menu */}
+                        <button
+                            className={`p-2.5 lg:hidden ${
+                                isSolidHeader
+                                    ? 'text-neutral-700'
+                                    : 'text-white'
+                            }`}
+                        >
+                            <Menu size={22} />
                         </button>
                     </div>
                 </div>
@@ -286,23 +334,23 @@ export const Header: React.FC<HeaderProps> = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-20 backdrop-blur-sm"
+                        className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 pt-24 backdrop-blur-sm"
                         onClick={() => setSearchOpen(false)}
                     >
                         <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="mx-4 w-full max-w-2xl rounded-2xl bg-white shadow-2xl"
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            className="mx-4 w-full max-w-2xl overflow-hidden rounded-sm bg-white shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <form
                                 onSubmit={handleSearch}
-                                className="flex items-center gap-4 p-4"
+                                className="flex items-center gap-4 p-5"
                             >
                                 <Search
-                                    size={24}
-                                    className="flex-shrink-0 text-terra-400"
+                                    size={22}
+                                    className="flex-shrink-0 text-neutral-400"
                                 />
                                 <input
                                     ref={searchInputRef}
@@ -311,28 +359,28 @@ export const Header: React.FC<HeaderProps> = ({
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
-                                    placeholder="Cari produk furniture..."
-                                    className="flex-1 text-lg outline-none placeholder:text-terra-300"
+                                    placeholder="Search furniture..."
+                                    className="flex-1 text-lg outline-none placeholder:text-neutral-400"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setSearchOpen(false)}
-                                    className="rounded-full p-2 transition-colors hover:bg-terra-100"
+                                    className="rounded-sm p-2 transition-colors hover:bg-neutral-100"
                                 >
-                                    <X size={20} className="text-terra-500" />
+                                    <X size={20} className="text-neutral-500" />
                                 </button>
                             </form>
-                            <div className="border-t border-terra-100 px-4 py-3">
-                                <p className="text-xs text-terra-400">
-                                    Tekan{' '}
-                                    <kbd className="rounded bg-terra-100 px-1.5 py-0.5 text-terra-600">
+                            <div className="border-t border-neutral-100 bg-neutral-50 px-5 py-3">
+                                <p className="text-xs text-neutral-500">
+                                    Press{' '}
+                                    <kbd className="rounded-sm bg-neutral-200 px-1.5 py-0.5 font-medium text-neutral-700">
                                         Enter
                                     </kbd>{' '}
-                                    untuk mencari atau{' '}
-                                    <kbd className="rounded bg-terra-100 px-1.5 py-0.5 text-terra-600">
+                                    to search or{' '}
+                                    <kbd className="rounded-sm bg-neutral-200 px-1.5 py-0.5 font-medium text-neutral-700">
                                         Esc
                                     </kbd>{' '}
-                                    untuk menutup
+                                    to close
                                 </p>
                             </div>
                         </motion.div>

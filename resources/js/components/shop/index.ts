@@ -1,31 +1,38 @@
 // Layout Components
-export { Header } from './Header';
+export { CustomCursor } from './CustomCursor';
 export { Footer } from './Footer';
+export { Header } from './Header';
 
 // View Components
-export { LandingView } from './LandingView';
 export { CartDrawer } from './CartDrawer';
-export { ProductDetail } from './ProductDetail';
 export { CheckoutView } from './CheckoutView';
+export { LandingView } from './LandingView';
+export { ProductDetail } from './ProductDetail';
 export { SuccessView } from './SuccessView';
 
 // Section Components
-export { HeroSection } from './sections/HeroSection';
-export { TrustSection } from './sections/TrustSection';
 export { CategoriesSection } from './sections/CategoriesSection';
-export { ValuesSection } from './sections/ValuesSection';
+export { HeroSection } from './sections/HeroSection';
+export { NewsletterSection } from './sections/NewsletterSection';
 export { ProductsSection } from './sections/ProductsSection';
 export { TestimonialsSection } from './sections/TestimonialsSection';
-export { NewsletterSection } from './sections/NewsletterSection';
+export { TrustSection } from './sections/TrustSection';
+export { ValuesSection } from './sections/ValuesSection';
 
 // Marketing Components
-export { FlashSaleCountdown, FlashSaleCountdownCompact } from './FlashSaleCountdown';
+export {
+    FlashSaleCountdown,
+    FlashSaleCountdownCompact,
+} from './FlashSaleCountdown';
 export { PromoBanner } from './PromoBanner';
-export { RecentlyViewedSection, saveToRecentlyViewed, getRecentlyViewed } from './RecentlyViewed';
+export {
+    RecentlyViewedSection,
+    getRecentlyViewed,
+    saveToRecentlyViewed,
+} from './RecentlyViewed';
 export { WhatsAppButton } from './WhatsAppButton';
 
 // Modal Components
-export { QuickViewModal } from './QuickViewModal';
 export { CompareDrawer } from './CompareDrawer';
+export { QuickViewModal } from './QuickViewModal';
 export { ShareModal } from './ShareModal';
-

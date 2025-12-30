@@ -1,11 +1,30 @@
-import { useState } from 'react';
-import { useForm, usePage } from '@inertiajs/react';
-import { Mail, CheckCircle, Loader2 } from 'lucide-react';
 import { SiteSettings } from '@/types';
+import { useForm, usePage } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import { ArrowRight, CheckCircle, Loader2, Mail } from 'lucide-react';
+import { useState } from 'react';
+
+// Animation variants
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.15 },
+    },
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.6, ease: 'easeOut' as const },
+    },
+};
 
 export const NewsletterSection = () => {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const [isSuccess, setIsSuccess] = useState(false);
     const [message, setMessage] = useState('');
 
@@ -20,9 +39,10 @@ export const NewsletterSection = () => {
             preserveScroll: true,
             onSuccess: () => {
                 setIsSuccess(true);
-                setMessage('Terima kasih telah berlangganan! Anda akan menerima update terbaru dari kami.');
+                setMessage(
+                    'Thank you for subscribing! You will receive our latest updates.',
+                );
                 reset();
-                // Reset success message after 5 seconds
                 setTimeout(() => {
                     setIsSuccess(false);
                     setMessage('');
@@ -37,65 +57,101 @@ export const NewsletterSection = () => {
     };
 
     return (
-        <section className="py-24 px-6 md:px-12">
-            <div className="max-w-[1400px] mx-auto">
-                <div className="bg-sand-100 rounded-[40px] p-12 md:p-20 flex flex-col md:flex-row items-center justify-between gap-12">
-                    <div className="max-w-xl">
-                        <h2 className="font-serif text-5xl text-terra-900">Bergabung dengan Keluarga {siteName}</h2>
-                        <p className="text-terra-600 mt-4 text-lg">Dapatkan akses eksklusif ke koleksi terbaru, tips dekorasi, dan penawaran khusus.</p>
-                    </div>
-                    <div className="w-full md:w-auto">
+        <section className="bg-white px-6 py-24 md:px-12">
+            <div className="mx-auto max-w-[1400px]">
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                    variants={containerVariants}
+                    className="flex flex-col items-center justify-between gap-12 rounded-sm bg-teal-500 p-12 md:p-20 lg:flex-row"
+                >
+                    <motion.div
+                        variants={itemVariants}
+                        className="max-w-xl text-center lg:text-left"
+                    >
+                        <h2 className="font-display text-4xl font-semibold tracking-tight text-white md:text-5xl">
+                            Join the {siteName} Family
+                        </h2>
+                        <p className="mt-4 text-lg leading-relaxed text-teal-100">
+                            Get exclusive access to new collections, design
+                            tips, and special offers.
+                        </p>
+                    </motion.div>
+                    <motion.div
+                        variants={itemVariants}
+                        className="w-full lg:w-auto"
+                    >
                         {isSuccess ? (
-                            <div className="flex items-center gap-3 bg-green-50 text-green-700 px-6 py-4 rounded-full">
+                            <div className="flex items-center gap-3 rounded-sm bg-white px-6 py-4 text-teal-600">
                                 <CheckCircle size={24} />
                                 <span className="font-medium">{message}</span>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit}>
-                                <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="flex flex-col gap-3 sm:flex-row">
                                     <div className="relative">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-terra-400" size={20} />
+                                        <Mail
+                                            className="absolute top-1/2 left-4 -translate-y-1/2 text-neutral-400"
+                                            size={20}
+                                        />
                                         <input
                                             type="email"
                                             value={data.email}
-                                            onChange={(e) => setData('email', e.target.value)}
-                                            placeholder="Alamat email Anda"
-                                            className={`w-full sm:w-80 pl-12 pr-4 py-4 rounded-full border ${
-                                                errors.email ? 'border-red-500' : 'border-terra-200'
-                                            } focus:outline-none focus:border-wood transition-colors`}
+                                            onChange={(e) =>
+                                                setData('email', e.target.value)
+                                            }
+                                            placeholder="Your email address"
+                                            className={`w-full rounded-sm border-none py-4 pr-4 pl-12 sm:w-80 ${
+                                                errors.email
+                                                    ? 'ring-2 ring-red-500'
+                                                    : ''
+                                            } transition-all focus:ring-2 focus:ring-accent-500 focus:outline-none`}
                                             disabled={processing}
                                         />
                                     </div>
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="bg-terra-900 text-white px-8 py-4 rounded-full font-medium hover:bg-wood transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        className="flex items-center justify-center gap-2 rounded-sm bg-accent-500 px-8 py-4 font-semibold text-neutral-800 transition-colors hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         {processing ? (
                                             <>
-                                                <Loader2 size={18} className="animate-spin" />
-                                                Memproses...
+                                                <Loader2
+                                                    size={18}
+                                                    className="animate-spin"
+                                                />
+                                                Processing...
                                             </>
                                         ) : (
-                                            'Berlangganan'
+                                            <>
+                                                Subscribe
+                                                <ArrowRight size={18} />
+                                            </>
                                         )}
                                     </button>
                                 </div>
                                 {errors.email && (
-                                    <p className="text-red-500 text-sm mt-2 ml-4">{errors.email}</p>
+                                    <p className="mt-2 ml-1 text-sm text-white/90">
+                                        {errors.email}
+                                    </p>
                                 )}
                                 {message && !isSuccess && (
-                                    <p className="text-red-500 text-sm mt-2 ml-4">{message}</p>
+                                    <p className="mt-2 ml-1 text-sm text-white/90">
+                                        {message}
+                                    </p>
                                 )}
-                                <p className="text-terra-400 text-xs mt-4 text-center sm:text-left">Dengan berlangganan, Anda menyetujui kebijakan privasi kami.</p>
+                                <p className="mt-4 text-center text-xs text-teal-200 sm:text-left">
+                                    By subscribing, you agree to our privacy
+                                    policy.
+                                </p>
                             </form>
                         )}
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </div>
         </section>
     );
 };
 
 export default NewsletterSection;
-

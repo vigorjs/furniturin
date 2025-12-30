@@ -1,9 +1,14 @@
-import { useState, ReactNode } from 'react';
+import {
+    CustomCursor,
+    Footer,
+    Header,
+    WhatsAppButton,
+} from '@/components/shop';
+import { SiteSettings } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, ShoppingBag, Minus, Plus, Trash2 } from 'lucide-react';
-import { Header, Footer, WhatsAppButton } from '@/components/shop';
-import { SiteSettings } from '@/types';
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
+import { ReactNode, useState } from 'react';
 
 interface CartItem {
     id: number;
@@ -40,20 +45,24 @@ interface ShopLayoutProps {
     showWhatsApp?: boolean;
     whatsAppMessage?: string;
     bannerVisible?: boolean;
+    isHeroPage?: boolean; // If true, header starts transparent (for pages with hero)
 }
 
 export function ShopLayout({
     children,
     showFooter = true,
     showWhatsApp = true,
-    whatsAppMessage = "Halo, saya ingin bertanya tentang produk",
-    bannerVisible = false
+    whatsAppMessage = "Hello, I'd like to inquire about a product",
+    bannerVisible = false,
+    isHeroPage = false, // Default to solid header for inner pages
 }: ShopLayoutProps) {
-    const { cart, siteSettings } = usePage<{ cart: SharedCart; siteSettings: SiteSettings }>().props;
+    const { cart, siteSettings } = usePage<{
+        cart: SharedCart;
+        siteSettings: SiteSettings;
+    }>().props;
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [updatingItem, setUpdatingItem] = useState<number | null>(null);
 
-    // Use WhatsApp from settings, fallback to empty string
     const whatsAppPhone = siteSettings?.contact_whatsapp || '';
 
     const formatPrice = (price: number) => {
@@ -65,19 +74,26 @@ export function ShopLayout({
         }).format(price);
     };
 
-    const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
+    const handleUpdateQuantity = async (
+        itemId: number,
+        newQuantity: number,
+    ) => {
         if (newQuantity < 1) return;
         setUpdatingItem(itemId);
 
-        router.put(`/shop/cart/${itemId}`, { quantity: newQuantity }, {
-            preserveScroll: true,
-            only: ['cart'],
-            onFinish: () => setUpdatingItem(null),
-            onError: (errors) => {
-                console.error('Error updating cart:', errors);
-                setUpdatingItem(null);
+        router.put(
+            `/shop/cart/${itemId}`,
+            { quantity: newQuantity },
+            {
+                preserveScroll: true,
+                only: ['cart'],
+                onFinish: () => setUpdatingItem(null),
+                onError: (errors) => {
+                    console.error('Error updating cart:', errors);
+                    setUpdatingItem(null);
+                },
             },
-        });
+        );
     };
 
     const handleRemoveItem = async (itemId: number) => {
@@ -101,11 +117,15 @@ export function ShopLayout({
 
     return (
         <>
+            {/* Custom Cursor - smooth following effect like realteakfurniture.com */}
+            <CustomCursor />
+
             <Header
                 cartCount={cart?.items_count || 0}
                 onCartClick={() => setIsCartOpen(true)}
                 onLogoClick={() => router.visit('/shop')}
                 bannerVisible={bannerVisible}
+                isHeroPage={isHeroPage}
             />
 
             {children}
@@ -113,7 +133,10 @@ export function ShopLayout({
             {showFooter && <Footer />}
 
             {showWhatsApp && (
-                <WhatsAppButton phoneNumber={whatsAppPhone} message={whatsAppMessage} />
+                <WhatsAppButton
+                    phoneNumber={whatsAppPhone}
+                    message={whatsAppMessage}
+                />
             )}
 
             {/* Cart Drawer */}
@@ -125,84 +148,149 @@ export function ShopLayout({
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsCartOpen(false)}
-                            className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+                            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
                         />
                         <motion.div
-                            initial={{ x: "100%" }}
+                            initial={{ x: '100%' }}
                             animate={{ x: 0 }}
-                            exit={{ x: "100%" }}
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col"
+                            exit={{ x: '100%' }}
+                            transition={{
+                                type: 'spring',
+                                damping: 25,
+                                stiffness: 200,
+                            }}
+                            className="fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
                         >
-                            <div className="p-6 border-b border-terra-100 flex justify-between items-center">
-                                <h2 className="font-serif text-2xl text-terra-900">Keranjang</h2>
+                            {/* Header */}
+                            <div className="flex items-center justify-between border-b border-neutral-100 p-6">
+                                <h2 className="font-display text-xl font-semibold text-neutral-800">
+                                    Shopping Cart
+                                </h2>
                                 <button
                                     onClick={() => setIsCartOpen(false)}
-                                    className="p-2 hover:bg-terra-50 rounded-full transition-colors"
+                                    className="rounded-sm p-2 transition-colors hover:bg-neutral-100"
                                 >
-                                    <X size={24} className="text-terra-600" />
+                                    <X size={22} className="text-neutral-600" />
                                 </button>
                             </div>
 
+                            {/* Cart Items */}
                             <div className="flex-1 overflow-y-auto p-6">
                                 {!cart?.items || cart.items.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-center">
-                                        <ShoppingBag size={64} className="text-terra-200 mb-6" />
-                                        <h3 className="font-serif text-xl text-terra-900 mb-2">Keranjang Kosong</h3>
-                                        <p className="text-terra-500">Mulai belanja untuk mengisi keranjang.</p>
+                                    <div className="flex h-full flex-col items-center justify-center text-center">
+                                        <ShoppingBag
+                                            size={56}
+                                            className="mb-6 text-neutral-200"
+                                        />
+                                        <h3 className="mb-2 font-display text-lg font-medium text-neutral-800">
+                                            Your Cart is Empty
+                                        </h3>
+                                        <p className="text-neutral-500">
+                                            Start shopping to add items to your
+                                            cart.
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
                                         {cart.items.map((item) => (
                                             <div
                                                 key={item.id}
-                                                className={`flex gap-4 pb-4 border-b border-terra-100 last:border-0 ${
-                                                    updatingItem === item.id ? 'opacity-50' : ''
+                                                className={`flex gap-4 border-b border-neutral-100 pb-4 last:border-0 ${
+                                                    updatingItem === item.id
+                                                        ? 'opacity-50'
+                                                        : ''
                                                 }`}
                                             >
-                                                <div className="w-20 h-24 bg-terra-100 rounded-xl overflow-hidden flex-shrink-0">
+                                                <div className="h-24 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-neutral-100">
                                                     <img
-                                                        src={item.product?.primary_image?.image_url || '/images/placeholder-product.svg'}
-                                                        alt={item.product?.name || 'Product'}
-                                                        className="w-full h-full object-cover"
+                                                        src={
+                                                            item.product
+                                                                ?.primary_image
+                                                                ?.image_url ||
+                                                            '/images/placeholder-product.svg'
+                                                        }
+                                                        alt={
+                                                            item.product
+                                                                ?.name ||
+                                                            'Product'
+                                                        }
+                                                        className="h-full w-full object-cover"
                                                     />
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="font-medium text-terra-900 truncate">
-                                                        {item.product?.name || 'Unknown Product'}
+                                                <div className="min-w-0 flex-1">
+                                                    <h4 className="truncate font-medium text-neutral-800">
+                                                        {item.product?.name ||
+                                                            'Unknown Product'}
                                                     </h4>
                                                     {item.product?.category && (
-                                                        <p className="text-sm text-terra-500">
-                                                            {item.product.category.name}
+                                                        <p className="text-sm text-neutral-500">
+                                                            {
+                                                                item.product
+                                                                    .category
+                                                                    .name
+                                                            }
                                                         </p>
                                                     )}
-                                                    <p className="text-wood font-medium mt-1">
-                                                        {formatPrice(item.price)}
+                                                    <p className="mt-1 font-semibold text-teal-500">
+                                                        {formatPrice(
+                                                            item.price,
+                                                        )}
                                                     </p>
-                                                    <div className="flex items-center gap-3 mt-2">
-                                                        <div className="flex items-center border border-terra-200 rounded-full text-terra-900">
+                                                    <div className="mt-2 flex items-center gap-3">
+                                                        <div className="flex items-center rounded-sm border border-neutral-200">
                                                             <button
-                                                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                                                                disabled={updatingItem === item.id || item.quantity <= 1}
-                                                                className="w-8 h-8 flex items-center justify-center hover:bg-terra-50 rounded-l-full disabled:opacity-50 text-terra-900"
+                                                                onClick={() =>
+                                                                    handleUpdateQuantity(
+                                                                        item.id,
+                                                                        item.quantity -
+                                                                            1,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    updatingItem ===
+                                                                        item.id ||
+                                                                    item.quantity <=
+                                                                        1
+                                                                }
+                                                                className="flex h-8 w-8 items-center justify-center text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
                                                             >
-                                                                <Minus size={14} />
+                                                                <Minus
+                                                                    size={14}
+                                                                />
                                                             </button>
-                                                            <span className="w-8 text-center text-sm font-medium text-terra-900">
+                                                            <span className="w-8 text-center text-sm font-medium text-neutral-800">
                                                                 {item.quantity}
                                                             </span>
                                                             <button
-                                                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                                                                disabled={updatingItem === item.id}
-                                                                className="w-8 h-8 flex items-center justify-center hover:bg-terra-50 rounded-r-full disabled:opacity-50 text-terra-900"
+                                                                onClick={() =>
+                                                                    handleUpdateQuantity(
+                                                                        item.id,
+                                                                        item.quantity +
+                                                                            1,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    updatingItem ===
+                                                                    item.id
+                                                                }
+                                                                className="flex h-8 w-8 items-center justify-center text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
                                                             >
-                                                                <Plus size={14} />
+                                                                <Plus
+                                                                    size={14}
+                                                                />
                                                             </button>
                                                         </div>
                                                         <button
-                                                            onClick={() => handleRemoveItem(item.id)}
-                                                            disabled={updatingItem === item.id}
-                                                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors disabled:opacity-50"
+                                                            onClick={() =>
+                                                                handleRemoveItem(
+                                                                    item.id,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                updatingItem ===
+                                                                item.id
+                                                            }
+                                                            className="rounded-sm p-2 text-red-500 transition-colors hover:bg-red-50 disabled:opacity-50"
                                                         >
                                                             <Trash2 size={16} />
                                                         </button>
@@ -214,28 +302,32 @@ export function ShopLayout({
                                 )}
                             </div>
 
+                            {/* Footer */}
                             {cart?.items && cart.items.length > 0 && (
-                                <div className="p-6 border-t border-terra-100 space-y-4">
-                                    <div className="flex justify-between items-center text-lg">
-                                        <span className="text-terra-600">Subtotal</span>
-                                        <span className="font-medium text-terra-900">
+                                <div className="space-y-4 border-t border-neutral-100 bg-neutral-50 p-6">
+                                    <div className="flex items-center justify-between text-lg">
+                                        <span className="text-neutral-600">
+                                            Subtotal
+                                        </span>
+                                        <span className="font-semibold text-neutral-800">
                                             {formatPrice(cart.subtotal)}
                                         </span>
                                     </div>
                                     <button
                                         onClick={handleCheckout}
-                                        className="w-full bg-terra-900 text-white py-4 rounded-full font-medium hover:bg-wood transition-colors"
+                                        className="flex w-full items-center justify-center gap-2 rounded-sm bg-teal-500 py-4 font-medium text-white transition-colors hover:bg-teal-600"
                                     >
-                                        Lanjut ke Checkout
+                                        Proceed to Checkout
+                                        <ArrowRight size={18} />
                                     </button>
                                     <button
                                         onClick={() => {
                                             setIsCartOpen(false);
                                             router.visit('/shop/cart');
                                         }}
-                                        className="w-full border border-terra-200 text-terra-900 py-3 rounded-full font-medium hover:bg-terra-50 transition-colors"
+                                        className="w-full rounded-sm border border-neutral-200 py-3 font-medium text-neutral-700 transition-colors hover:bg-white"
                                     >
-                                        Lihat Keranjang
+                                        View Cart
                                     </button>
                                 </div>
                             )}

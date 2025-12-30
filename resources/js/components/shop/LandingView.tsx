@@ -1,12 +1,18 @@
+import {
+    ApiCategory,
+    ApiProduct,
+    HeroSettings,
+    HomeTestimonial,
+    HomeValue,
+} from '@/types/shop';
 import { motion } from 'framer-motion';
-import { ApiProduct, ApiCategory, HomeTestimonial, HeroSettings, HomeValue } from '@/types/shop';
-import { HeroSection } from './sections/HeroSection';
-import { TrustSection } from './sections/TrustSection';
 import { CategoriesSection } from './sections/CategoriesSection';
-import { ValuesSection } from './sections/ValuesSection';
+import { HeroSection } from './sections/HeroSection';
+import { NewsletterSection } from './sections/NewsletterSection';
 import { ProductsSection } from './sections/ProductsSection';
 import { TestimonialsSection } from './sections/TestimonialsSection';
-import { NewsletterSection } from './sections/NewsletterSection';
+import { TrustSection } from './sections/TrustSection';
+import { ValuesSection } from './sections/ValuesSection';
 
 interface LandingViewProps {
     featuredProducts: ApiProduct[];
@@ -44,4 +50,3 @@ export const LandingView: React.FC<LandingViewProps> = ({
 };
 
 export default LandingView;
-

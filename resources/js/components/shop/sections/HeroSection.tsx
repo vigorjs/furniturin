@@ -1,5 +1,10 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
 import { HeroSettings } from '@/types/shop';
+import { Link } from '@inertiajs/react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+
+// Default placeholder
+const HERO_PLACEHOLDER = '/images/placeholders/hero-main.png';
 
 interface HeroSectionProps {
     settings: HeroSettings;
@@ -7,57 +12,95 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ settings }) => {
     const { scrollY } = useScroll();
-    const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-    const y2 = useTransform(scrollY, [0, 500], [0, -100]);
+    const opacity = useTransform(scrollY, [0, 400], [1, 0]);
+    const scale = useTransform(scrollY, [0, 400], [1, 1.1]);
+
+    const heroImage = settings.image_main || HERO_PLACEHOLDER;
 
     return (
-        <section className="relative min-h-[95vh] flex items-center pt-24 pb-12 overflow-hidden">
-            <div className="absolute top-0 right-0 w-[60%] h-full bg-[#f0ede6] -z-10 rounded-bl-[100px]" />
+        <section className="relative flex h-screen min-h-[700px] items-center justify-center overflow-hidden">
+            {/* Background Image with Parallax */}
+            <motion.div style={{ scale }} className="absolute inset-0 z-0">
+                <img
+                    src={heroImage}
+                    className="h-full w-full object-cover"
+                    alt="Hero Furniture"
+                />
+                {/* Subtle overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
+            </motion.div>
 
-            <div className="max-w-[1400px] mx-auto px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div className="relative z-10 order-2 lg:order-1">
+            {/* Content */}
+            <motion.div
+                style={{ opacity }}
+                className="relative z-10 mx-auto max-w-4xl px-6 text-center"
+            >
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                >
+                    {/* Badge */}
+                    <span className="mb-8 inline-block rounded-sm border border-white/40 px-4 py-1.5 text-xs font-medium tracking-[0.2em] text-white/90 uppercase backdrop-blur-sm">
+                        {settings.badge}
+                    </span>
+
+                    {/* Main Heading - Minimal & Elegant (per design.md) */}
+                    <h1 className="mb-6 font-display text-4xl leading-[1.1] font-semibold tracking-tight text-white md:text-6xl lg:text-7xl">
+                        {settings.title}
+                        {settings.title_highlight && (
+                            <>
+                                <br />
+                                <span className="font-medium text-accent-500">
+                                    {settings.title_highlight}
+                                </span>
+                            </>
+                        )}
+                    </h1>
+
+                    {/* Subheading - Short & Elegant */}
+                    <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed font-light text-white/80 md:text-xl">
+                        {settings.description}
+                    </p>
+
+                    {/* Single CTA (per design.md: 1 CTA utama) */}
+                    <div className="flex flex-wrap justify-center gap-4">
+                        <Link
+                            href="/shop/products"
+                            className="group inline-flex items-center gap-3 rounded-sm bg-white px-8 py-4 font-medium text-teal-500 shadow-lg transition-all duration-300 hover:bg-accent-500 hover:text-neutral-800"
+                        >
+                            Explore Collection
+                            <ArrowRight
+                                size={18}
+                                className="transition-transform group-hover:translate-x-1"
+                            />
+                        </Link>
+                    </div>
+                </motion.div>
+            </motion.div>
+
+            {/* Scroll Indicator */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.5 }}
+                className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
+            >
+                <div className="flex flex-col items-center gap-2 text-white/60">
+                    <span className="text-xs font-medium tracking-wider uppercase">
+                        Scroll
+                    </span>
                     <motion.div
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                        animate={{ y: [0, 8, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="flex h-8 w-5 justify-center rounded-full border border-white/40 pt-1.5"
                     >
-                        <span className="inline-block px-3 py-1 mb-6 border border-terra-800/30 rounded-full text-xs font-semibold uppercase tracking-widest text-terra-800">
-                            {settings.badge}
-                        </span>
-                        <h1 className="font-serif text-6xl md:text-8xl leading-[1.1] mb-8 text-terra-900">
-                            {settings.title} <br />
-                            <span className="italic text-wood">{settings.title_highlight}</span>
-                        </h1>
-                        <p className="text-lg md:text-xl text-terra-600 mb-10 max-w-lg leading-relaxed font-light">
-                            {settings.description}
-                        </p>
-                        <div className="flex flex-wrap gap-4">
-                            <button className="bg-terra-900 text-white px-10 py-4 rounded-full font-medium hover:bg-wood transition-all duration-300 shadow-xl shadow-terra-900/20">
-                                Lihat Koleksi
-                            </button>
-                            <button className="px-10 py-4 rounded-full font-medium border border-terra-200 hover:border-terra-900 transition-colors duration-300">
-                                Katalog
-                            </button>
-                        </div>
+                        <motion.div className="h-1.5 w-1 rounded-full bg-white/60" />
                     </motion.div>
                 </div>
-
-                <div className="relative h-[600px] lg:h-[800px] w-full order-1 lg:order-2 flex items-center justify-center lg:justify-end">
-                    <motion.div style={{ y: y1 }} className="absolute top-20 left-10 md:left-20 w-64 h-80 z-20 hidden md:block">
-                        <img src={settings.image_secondary} className="w-full h-full object-cover rounded-2xl shadow-2xl" alt="Interior Detail" />
-                    </motion.div>
-
-                    <motion.div style={{ y: y2 }} className="relative z-10 w-full md:w-[80%] h-[90%] rounded-t-[200px] rounded-b-[20px] overflow-hidden shadow-2xl">
-                        <img src={settings.image_main} className="w-full h-full object-cover" alt="Hero Furniture" />
-                        <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/40 to-transparent p-8">
-                            <p className="text-white font-serif italic text-2xl">{settings.product_name}</p>
-                        </div>
-                    </motion.div>
-                </div>
-            </div>
+            </motion.div>
         </section>
     );
 };
 
 export default HeroSection;
-

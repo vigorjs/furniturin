@@ -1,41 +1,84 @@
 @import 'tailwindcss';
 
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
 
-/* Google Fonts - Playfair Display & Inter */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+/* Google Fonts - Inter, Plus Jakarta Sans, Manrope (Modern Sans-Serif) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap');
 
 @theme {
-    /* Font Families */
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
+    /* Font Families - Modern Sans-Serif (per design.md) */
+    --font-sans:
+        'Plus Jakarta Sans', 'Inter', 'Manrope', ui-sans-serif, system-ui,
+        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+    --font-serif:
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; /* No serif as per design.md */
+    --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, sans-serif;
 
-    /* Terra Colors - Earth Tones */
-    --color-terra-50: #fafaf9;
-    --color-terra-100: #f5f5f4;
-    --color-terra-200: #e7e5e4;
-    --color-terra-300: #d6d3d1;
-    --color-terra-400: #a8a29e;
-    --color-terra-500: #78716c;
-    --color-terra-600: #57534e;
-    --color-terra-700: #44403c;
-    --color-terra-800: #292524;
-    --color-terra-900: #1c1917;
+    /* Furniturin Brand Colors (per design.md) */
+    /* Primary Teal / Green-Blue */
+    --color-teal-50: #e6f3f5;
+    --color-teal-100: #b3dce2;
+    --color-teal-200: #80c5cf;
+    --color-teal-300: #4dadbc;
+    --color-teal-400: #2a9bac;
+    --color-teal-500: #02545f; /* Primary Teal from design.md */
+    --color-teal-600: #024b55;
+    --color-teal-700: #013e47;
+    --color-teal-800: #013139;
+    --color-teal-900: #00242b;
+    --color-teal-950: #001a1f;
 
-    /* Wood Colors */
-    --color-wood-light: #D4C5B0;
-    --color-wood: #A68A64;
-    --color-wood-dark: #5D4037;
+    /* Accent Yellow */
+    --color-accent-50: #fffdf0;
+    --color-accent-100: #fff9d6;
+    --color-accent-200: #fff3ad;
+    --color-accent-300: #ffeb85;
+    --color-accent-400: #ffe35c;
+    --color-accent-500: #ffdb56; /* Accent Yellow from design.md */
+    --color-accent-600: #e6c54d;
+    --color-accent-700: #b39a3c;
+    --color-accent-800: #806e2b;
+    --color-accent-900: #4d421a;
 
-    /* Sand Colors */
-    --color-sand-50: #fdfbf7;
-    --color-sand-100: #f8f5f0;
-    --color-sand-200: #eee8dd;
+    /* Neutral Colors */
+    --color-neutral-50: #fafafa;
+    --color-neutral-100: #f8f9fa; /* Neutral Light (Background) */
+    --color-neutral-200: #e9ecef;
+    --color-neutral-300: #dee2e6;
+    --color-neutral-400: #adb5bd;
+    --color-neutral-500: #6c757d;
+    --color-neutral-600: #495057;
+    --color-neutral-700: #343a40;
+    --color-neutral-800: #1a1a1a; /* Neutral Dark (Text) */
+    --color-neutral-900: #0d0d0d;
+
+    /* Terra Colors - Remapped to Neutral (no brown) */
+    --color-terra-50: #fafafa;
+    --color-terra-100: #f5f5f5;
+    --color-terra-200: #e5e5e5;
+    --color-terra-300: #d4d4d4;
+    --color-terra-400: #a3a3a3;
+    --color-terra-500: #737373;
+    --color-terra-600: #525252;
+    --color-terra-700: #404040;
+    --color-terra-800: #262626;
+    --color-terra-900: #171717;
+
+    /* Wood Colors - Remapped to Teal/Neutral (no brown) */
+    --color-wood-light: #4dadbc;
+    --color-wood: #02545f; /* Primary Teal */
+    --color-wood-dark: #013e47;
+
+    /* Sand Colors - Remapped to Neutral (no brown) */
+    --color-sand-50: #fafafa;
+    --color-sand-100: #f5f5f5;
+    --color-sand-200: #e5e5e5;
 
     /* Animations */
     --animate-spin-slow: spin 12s linear infinite;
@@ -150,14 +193,14 @@
     --chart-3: oklch(0.769 0.188 70.08);
     --chart-4: oklch(0.627 0.265 303.9);
     --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+    --sidebar: var(--color-teal-950); /* Darkest Teal */
+    --sidebar-foreground: var(--color-teal-50);
+    --sidebar-primary: var(--color-teal-500);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: var(--color-teal-900);
+    --sidebar-accent-foreground: var(--color-teal-50);
+    --sidebar-border: var(--color-teal-800);
+    --sidebar-ring: var(--color-teal-500);
 }
 
 @layer base {
@@ -215,6 +258,11 @@
 
 /* Float animation keyframes */
 @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
 }
