@@ -15,32 +15,34 @@ class ReviewController extends Controller
 {
     public function index(): Response
     {
-        $reviews = QueryBuilder::for(ProductReview::class)
+        $paginator = QueryBuilder::for(ProductReview::class)
             ->allowedFilters(['rating', 'is_approved'])
             ->allowedSorts(['rating', 'created_at'])
             ->defaultSort('-created_at')
             ->with(['user', 'product.images'])
-            ->paginate(15)
-            ->through(fn (ProductReview $review) => [
-                'id' => $review->id,
-                'user' => $review->user ? [
-                    'id' => $review->user->id,
-                    'name' => $review->user->name,
-                ] : null,
-                'product' => $review->product ? [
-                    'id' => $review->product->id,
-                    'name' => $review->product->name,
-                    'image' => $review->product->primaryImage?->image_url,
-                ] : null,
-                'rating' => $review->rating,
-                'title' => $review->title,
-                'comment' => $review->comment,
-                'is_approved' => $review->is_approved,
-                'created_at' => $review->created_at->format('d M Y'),
-            ]);
+            ->paginate(15);
+
+        $reviews = collect($paginator->items())->map(fn(ProductReview $review) => [
+            'id' => $review->id,
+            'user' => $review->user ? [
+                'id' => $review->user->id,
+                'name' => $review->user->name,
+            ] : null,
+            'product' => $review->product ? [
+                'id' => $review->product->id,
+                'name' => $review->product->name,
+                'image' => $review->product->primaryImage?->image_url,
+            ] : null,
+            'rating' => $review->rating,
+            'title' => $review->title,
+            'comment' => $review->comment,
+            'is_approved' => $review->is_approved,
+            'created_at' => $review->created_at->format('d M Y'),
+        ]);
 
         return Inertia::render('Admin/Reviews/Index', [
-            'reviews' => $reviews,
+            'reviews' => Inertia::merge($reviews),
+            'next_page_url' => $paginator->nextPageUrl(),
             'filters' => request()->only(['filter', 'sort']),
         ]);
     }

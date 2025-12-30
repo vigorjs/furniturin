@@ -2,6 +2,7 @@ import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { Search, Eye, Clock, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
 import { useState } from 'react';
+import Pagination from '@/components/pagination';
 
 interface Order {
     id: number;
@@ -18,10 +19,22 @@ interface Order {
 interface OrdersIndexProps {
     orders: {
         data: Order[];
-        links: Array<{ url: string | null; label: string; active: boolean }>;
-        meta?: { current_page: number; last_page: number; per_page: number; total: number };
+        links: {
+            first?: string;
+            last?: string;
+            prev?: string;
+            next?: string;
+        };
+        meta: {
+            current_page: number;
+            last_page: number;
+            from: number;
+            to: number;
+            total: number;
+            links: Array<{ url: string | null; label: string; active: boolean }>;
+        };
     };
-    filters?: { filter?: Record<string, string>; sort?: string };
+    filters?: { filter?: Record<string, string> };
     statuses: Array<{ value: string; name: string }>;
     paymentStatuses: Array<{ value: string; name: string }>;
 }
@@ -119,13 +132,13 @@ export default function OrdersIndex({ orders, filters, statuses }: OrdersIndexPr
                                             </td>
                                             <td className="py-4 px-6 font-medium text-terra-900">{order.total_formatted}</td>
                                             <td className="py-4 px-6">
-                                                <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium bg-${order.status.color}-100 text-${order.status.color}-700`}>
+                                                <span className={`inline-flex whitespace-nowrap items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium bg-${order.status.color}-100 text-${order.status.color}-700`}>
                                                     <StatusIcon className="w-3.5 h-3.5" />
                                                     {order.status.label}
                                                 </span>
                                             </td>
                                             <td className="py-4 px-6">
-                                                <span className={`text-xs px-2.5 py-1 rounded-full font-medium bg-${order.payment_status.color}-100 text-${order.payment_status.color}-700`}>
+                                                <span className={`inline-flex whitespace-nowrap text-xs px-2.5 py-1 rounded-full font-medium bg-${order.payment_status.color}-100 text-${order.payment_status.color}-700`}>
                                                     {order.payment_status.label}
                                                 </span>
                                             </td>
@@ -141,7 +154,10 @@ export default function OrdersIndex({ orders, filters, statuses }: OrdersIndexPr
                             </tbody>
                         </table>
                     </div>
-                </div>
+                    {/* Pagination */}
+                    {orders.meta && (
+                        <Pagination links={orders.meta.links} meta={orders.meta} className="px-6 py-4 border-t border-terra-100" />
+                    )}</div>
             </div>
         </AdminLayout>
     );

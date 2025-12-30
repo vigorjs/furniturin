@@ -1,6 +1,15 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head, useForm, Link } from '@inertiajs/react';
-import { Save, Home, Image, Type, Quote, Plus, Trash2, ChevronLeft } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import {
+    ChevronLeft,
+    Home,
+    Image,
+    Plus,
+    Quote,
+    Save,
+    Trash2,
+    Type,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface HomepageSettingsProps {
@@ -69,7 +78,11 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
     };
 
     // Values handlers
-    const updateValue = (index: number, field: keyof ValueItem, value: string) => {
+    const updateValue = (
+        index: number,
+        field: keyof ValueItem,
+        value: string,
+    ) => {
         const updated = [...values];
         updated[index] = { ...updated[index], [field]: value };
         setValues(updated);
@@ -89,140 +102,216 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
     };
 
     return (
-        <AdminLayout breadcrumbs={[
-            { title: 'Pengaturan', href: '/admin/settings' },
-            { title: 'Homepage', href: '/admin/settings/homepage' },
-        ]}>
+        <AdminLayout
+            breadcrumbs={[
+                { title: 'Pengaturan', href: '/admin/settings' },
+                { title: 'Homepage', href: '/admin/settings/homepage' },
+            ]}
+        >
             <Head title="Pengaturan Homepage" />
 
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    <div>
-                        <Link href="/admin/settings" className="inline-flex items-center gap-2 text-terra-500 hover:text-terra-700 mb-2">
-                            <ChevronLeft size={16} />
-                            Kembali ke Pengaturan
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href="/admin/settings"
+                            className="rounded-lg p-2 text-terra-600 transition-colors hover:bg-terra-100"
+                        >
+                            <ChevronLeft className="h-5 w-5" />
                         </Link>
-                        <h1 className="text-2xl font-bold text-terra-900">Pengaturan Homepage</h1>
-                        <p className="text-terra-500 mt-1">Kelola tampilan halaman utama toko Anda</p>
+                        <div>
+                            <h1 className="text-2xl font-bold text-terra-900">
+                                Pengaturan Homepage
+                            </h1>
+                            <p className="mt-1 text-terra-500">
+                                Kelola tampilan halaman utama toko Anda
+                            </p>
+                        </div>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Hero Section Settings */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-terra-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-wood/10 rounded-lg flex items-center justify-center">
-                                <Home className="w-5 h-5 text-wood" />
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <div className="mb-6 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-wood/10">
+                                <Home className="h-5 w-5 text-wood" />
                             </div>
-                            <h2 className="text-lg font-semibold text-terra-900">Hero Section</h2>
+                            <h2 className="text-lg font-semibold text-terra-900">
+                                Hero Section
+                            </h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Badge Text</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Badge Text
+                                </label>
                                 <input
                                     type="text"
                                     value={data.hero_badge}
-                                    onChange={(e) => setData('hero_badge', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('hero_badge', e.target.value)
+                                    }
                                     placeholder="Koleksi Terbaru 2025"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Product Name (Hero)</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Product Name (Hero)
+                                </label>
                                 <input
                                     type="text"
                                     value={data.hero_product_name}
-                                    onChange={(e) => setData('hero_product_name', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'hero_product_name',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="Kursi Santai Premium"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Judul Utama</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Judul Utama
+                                </label>
                                 <input
                                     type="text"
                                     value={data.hero_title}
-                                    onChange={(e) => setData('hero_title', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('hero_title', e.target.value)
+                                    }
                                     placeholder="Desain yang"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Judul Highlight (Italic)</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Judul Highlight (Italic)
+                                </label>
                                 <input
                                     type="text"
                                     value={data.hero_title_highlight}
-                                    onChange={(e) => setData('hero_title_highlight', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'hero_title_highlight',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="bernafas."
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Deskripsi Hero</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Deskripsi Hero
+                                </label>
                                 <textarea
                                     value={data.hero_description}
-                                    onChange={(e) => setData('hero_description', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'hero_description',
+                                            e.target.value,
+                                        )
+                                    }
                                     rows={3}
                                     placeholder="Furniture minimalis dari bahan berkelanjutan..."
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all resize-none"
+                                    className="w-full resize-none rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>
                         </div>
                     </div>
 
                     {/* Hero Images */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-terra-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                <Image className="w-5 h-5 text-blue-600" />
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <div className="mb-6 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+                                <Image className="h-5 w-5 text-blue-600" />
                             </div>
-                            <h2 className="text-lg font-semibold text-terra-900">Gambar Hero</h2>
+                            <h2 className="text-lg font-semibold text-terra-900">
+                                Gambar Hero
+                            </h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Gambar Utama (URL)</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Gambar Utama (URL)
+                                </label>
                                 <input
                                     type="url"
                                     value={data.hero_image_main}
-                                    onChange={(e) => setData('hero_image_main', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'hero_image_main',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://..."
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                                 {data.hero_image_main && (
-                                    <img src={data.hero_image_main} alt="Preview" className="mt-3 w-full h-40 object-cover rounded-lg" />
+                                    <img
+                                        src={data.hero_image_main}
+                                        alt="Preview"
+                                        className="mt-3 h-40 w-full rounded-lg object-cover"
+                                    />
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Gambar Sekunder (URL)</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Gambar Sekunder (URL)
+                                </label>
                                 <input
                                     type="url"
                                     value={data.hero_image_secondary}
-                                    onChange={(e) => setData('hero_image_secondary', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'hero_image_secondary',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://..."
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                                 {data.hero_image_secondary && (
-                                    <img src={data.hero_image_secondary} alt="Preview" className="mt-3 w-full h-40 object-cover rounded-lg" />
+                                    <img
+                                        src={data.hero_image_secondary}
+                                        alt="Preview"
+                                        className="mt-3 h-40 w-full rounded-lg object-cover"
+                                    />
                                 )}
                             </div>
                         </div>
                     </div>
 
                     {/* Trust Logos */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-terra-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                                <Type className="w-5 h-5 text-purple-600" />
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <div className="mb-6 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
+                                <Type className="h-5 w-5 text-purple-600" />
                             </div>
-                            <h2 className="text-lg font-semibold text-terra-900">Trust Logos / Press</h2>
+                            <h2 className="text-lg font-semibold text-terra-900">
+                                Trust Logos / Press
+                            </h2>
                         </div>
                         <div className="space-y-4">
                             <div className="flex flex-wrap gap-2">
                                 {trustLogos.map((logo, index) => (
-                                    <span key={index} className="inline-flex items-center gap-2 px-3 py-2 bg-terra-100 rounded-lg text-terra-700">
+                                    <span
+                                        key={index}
+                                        className="inline-flex items-center gap-2 rounded-lg bg-terra-100 px-3 py-2 text-terra-700"
+                                    >
                                         {logo}
-                                        <button type="button" onClick={() => removeTrustLogo(index)} className="text-terra-400 hover:text-red-500">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                removeTrustLogo(index)
+                                            }
+                                            className="text-terra-400 hover:text-red-500"
+                                        >
                                             <Trash2 size={14} />
                                         </button>
                                     </span>
@@ -234,10 +323,17 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
                                     value={newLogo}
                                     onChange={(e) => setNewLogo(e.target.value)}
                                     placeholder="Nama brand/media..."
-                                    className="flex-1 px-4 py-2 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
-                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTrustLogo())}
+                                    className="flex-1 rounded-xl border border-terra-200 bg-sand-50 px-4 py-2 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    onKeyPress={(e) =>
+                                        e.key === 'Enter' &&
+                                        (e.preventDefault(), addTrustLogo())
+                                    }
                                 />
-                                <button type="button" onClick={addTrustLogo} className="px-4 py-2 bg-terra-900 text-white rounded-xl hover:bg-wood transition-colors">
+                                <button
+                                    type="button"
+                                    onClick={addTrustLogo}
+                                    className="rounded-xl bg-terra-900 px-4 py-2 text-white transition-colors hover:bg-wood"
+                                >
                                     <Plus size={20} />
                                 </button>
                             </div>
@@ -245,59 +341,104 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
                     </div>
 
                     {/* Values / Features */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-terra-100">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <div className="mb-6 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                                    <Quote className="w-5 h-5 text-green-600" />
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+                                    <Quote className="h-5 w-5 text-green-600" />
                                 </div>
-                                <h2 className="text-lg font-semibold text-terra-900">Nilai / Fitur Unggulan</h2>
+                                <h2 className="text-lg font-semibold text-terra-900">
+                                    Nilai / Fitur Unggulan
+                                </h2>
                             </div>
-                            <button type="button" onClick={addValue} className="inline-flex items-center gap-2 px-4 py-2 bg-terra-100 text-terra-700 rounded-xl hover:bg-terra-200 transition-colors">
+                            <button
+                                type="button"
+                                onClick={addValue}
+                                className="inline-flex items-center gap-2 rounded-xl bg-terra-100 px-4 py-2 text-terra-700 transition-colors hover:bg-terra-200"
+                            >
                                 <Plus size={16} />
                                 Tambah
                             </button>
                         </div>
                         <div className="space-y-4">
                             {values.map((value, index) => (
-                                <div key={index} className="p-4 bg-sand-50 rounded-xl border border-terra-100">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="text-sm font-medium text-terra-500">Item {index + 1}</span>
-                                        <button type="button" onClick={() => removeValue(index)} className="text-terra-400 hover:text-red-500">
+                                <div
+                                    key={index}
+                                    className="rounded-xl border border-terra-100 bg-sand-50 p-4"
+                                >
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <span className="text-sm font-medium text-terra-500">
+                                            Item {index + 1}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeValue(index)}
+                                            className="text-terra-400 hover:text-red-500"
+                                        >
                                             <Trash2 size={16} />
                                         </button>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                         <div>
-                                            <label className="block text-xs text-terra-500 mb-1">Icon</label>
+                                            <label className="mb-1 block text-xs text-terra-500">
+                                                Icon
+                                            </label>
                                             <select
                                                 value={value.icon}
-                                                onChange={(e) => updateValue(index, 'icon', e.target.value)}
-                                                className="w-full px-3 py-2 rounded-lg border border-terra-200 bg-white text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50"
+                                                onChange={(e) =>
+                                                    updateValue(
+                                                        index,
+                                                        'icon',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className="w-full rounded-lg border border-terra-200 bg-white px-3 py-2 text-terra-900 focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                             >
-                                                <option value="leaf">🌿 Leaf</option>
-                                                <option value="truck">🚚 Truck</option>
-                                                <option value="shield-check">🛡️ Shield Check</option>
+                                                <option value="leaf">
+                                                    🌿 Leaf
+                                                </option>
+                                                <option value="truck">
+                                                    🚚 Truck
+                                                </option>
+                                                <option value="shield-check">
+                                                    🛡️ Shield Check
+                                                </option>
                                             </select>
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-xs text-terra-500 mb-1">Judul</label>
+                                            <label className="mb-1 block text-xs text-terra-500">
+                                                Judul
+                                            </label>
                                             <input
                                                 type="text"
                                                 value={value.title}
-                                                onChange={(e) => updateValue(index, 'title', e.target.value)}
+                                                onChange={(e) =>
+                                                    updateValue(
+                                                        index,
+                                                        'title',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="Bahan Berkelanjutan"
-                                                className="w-full px-3 py-2 rounded-lg border border-terra-200 bg-white text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50"
+                                                className="w-full rounded-lg border border-terra-200 bg-white px-3 py-2 text-terra-900 focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                             />
                                         </div>
                                         <div className="md:col-span-3">
-                                            <label className="block text-xs text-terra-500 mb-1">Deskripsi</label>
+                                            <label className="mb-1 block text-xs text-terra-500">
+                                                Deskripsi
+                                            </label>
                                             <textarea
                                                 value={value.desc}
-                                                onChange={(e) => updateValue(index, 'desc', e.target.value)}
+                                                onChange={(e) =>
+                                                    updateValue(
+                                                        index,
+                                                        'desc',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 rows={2}
                                                 placeholder="Setiap produk menggunakan kayu dari hutan yang dikelola secara bertanggung jawab..."
-                                                className="w-full px-3 py-2 rounded-lg border border-terra-200 bg-white text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 resize-none"
+                                                className="w-full resize-none rounded-lg border border-terra-200 bg-white px-3 py-2 text-terra-900 focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                             />
                                         </div>
                                     </div>
@@ -308,8 +449,12 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
 
                     {/* Submit */}
                     <div className="flex justify-end">
-                        <button type="submit" disabled={processing} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-terra-900 text-white hover:bg-wood-dark transition-colors font-medium disabled:opacity-50">
-                            <Save className="w-5 h-5" />
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="inline-flex items-center gap-2 rounded-xl bg-terra-900 px-6 py-3 font-medium text-white transition-colors hover:bg-wood-dark disabled:opacity-50"
+                        >
+                            <Save className="h-5 w-5" />
                             {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}
                         </button>
                     </div>

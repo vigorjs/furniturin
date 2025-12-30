@@ -69,30 +69,34 @@ class CategorySeeder extends Seeder
 
         $sortOrder = 1;
         foreach ($categories as $categoryData) {
-            $parent = Category::create([
-                'name' => $categoryData['name'],
-                'slug' => Str::slug($categoryData['name']),
-                'description' => $categoryData['description'],
-                'is_active' => true,
-                'is_featured' => $categoryData['is_featured'],
-                'sort_order' => $sortOrder++,
-                'meta_title' => $categoryData['name'].' - Toko Furniture',
-                'meta_description' => $categoryData['description'],
-            ]);
+            $parent = Category::firstOrCreate(
+                ['slug' => Str::slug($categoryData['name'])],
+                [
+                    'name' => $categoryData['name'],
+                    'description' => $categoryData['description'],
+                    'is_active' => true,
+                    'is_featured' => $categoryData['is_featured'],
+                    'sort_order' => $sortOrder++,
+                    'meta_title' => $categoryData['name'] . ' - Toko Furniture',
+                    'meta_description' => $categoryData['description'],
+                ]
+            );
 
             $childSortOrder = 1;
             foreach ($categoryData['children'] as $childData) {
-                Category::create([
-                    'parent_id' => $parent->id,
-                    'name' => $childData['name'],
-                    'slug' => Str::slug($childData['name']),
-                    'description' => $childData['description'],
-                    'is_active' => true,
-                    'is_featured' => false,
-                    'sort_order' => $childSortOrder++,
-                    'meta_title' => $childData['name'].' - '.$categoryData['name'],
-                    'meta_description' => $childData['description'],
-                ]);
+                Category::firstOrCreate(
+                    ['slug' => Str::slug($childData['name'])],
+                    [
+                        'parent_id' => $parent->id,
+                        'name' => $childData['name'],
+                        'description' => $childData['description'],
+                        'is_active' => true,
+                        'is_featured' => false,
+                        'sort_order' => $childSortOrder++,
+                        'meta_title' => $childData['name'] . ' - ' . $categoryData['name'],
+                        'meta_description' => $childData['description'],
+                    ]
+                );
             }
         }
     }

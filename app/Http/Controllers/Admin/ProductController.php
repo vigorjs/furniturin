@@ -47,11 +47,13 @@ class ProductController extends Controller implements HasMiddleware
                 AllowedFilter::exact('status'),
                 AllowedFilter::exact('sale_type'),
                 AllowedFilter::exact('is_featured'),
+                AllowedFilter::scope('stock'),
             ])
             ->allowedSorts(['name', 'price', 'stock_quantity', 'created_at', 'sold_count'])
             ->with(['category', 'images'])
             ->latest()
-            ->paginate(15)
+            ->paginate($request->input('per_page', 15))
+            ->onEachSide(1)
             ->withQueryString();
 
         $categories = Category::where('is_active', true)->orderBy('name')->get();
@@ -60,11 +62,11 @@ class ProductController extends Controller implements HasMiddleware
             'products' => ProductResource::collection($products),
             'categories' => CategoryResource::collection($categories),
             'filters' => $request->only(['filter', 'sort']),
-            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
+            'statuses' => collect(ProductStatus::cases())->map(fn($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
-            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
+            'saleTypes' => collect(SaleType::cases())->map(fn($type) => [
                 'value' => $type->value,
                 'name' => $type->label(),
             ])->all(),
@@ -77,11 +79,11 @@ class ProductController extends Controller implements HasMiddleware
 
         return Inertia::render('Admin/Products/Create', [
             'categories' => CategoryResource::collection($categories)->resolve(),
-            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
+            'statuses' => collect(ProductStatus::cases())->map(fn($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
-            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
+            'saleTypes' => collect(SaleType::cases())->map(fn($type) => [
                 'value' => $type->value,
                 'name' => $type->label(),
             ])->all(),
@@ -122,11 +124,11 @@ class ProductController extends Controller implements HasMiddleware
         return Inertia::render('Admin/Products/Edit', [
             'product' => (new ProductResource($product))->resolve(),
             'categories' => CategoryResource::collection($categories)->resolve(),
-            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
+            'statuses' => collect(ProductStatus::cases())->map(fn($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
-            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
+            'saleTypes' => collect(SaleType::cases())->map(fn($type) => [
                 'value' => $type->value,
                 'name' => $type->label(),
             ])->all(),

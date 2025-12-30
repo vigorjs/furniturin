@@ -1,5 +1,5 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     Package,
     ShoppingCart,
@@ -7,9 +7,12 @@ import {
     TrendingUp,
     ArrowUpRight,
     ArrowDownRight,
+    ArrowRight,
     Clock,
     AlertTriangle,
 } from 'lucide-react';
+import { useState } from 'react';
+import Pagination from '@/components/pagination';
 
 interface DashboardProps {
     stats: {
@@ -20,20 +23,36 @@ interface DashboardProps {
         ordersGrowth: number;
         revenueGrowth: number;
     };
-    recentOrders: Array<{
-        id: number;
-        order_number: string;
-        customer: string;
-        total: string;
-        status: string;
-        created_at: string;
-    }>;
-    lowStockProducts: Array<{
-        id: number;
-        name: string;
-        stock: number;
-        sku: string;
-    }>;
+    recentOrders: {
+        data: Array<{
+            id: number;
+            order_number: string;
+            customer: string;
+            total: string;
+            status: string;
+            created_at: string;
+        }>;
+        links: Array<{ url: string | null; label: string; active: boolean }>;
+        current_page: number;
+        last_page: number;
+        from: number;
+        to: number;
+        total: number;
+    };
+    lowStockProducts: {
+        data: Array<{
+            id: number;
+            name: string;
+            stock: number;
+            sku: string;
+        }>;
+        links: Array<{ url: string | null; label: string; active: boolean }>;
+        current_page: number;
+        last_page: number;
+        from: number;
+        to: number;
+        total: number;
+    };
 }
 
 const statusColors: Record<string, string> = {
@@ -146,13 +165,13 @@ export default function Dashboard({
                         <div className="p-6 border-b border-terra-100">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-semibold text-terra-900">Pesanan Terbaru</h2>
-                                <a href="/admin/orders" className="text-sm text-wood hover:text-wood-dark transition-colors">
-                                    Lihat Semua →
-                                </a>
+                                <Link href="/admin/orders" className="text-sm text-wood hover:text-wood-dark transition-colors flex items-center gap-1">
+                                    Lihat Semua <ArrowRight className="w-4 h-4" />
+                                </Link>
                             </div>
                         </div>
                         <div className="divide-y divide-terra-100">
-                            {recentOrders.map((order) => (
+                            {recentOrders.data.map((order) => (
                                 <div key={order.id} className="p-4 hover:bg-sand-50 transition-colors">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
@@ -180,39 +199,40 @@ export default function Dashboard({
                                 </div>
                             ))}
                         </div>
+                        {/* Pagination removed */}
                     </div>
 
                     {/* Low Stock Alert */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-terra-100">
-                        <div className="p-6 border-b border-terra-100">
-                            <div className="flex items-center gap-2">
+                    <div className="bg-white rounded-2xl shadow-sm border border-terra-100 overflow-hidden">
+                        <div className="p-6 border-b border-terra-100 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-terra-900 flex items-center gap-2">
                                 <AlertTriangle className="w-5 h-5 text-orange-500" />
-                                <h2 className="text-lg font-semibold text-terra-900">Stok Menipis</h2>
-                            </div>
+                                Stok Menipis
+                            </h2>
+                            <Link href="/admin/products?filter[stock]=low" className="text-sm text-wood hover:text-wood-dark transition-colors flex items-center gap-1">
+                                Lihat Semua <ArrowRight className="w-4 h-4" />
+                            </Link>
                         </div>
                         <div className="divide-y divide-terra-100">
-                            {lowStockProducts.map((product) => (
-                                <div key={product.id} className="p-4 hover:bg-sand-50 transition-colors">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-medium text-terra-900 text-sm">{product.name}</p>
-                                            <p className="text-xs text-terra-500">{product.sku}</p>
+                            {lowStockProducts.data.map((product) => (
+                                <div key={product.id} className="p-4 flex items-center justify-between hover:bg-sand-50/50 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-terra-100 rounded-lg flex items-center justify-center">
+                                            <Package className="w-5 h-5 text-terra-600" />
                                         </div>
-                                        <span className="text-sm font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">
-                                            {product.stock} tersisa
-                                        </span>
+                                        <div>
+                                            <p className="font-medium text-terra-900">{product.name}</p>
+                                            <p className="text-sm text-terra-500">{product.sku}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-medium text-orange-600">{product.stock} tersisa</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <div className="p-4 border-t border-terra-100">
-                            <a
-                                href="/admin/products?filter[stock]=low"
-                                className="text-sm text-wood hover:text-wood-dark transition-colors"
-                            >
-                                Lihat Semua Produk →
-                            </a>
-                        </div>
+
+                        {/* Pagination removed */}
                     </div>
                 </div>
             </div>

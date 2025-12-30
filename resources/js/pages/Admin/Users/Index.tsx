@@ -2,6 +2,16 @@ import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search, Pencil, Trash2, Shield, User, UserCog } from 'lucide-react';
 import { useState } from 'react';
+import Pagination from '@/components/pagination';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface AdminUser {
     id: number;
@@ -15,6 +25,11 @@ interface UsersIndexProps {
     users: {
         data: AdminUser[];
         links: Array<{ url: string | null; label: string; active: boolean }>;
+        current_page: number;
+        last_page: number;
+        from: number;
+        to: number;
+        total: number;
     };
     filters?: { filter?: Record<string, string> };
     roles: string[];
@@ -40,10 +55,17 @@ export default function UsersIndex({ users, filters }: UsersIndexProps) {
     // Safely get filter name - check if filter is an object
     const filterName = filters?.filter && typeof filters.filter === 'object' ? filters.filter.name : '';
     const [search, setSearch] = useState(filterName || '');
+    const [deleteId, setDeleteId] = useState<number | null>(null);
 
-    const handleDelete = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
-            router.delete(`/admin/users/${id}`);
+    const confirmDelete = (id: number) => {
+        setDeleteId(id);
+    };
+
+    const handleDelete = () => {
+        if (deleteId) {
+            router.delete(`/admin/users/${deleteId}`, {
+                onFinish: () => setDeleteId(null),
+            });
         }
     };
 
@@ -138,7 +160,7 @@ export default function UsersIndex({ users, filters }: UsersIndexProps) {
                                                     <Pencil className="w-4 h-4" />
                                                 </Link>
                                                 {!user.roles.includes('super-admin') && (
-                                                    <button onClick={() => handleDelete(user.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors" title="Hapus">
+                                                    <button onClick={() => confirmDelete(user.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors" title="Hapus">
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 )}
@@ -151,21 +173,28 @@ export default function UsersIndex({ users, filters }: UsersIndexProps) {
                     </div>
 
                     {/* Pagination */}
-                    {users.links.length > 3 && (
-                        <div className="px-6 py-4 border-t border-terra-100 flex justify-center gap-1">
-                            {users.links.map((link, index) => (
-                                <Link
-                                    key={index}
-                                    href={link.url || '#'}
-                                    className={`px-3 py-1.5 rounded-lg text-sm ${link.active ? 'bg-terra-900 text-white' : link.url ? 'text-terra-600 hover:bg-terra-100' : 'text-terra-300 cursor-not-allowed'}`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    <Pagination paginator={users} className="px-6 py-4 border-t border-terra-100" />
                 </div>
             </div>
+
+            <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Konfirmasi Hapus</DialogTitle>
+                        <DialogDescription>
+                            Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteId(null)}>
+                            Batal
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            Hapus
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AdminLayout>
     );
 }
-

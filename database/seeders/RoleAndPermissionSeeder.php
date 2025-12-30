@@ -59,31 +59,41 @@ class RoleAndPermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Create roles and assign permissions
-        $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $adminRole->syncPermissions(Permission::all());
 
-        $managerRole = Role::create(['name' => 'manager']);
-        $managerRole->givePermissionTo([
-            'view products', 'create products', 'edit products', 'manage product stock',
-            'view categories', 'create categories', 'edit categories',
-            'view orders', 'edit orders', 'process orders',
+        $managerRole = Role::firstOrCreate(['name' => 'manager']);
+        $managerRole->syncPermissions([
+            'view products',
+            'create products',
+            'edit products',
+            'manage product stock',
+            'view categories',
+            'create categories',
+            'edit categories',
+            'view orders',
+            'edit orders',
+            'process orders',
             'view users',
-            'view reviews', 'approve reviews',
+            'view reviews',
+            'approve reviews',
             'view reports',
         ]);
 
-        $staffRole = Role::create(['name' => 'staff']);
-        $staffRole->givePermissionTo([
-            'view products', 'manage product stock',
+        $staffRole = Role::firstOrCreate(['name' => 'staff']);
+        $staffRole->syncPermissions([
+            'view products',
+            'manage product stock',
             'view categories',
-            'view orders', 'process orders',
+            'view orders',
+            'process orders',
             'view reviews',
         ]);
 
-        Role::create(['name' => 'customer']);
+        Role::firstOrCreate(['name' => 'customer']);
     }
 }

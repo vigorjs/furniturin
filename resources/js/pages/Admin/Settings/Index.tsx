@@ -1,6 +1,16 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head, useForm, Link } from '@inertiajs/react';
-import { Save, Store, Mail, Phone, MapPin, Globe, Home, ChevronRight, CreditCard } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import {
+    ChevronRight,
+    CreditCard,
+    Globe,
+    Home,
+    Mail,
+    MapPin,
+    Phone,
+    Save,
+    Store,
+} from 'lucide-react';
 
 interface SettingsIndexProps {
     settings: {
@@ -25,146 +35,254 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
     };
 
     return (
-        <AdminLayout breadcrumbs={[{ title: 'Pengaturan', href: '/admin/settings' }]}>
+        <AdminLayout
+            breadcrumbs={[{ title: 'Pengaturan', href: '/admin/settings' }]}
+        >
             <Head title="Pengaturan Situs" />
 
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="mx-auto space-y-6">
                 {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-bold text-terra-900">Pengaturan Situs</h1>
-                    <p className="text-terra-500 mt-1">Kelola pengaturan umum toko Anda</p>
+                    <h1 className="text-2xl font-bold text-terra-900">
+                        Pengaturan Situs
+                    </h1>
+                    <p className="mt-1 text-terra-500">
+                        Kelola pengaturan umum toko Anda
+                    </p>
                 </div>
 
                 {/* Quick Links */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <Link
                         href="/admin/settings/homepage"
-                        className="flex items-center justify-between p-4 bg-white rounded-2xl border border-terra-100 hover:border-wood hover:shadow-md transition-all group"
+                        className="group flex items-center justify-between rounded-2xl border border-terra-100 bg-white p-4 transition-all hover:border-wood hover:shadow-md"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-wood/10 rounded-lg flex items-center justify-center">
-                                <Home className="w-5 h-5 text-wood" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-wood/10">
+                                <Home className="h-5 w-5 text-wood" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-terra-900">Pengaturan Homepage</h3>
-                                <p className="text-sm text-terra-500">Hero, Trust Logos, Values</p>
+                                <h3 className="font-semibold text-terra-900">
+                                    Pengaturan Homepage
+                                </h3>
+                                <p className="text-sm text-terra-500">
+                                    Hero, Trust Logos, Values
+                                </p>
                             </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-terra-400 group-hover:text-wood transition-colors" />
+                        <ChevronRight className="h-5 w-5 text-terra-400 transition-colors group-hover:text-wood" />
                     </Link>
                     <Link
                         href="/admin/settings/payment"
-                        className="flex items-center justify-between p-4 bg-white rounded-2xl border border-terra-100 hover:border-wood hover:shadow-md transition-all group"
+                        className="group flex items-center justify-between rounded-2xl border border-terra-100 bg-white p-4 transition-all hover:border-wood hover:shadow-md"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                <CreditCard className="w-5 h-5 text-blue-600" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+                                <CreditCard className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-terra-900">Pengaturan Pembayaran</h3>
-                                <p className="text-sm text-terra-500">Rekening Bank, COD, Deadline</p>
+                                <h3 className="font-semibold text-terra-900">
+                                    Pengaturan Pembayaran
+                                </h3>
+                                <p className="text-sm text-terra-500">
+                                    Rekening Bank, COD, Deadline
+                                </p>
                             </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-terra-400 group-hover:text-wood transition-colors" />
+                        <ChevronRight className="h-5 w-5 text-terra-400 transition-colors group-hover:text-wood" />
                     </Link>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* General Settings */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-terra-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-wood/10 rounded-lg flex items-center justify-center">
-                                <Store className="w-5 h-5 text-wood" />
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <div className="mb-6 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-wood/10">
+                                <Store className="h-5 w-5 text-wood" />
                             </div>
-                            <h2 className="text-lg font-semibold text-terra-900">Informasi Toko</h2>
+                            <h2 className="text-lg font-semibold text-terra-900">
+                                Informasi Toko
+                            </h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Nama Toko</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Nama Toko
+                                </label>
                                 <input
                                     type="text"
                                     value={data.site_name}
-                                    onChange={(e) => setData('site_name', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    onChange={(e) =>
+                                        setData('site_name', e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Deskripsi Toko</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Deskripsi Toko
+                                </label>
                                 <textarea
                                     value={data.site_description}
-                                    onChange={(e) => setData('site_description', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'site_description',
+                                            e.target.value,
+                                        )
+                                    }
                                     rows={3}
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all resize-none"
+                                    className="w-full resize-none rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>
                         </div>
                     </div>
 
                     {/* Contact Settings */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-terra-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                <Phone className="w-5 h-5 text-blue-600" />
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <div className="mb-6 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+                                <Phone className="h-5 w-5 text-blue-600" />
                             </div>
-                            <h2 className="text-lg font-semibold text-terra-900">Kontak</h2>
+                            <h2 className="text-lg font-semibold text-terra-900">
+                                Kontak
+                            </h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Email</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Email
+                                </label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-terra-400" />
-                                    <input type="email" value={data.contact_email} onChange={(e) => setData('contact_email', e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all" />
+                                    <Mail className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-terra-400" />
+                                    <input
+                                        type="email"
+                                        value={data.contact_email}
+                                        onChange={(e) =>
+                                            setData(
+                                                'contact_email',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="w-full rounded-xl border border-terra-200 bg-sand-50 py-3 pr-4 pl-10 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Telepon</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Telepon
+                                </label>
                                 <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-terra-400" />
-                                    <input type="text" value={data.contact_phone} onChange={(e) => setData('contact_phone', e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all" />
+                                    <Phone className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-terra-400" />
+                                    <input
+                                        type="text"
+                                        value={data.contact_phone}
+                                        onChange={(e) =>
+                                            setData(
+                                                'contact_phone',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="w-full rounded-xl border border-terra-200 bg-sand-50 py-3 pr-4 pl-10 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">WhatsApp</label>
-                                <input type="text" value={data.contact_whatsapp} onChange={(e) => setData('contact_whatsapp', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all" placeholder="6281234567890" />
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    WhatsApp
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.contact_whatsapp}
+                                    onChange={(e) =>
+                                        setData(
+                                            'contact_whatsapp',
+                                            e.target.value,
+                                        )
+                                    }
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    placeholder="6281234567890"
+                                />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Alamat</label>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Alamat
+                                </label>
                                 <div className="relative">
-                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-terra-400" />
-                                    <input type="text" value={data.address} onChange={(e) => setData('address', e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all" />
+                                    <MapPin className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-terra-400" />
+                                    <input
+                                        type="text"
+                                        value={data.address}
+                                        onChange={(e) =>
+                                            setData('address', e.target.value)
+                                        }
+                                        className="w-full rounded-xl border border-terra-200 bg-sand-50 py-3 pr-4 pl-10 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Social Media */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-terra-100">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                                <Globe className="w-5 h-5 text-purple-600" />
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <div className="mb-6 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
+                                <Globe className="h-5 w-5 text-purple-600" />
                             </div>
-                            <h2 className="text-lg font-semibold text-terra-900">Media Sosial</h2>
+                            <h2 className="text-lg font-semibold text-terra-900">
+                                Media Sosial
+                            </h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Facebook</label>
-                                <input type="url" value={data.facebook_url} onChange={(e) => setData('facebook_url', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all" />
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Facebook
+                                </label>
+                                <input
+                                    type="url"
+                                    value={data.facebook_url}
+                                    onChange={(e) =>
+                                        setData('facebook_url', e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">Instagram</label>
-                                <input type="url" value={data.instagram_url} onChange={(e) => setData('instagram_url', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all" />
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Instagram
+                                </label>
+                                <input
+                                    type="url"
+                                    value={data.instagram_url}
+                                    onChange={(e) =>
+                                        setData('instagram_url', e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-terra-700 mb-2">TikTok</label>
-                                <input type="url" value={data.tiktok_url} onChange={(e) => setData('tiktok_url', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all" />
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    TikTok
+                                </label>
+                                <input
+                                    type="url"
+                                    value={data.tiktok_url}
+                                    onChange={(e) =>
+                                        setData('tiktok_url', e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                />
                             </div>
                         </div>
                     </div>
 
                     {/* Submit */}
                     <div className="flex justify-end">
-                        <button type="submit" disabled={processing} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-terra-900 text-white hover:bg-wood-dark transition-colors font-medium disabled:opacity-50">
-                            <Save className="w-5 h-5" />
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="inline-flex items-center gap-2 rounded-xl bg-terra-900 px-6 py-3 font-medium text-white transition-colors hover:bg-wood-dark disabled:opacity-50"
+                        >
+                            <Save className="h-5 w-5" />
                             {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}
                         </button>
                     </div>
@@ -173,4 +291,3 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
         </AdminLayout>
     );
 }
-

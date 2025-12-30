@@ -21,44 +21,46 @@ class ProductSeeder extends Seeder
         foreach ($products as $productData) {
             $category = Category::where('name', $productData['category'])->first();
 
-            if (! $category) {
+            if (!$category) {
                 continue;
             }
 
-            $product = Product::create([
-                'category_id' => $category->id,
-                'sku' => $productData['sku'],
-                'name' => $productData['name'],
-                'slug' => Str::slug($productData['name']).'-'.Str::random(5),
-                'short_description' => $productData['short_description'],
-                'description' => $productData['description'],
-                'price' => $productData['price'],
-                'compare_price' => $productData['compare_price'] ?? null,
-                'cost_price' => (int) ($productData['price'] * 0.6),
-                'stock_quantity' => $productData['stock'],
-                'low_stock_threshold' => 5,
-                'track_stock' => true,
-                'material' => $productData['material'],
-                'color' => $productData['color'],
-                'weight' => $productData['weight'],
-                'length' => $productData['dimensions']['length'],
-                'width' => $productData['dimensions']['width'],
-                'height' => $productData['dimensions']['height'],
-                'specifications' => $productData['specifications'],
-                'status' => ProductStatus::ACTIVE,
-                'sale_type' => $productData['sale_type'] ?? SaleType::REGULAR,
-                'is_featured' => $productData['is_featured'] ?? false,
-                'is_new_arrival' => $productData['is_new_arrival'] ?? false,
-                'discount_percentage' => $productData['discount'] ?? null,
-                'discount_starts_at' => isset($productData['discount']) ? now() : null,
-                'discount_ends_at' => isset($productData['discount']) ? now()->addDays(30) : null,
-                'meta_title' => $productData['name'].' - Toko Furniture',
-                'meta_description' => $productData['short_description'],
-            ]);
-
-            // Create primary image - skip for seeder, products will be added without images
-            // Admin can upload real images later
+            Product::firstOrCreate(
+                ['sku' => $productData['sku']],
+                [
+                    'category_id' => $category->id,
+                    'name' => $productData['name'],
+                    'slug' => Str::slug($productData['name']) . '-' . Str::random(5),
+                    'short_description' => $productData['short_description'],
+                    'description' => $productData['description'],
+                    'price' => $productData['price'],
+                    'compare_price' => $productData['compare_price'] ?? null,
+                    'cost_price' => (int) ($productData['price'] * 0.6),
+                    'stock_quantity' => $productData['stock'],
+                    'low_stock_threshold' => 5,
+                    'track_stock' => true,
+                    'material' => $productData['material'],
+                    'color' => $productData['color'],
+                    'weight' => $productData['weight'],
+                    'length' => $productData['dimensions']['length'],
+                    'width' => $productData['dimensions']['width'],
+                    'height' => $productData['dimensions']['height'],
+                    'specifications' => $productData['specifications'],
+                    'status' => ProductStatus::ACTIVE,
+                    'sale_type' => $productData['sale_type'] ?? SaleType::REGULAR,
+                    'is_featured' => $productData['is_featured'] ?? false,
+                    'is_new_arrival' => $productData['is_new_arrival'] ?? false,
+                    'discount_percentage' => $productData['discount'] ?? null,
+                    'discount_starts_at' => isset($productData['discount']) ? now() : null,
+                    'discount_ends_at' => isset($productData['discount']) ? now()->addDays(30) : null,
+                    'meta_title' => $productData['name'] . ' - Toko Furniture',
+                    'meta_description' => $productData['short_description'],
+                ]
+            );
         }
+
+        // Generate dynamic products
+        Product::factory()->count(50)->create();
     }
 
     /** @return array<int, array<string, mixed>> */

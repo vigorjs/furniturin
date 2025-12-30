@@ -2,6 +2,7 @@ import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { Search, Eye, Mail, Phone, ShoppingBag, User } from 'lucide-react';
 import { useState } from 'react';
+import Pagination from '@/components/pagination';
 
 interface Customer {
     id: number;
@@ -18,6 +19,11 @@ interface CustomersIndexProps {
     customers: {
         data: Customer[];
         links: Array<{ url: string | null; label: string; active: boolean }>;
+        current_page: number;
+        last_page: number;
+        from: number;
+        to: number;
+        total: number;
     };
     filters?: { filter?: Record<string, string> };
 }
@@ -123,6 +129,9 @@ export default function CustomersIndex({ customers, filters }: CustomersIndexPro
                             </tbody>
                         </table>
                     </div>
+                    {/* Pagination */}
+                    {/* Pagination */}
+                    <Pagination paginator={customers} className="px-6 py-4 border-t border-terra-100" />
                 </div>
 
 

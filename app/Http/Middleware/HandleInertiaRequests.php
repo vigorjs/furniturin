@@ -47,11 +47,14 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $user,
+                'user' => $user ? [
+                    ...$user->toArray(),
+                    'roles' => $user->getRoleNames(),
+                ] : null,
             ],
             'wishlistCount' => $user ? $user->wishlists()->count() : 0,
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'siteSettings' => fn () => $this->getSiteSettings(),
+            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'siteSettings' => fn() => $this->getSiteSettings(),
         ];
     }
 

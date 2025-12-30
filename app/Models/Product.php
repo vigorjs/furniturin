@@ -70,7 +70,7 @@ class Product extends Model implements HasMedia
         });
 
         static::updating(function (Product $product) {
-            if ($product->isDirty('name') && ! $product->isDirty('slug')) {
+            if ($product->isDirty('name') && !$product->isDirty('slug')) {
                 $product->slug = static::generateUniqueSlug($product->name, $product->id);
             }
         });
@@ -91,7 +91,7 @@ class Product extends Model implements HasMedia
         }
 
         while ($query->exists()) {
-            $slug = $originalSlug.'-'.$counter;
+            $slug = $originalSlug . '-' . $counter;
             $counter++;
             $query = static::withTrashed()->where('slug', $slug);
             if ($excludeId) {
@@ -269,11 +269,21 @@ class Product extends Model implements HasMedia
         return $query->where('price', '<=', $maxPrice);
     }
 
+    public function scopeStock($query, $status)
+    {
+        if ($status === 'low') {
+            return $query->where('track_stock', true)
+                ->whereColumn('stock_quantity', '<=', 'low_stock_threshold');
+        }
+
+        return $query;
+    }
+
     // ==================== Accessors ====================
 
     public function getFinalPriceAttribute(): int
     {
-        if (! $this->hasActiveDiscount()) {
+        if (!$this->hasActiveDiscount()) {
             return $this->price;
         }
 
@@ -329,7 +339,7 @@ class Product extends Model implements HasMedia
 
     public function hasActiveDiscount(): bool
     {
-        if (! $this->discount_percentage || $this->discount_percentage <= 0) {
+        if (!$this->discount_percentage || $this->discount_percentage <= 0) {
             return false;
         }
 
@@ -348,7 +358,7 @@ class Product extends Model implements HasMedia
 
     public function isInStock(): bool
     {
-        if (! $this->track_stock) {
+        if (!$this->track_stock) {
             return true;
         }
 

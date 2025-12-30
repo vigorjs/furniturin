@@ -17,15 +17,17 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class UserController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $users = QueryBuilder::for(User::class)
             ->allowedFilters(['name', 'email'])
             ->allowedSorts(['name', 'email', 'created_at'])
             ->defaultSort('-created_at')
             ->with('roles')
-            ->paginate(15)
-            ->through(fn (User $user) => [
+            ->paginate($request->input('per_page', 15))
+            ->onEachSide(1)
+            ->withQueryString()
+            ->through(fn(User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,

@@ -25,8 +25,8 @@ class DashboardController extends Controller
         // Calculate growth (comparing this month vs last month)
         $thisMonthOrders = Order::whereMonth('created_at', now()->month)->count();
         $lastMonthOrders = Order::whereMonth('created_at', now()->subMonth()->month)->count();
-        $ordersGrowth = $lastMonthOrders > 0 
-            ? round((($thisMonthOrders - $lastMonthOrders) / $lastMonthOrders) * 100, 1) 
+        $ordersGrowth = $lastMonthOrders > 0
+            ? round((($thisMonthOrders - $lastMonthOrders) / $lastMonthOrders) * 100, 1)
             : 0;
 
         $thisMonthRevenue = Order::where('payment_status', 'paid')
@@ -35,16 +35,15 @@ class DashboardController extends Controller
         $lastMonthRevenue = Order::where('payment_status', 'paid')
             ->whereMonth('created_at', now()->subMonth()->month)
             ->sum('total');
-        $revenueGrowth = $lastMonthRevenue > 0 
-            ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1) 
+        $revenueGrowth = $lastMonthRevenue > 0
+            ? round((($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1)
             : 0;
 
         // Recent orders
         $recentOrders = Order::with('user')
             ->latest()
-            ->take(5)
-            ->get()
-            ->map(fn (Order $order) => [
+            ->paginate(5, ['*'], 'orders_page')
+            ->through(fn(Order $order) => [
                 'id' => $order->id,
                 'order_number' => $order->order_number,
                 'customer' => $order->user?->name ?? $order->shipping_name,
@@ -57,9 +56,8 @@ class DashboardController extends Controller
         $lowStockProducts = Product::where('track_stock', true)
             ->whereColumn('stock_quantity', '<=', 'low_stock_threshold')
             ->orderBy('stock_quantity')
-            ->take(5)
-            ->get()
-            ->map(fn (Product $product) => [
+            ->paginate(5, ['*'], 'products_page')
+            ->through(fn(Product $product) => [
                 'id' => $product->id,
                 'name' => $product->name,
                 'stock' => $product->stock_quantity,

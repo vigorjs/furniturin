@@ -45,17 +45,18 @@ class OrderController extends Controller implements HasMiddleware
             ->allowedSorts(['order_number', 'total', 'created_at', 'status'])
             ->with(['user', 'items'])
             ->latest()
-            ->paginate(15)
+            ->paginate($request->input('per_page', 15))
+            ->onEachSide(1)
             ->withQueryString();
 
         return Inertia::render('Admin/Orders/Index', [
             'orders' => OrderResource::collection($orders),
             'filters' => $request->only(['filter', 'sort']),
-            'statuses' => collect(OrderStatus::cases())->map(fn ($status) => [
+            'statuses' => collect(OrderStatus::cases())->map(fn($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
-            'paymentStatuses' => collect(PaymentStatus::cases())->map(fn ($status) => [
+            'paymentStatuses' => collect(PaymentStatus::cases())->map(fn($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
@@ -68,11 +69,11 @@ class OrderController extends Controller implements HasMiddleware
 
         return Inertia::render('Admin/Orders/Show', [
             'order' => (new OrderResource($order))->resolve(),
-            'statuses' => collect(OrderStatus::cases())->map(fn ($status) => [
+            'statuses' => collect(OrderStatus::cases())->map(fn($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
-            'paymentStatuses' => collect(PaymentStatus::cases())->map(fn ($status) => [
+            'paymentStatuses' => collect(PaymentStatus::cases())->map(fn($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),

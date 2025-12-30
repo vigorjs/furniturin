@@ -1,0 +1,184 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AdminLayout from '@/layouts/admin/admin-layout';
+import { Head, Link, router } from '@inertiajs/react';
+import {
+    AlertTriangle,
+    ArrowLeft,
+    Check,
+    Info,
+    Package,
+    ShoppingCart,
+    Trash2,
+} from 'lucide-react';
+
+interface Notification {
+    id: string;
+    type: string;
+    data: any;
+    read_at: string | null;
+    created_at: string;
+}
+
+interface Props {
+    notifications: {
+        data: Notification[];
+        links: any[];
+        current_page: number;
+        last_page: number;
+    };
+}
+
+export default function NotificationsIndex({ notifications }: Props) {
+    const markAllRead = () => {
+        router.post('/admin/notifications/mark-all-read');
+    };
+
+    const clearAll = () => {
+        if (confirm('Apakah Anda yakin ingin menghapus semua notifikasi?')) {
+            router.delete('/admin/notifications/clear-all');
+        }
+    };
+
+    const markAsRead = (id: string) => {
+        router.patch(`/admin/notifications/${id}/read`);
+    };
+
+    const getIcon = (type: string) => {
+        if (type.includes('Order'))
+            return <ShoppingCart className="h-5 w-5 text-blue-600" />;
+        if (type.includes('Product'))
+            return <Package className="h-5 w-5 text-orange-600" />;
+        if (type.includes('Stock'))
+            return <AlertTriangle className="h-5 w-5 text-red-600" />;
+        return <Info className="h-5 w-5 text-gray-600" />;
+    };
+
+    return (
+        <AdminLayout
+            breadcrumbs={[
+                { title: 'Notifikasi', href: '/admin/notifications' },
+            ]}
+        >
+            <Head title="Notifikasi" />
+
+            <div className="mb-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href="/admin"
+                            className="rounded-lg p-2 text-terra-600 transition-colors hover:bg-terra-100"
+                        >
+                            <ArrowLeft className="h-5 w-5" />
+                        </Link>
+                        <div>
+                            <h1 className="text-2xl font-bold text-terra-900">
+                                Notifikasi
+                            </h1>
+                            <p className="mt-1 text-terra-500">
+                                Lihat dan kelola semua aktivitas toko Anda.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={clearAll}
+                            className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            Hapus Semua
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={markAllRead}
+                            className="gap-2"
+                        >
+                            <Check className="h-4 w-4" />
+                            Tandai Semua Dibaca
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Riwayat Notifikasi</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="divide-y divide-border">
+                        {notifications.data.length > 0 ? (
+                            notifications.data.map((notification) => (
+                                <div
+                                    key={notification.id}
+                                    className={`flex gap-4 p-4 transition-colors hover:bg-sand-50 ${!notification.read_at ? 'bg-blue-50/50' : ''}`}
+                                >
+                                    <div
+                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${!notification.read_at ? 'bg-white shadow-sm' : 'bg-sand-100'}`}
+                                    >
+                                        {getIcon(notification.type)}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <p
+                                                className={`text-sm font-medium ${!notification.read_at ? 'text-terra-900' : 'text-terra-600'}`}
+                                            >
+                                                {notification.data.title ||
+                                                    'Notifikasi Baru'}
+                                            </p>
+                                            <span className="text-xs text-terra-400">
+                                                {new Date(
+                                                    notification.created_at,
+                                                ).toLocaleString('id-ID')}
+                                            </span>
+                                        </div>
+                                        <p className="mt-1 text-sm text-muted-foreground text-terra-500">
+                                            {notification.data.message ||
+                                                'Anda memiliki notifikasi baru.'}
+                                        </p>
+                                        {!notification.read_at && (
+                                            <button
+                                                onClick={() =>
+                                                    markAsRead(notification.id)
+                                                }
+                                                className="mt-2 text-xs text-blue-600 hover:underline"
+                                            >
+                                                Tandai dibaca
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-8 text-center text-terra-400">
+                                Tidak ada notifikasi saat ini.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Simple Pagination */}
+                    {notifications.last_page > 1 && (
+                        <div className="mt-6 flex justify-center gap-2">
+                            {notifications.links.map((link: any, i: number) => (
+                                <Link
+                                    key={i}
+                                    href={link.url || '#'}
+                                    className={`rounded-md px-3 py-1 text-sm transition-colors ${
+                                        link.active
+                                            ? 'bg-terra-600 text-white'
+                                            : !link.url
+                                              ? 'pointer-events-none text-terra-300'
+                                              : 'text-terra-600 hover:bg-sand-100'
+                                    }`}
+                                    dangerouslySetInnerHTML={{
+                                        __html: link.label,
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </AdminLayout>
+    );
+}

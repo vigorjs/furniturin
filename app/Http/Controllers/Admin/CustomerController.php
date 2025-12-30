@@ -6,13 +6,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class CustomerController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $customers = QueryBuilder::for(User::class)
             ->role('customer')
@@ -20,9 +21,11 @@ class CustomerController extends Controller
             ->allowedSorts(['name', 'email', 'created_at'])
             ->defaultSort('-created_at')
             ->withCount('orders')
-            ->with(['orders' => fn ($q) => $q->latest()->take(1)])
-            ->paginate(15)
-            ->through(fn (User $user) => [
+            ->with(['orders' => fn($q) => $q->latest()->take(1)])
+            ->paginate($request->input('per_page', 15))
+            ->onEachSide(1)
+            ->withQueryString()
+            ->through(fn(User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -41,7 +44,7 @@ class CustomerController extends Controller
 
     public function show(User $customer): Response
     {
-        $customer->load(['orders' => fn ($q) => $q->latest()->take(10)]);
+        $customer->load(['orders' => fn($q) => $q->latest()->take(10)]);
 
         return Inertia::render('Admin/Customers/Show', [
             'customer' => [
@@ -56,7 +59,7 @@ class CustomerController extends Controller
                 'orders_count' => $customer->orders()->count(),
                 'total_spent' => 'Rp ' . number_format((float) $customer->orders()->sum('total'), 0, ',', '.'),
                 'created_at' => $customer->created_at->format('d M Y'),
-                'orders' => $customer->orders->map(fn ($order) => [
+                'orders' => $customer->orders->map(fn($order) => [
                     'id' => $order->id,
                     'order_number' => $order->order_number,
                     'total_formatted' => $order->formatted_total,
