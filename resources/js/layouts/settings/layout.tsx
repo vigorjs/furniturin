@@ -1,8 +1,4 @@
-import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
@@ -37,47 +33,56 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const currentPath = window.location.pathname;
 
     return (
-        <div className="px-4 py-6">
-            <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
-            />
+        <>
+            <div className="bg-noise" />
+            <main className="min-h-screen bg-sand-50 pt-20 pb-20 md:pt-28">
+                <div className="mx-auto max-w-[1400px] px-6 md:px-12">
+                    <div className="mb-8 md:mb-12">
+                        <h1 className="font-serif text-3xl font-medium text-terra-900 md:text-4xl">
+                            Settings
+                        </h1>
+                        <p className="mt-2 text-terra-500">
+                            Manage your profile and account settings
+                        </p>
+                    </div>
 
-            <div className="flex flex-col lg:flex-row lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-48">
-                    <nav className="flex flex-col space-y-1 space-x-0">
-                        {sidebarNavItems.map((item, index) => (
-                            <Button
-                                key={`${resolveUrl(item.href)}-${index}`}
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': isSameUrl(
+                    <div className="flex flex-col lg:flex-row lg:space-x-12">
+                        <aside className="mb-8 w-full max-w-xs lg:mb-0 lg:w-64">
+                            <nav className="flex flex-col space-y-2">
+                                {sidebarNavItems.map((item, index) => {
+                                    const isActive = isSameUrl(
                                         currentPath,
                                         item.href,
-                                    ),
+                                    );
+                                    return (
+                                        <Link
+                                            key={`${resolveUrl(item.href)}-${index}`}
+                                            href={item.href}
+                                            className={cn(
+                                                'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200',
+                                                isActive
+                                                    ? 'border-l-4 border-terra-900 bg-sand-100 text-terra-900 shadow-sm'
+                                                    : 'text-terra-600 hover:bg-sand-100 hover:text-terra-900',
+                                            )}
+                                        >
+                                            {item.icon && (
+                                                <item.icon className="h-5 w-5" />
+                                            )}
+                                            {item.title}
+                                        </Link>
+                                    );
                                 })}
-                            >
-                                <Link href={item.href}>
-                                    {item.icon && (
-                                        <item.icon className="h-4 w-4" />
-                                    )}
-                                    {item.title}
-                                </Link>
-                            </Button>
-                        ))}
-                    </nav>
-                </aside>
+                            </nav>
+                        </aside>
 
-                <Separator className="my-6 lg:hidden" />
-
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">
-                        {children}
-                    </section>
+                        <div className="flex-1">
+                            <div className="animate-in duration-500 fade-in slide-in-from-bottom-4">
+                                {children}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </main>
+        </>
     );
 }

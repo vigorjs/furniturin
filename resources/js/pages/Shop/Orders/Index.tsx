@@ -1,8 +1,16 @@
-import { Head, Link, usePage } from '@inertiajs/react';
-import { Package, ChevronRight, Clock, Truck, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { ShopLayout } from '@/layouts/ShopLayout';
-import { PaginatedResponse } from '@/types/shop';
 import { SiteSettings } from '@/types';
+import { PaginatedResponse } from '@/types/shop';
+import { Head, Link, usePage } from '@inertiajs/react';
+import {
+    AlertCircle,
+    CheckCircle,
+    ChevronRight,
+    Clock,
+    Package,
+    Truck,
+    XCircle,
+} from 'lucide-react';
 
 interface OrderStatus {
     value: string;
@@ -55,41 +63,45 @@ export default function OrdersIndex({ orders }: Props) {
             <Head title={`Pesanan Saya - ${siteName}`} />
             <div className="bg-noise" />
             <ShopLayout>
-            <main className="min-h-screen bg-sand-50 pt-28 pb-20">
-                <div className="max-w-4xl mx-auto px-6 md:px-12">
-                    <h1 className="font-serif text-3xl text-terra-900 mb-8">Pesanan Saya</h1>
+                <main className="min-h-screen bg-sand-50 pt-28 pb-20">
+                    <div className="mx-auto max-w-[1400px] px-6 md:px-12">
+                        <h1 className="mb-8 font-serif text-3xl text-terra-900">
+                            Pesanan Saya
+                        </h1>
 
-                    {orders.data.length > 0 ? (
-                        <div className="space-y-4">
-                            {orders.data.map((order) => (
-                                <OrderCard key={order.id} order={order} />
-                            ))}
+                        {orders.data.length > 0 ? (
+                            <div className="space-y-4">
+                                {orders.data.map((order) => (
+                                    <OrderCard key={order.id} order={order} />
+                                ))}
 
-                            {/* Pagination */}
-                            {orders.meta.last_page > 1 && (
-                                <div className="flex justify-center gap-2 mt-8">
-                                    {orders.meta.links.map((link, idx) => (
-                                        <Link
-                                            key={idx}
-                                            href={link.url || '#'}
-                                            className={`px-4 py-2 rounded-lg text-sm ${
-                                                link.active
-                                                    ? 'bg-terra-900 text-white'
-                                                    : link.url
-                                                    ? 'bg-white text-terra-700 hover:bg-terra-100'
-                                                    : 'bg-terra-100 text-terra-400 cursor-not-allowed'
-                                            }`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <EmptyState />
-                    )}
-                </div>
-            </main>
+                                {/* Pagination */}
+                                {orders.meta.last_page > 1 && (
+                                    <div className="mt-8 flex justify-center gap-2">
+                                        {orders.meta.links.map((link, idx) => (
+                                            <Link
+                                                key={idx}
+                                                href={link.url || '#'}
+                                                className={`rounded-lg px-4 py-2 text-sm ${
+                                                    link.active
+                                                        ? 'bg-terra-900 text-white'
+                                                        : link.url
+                                                          ? 'bg-white text-terra-700 hover:bg-terra-100'
+                                                          : 'cursor-not-allowed bg-terra-100 text-terra-400'
+                                                }`}
+                                                dangerouslySetInnerHTML={{
+                                                    __html: link.label,
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <EmptyState />
+                        )}
+                    </div>
+                </main>
             </ShopLayout>
         </>
     );
@@ -97,25 +109,36 @@ export default function OrdersIndex({ orders }: Props) {
 
 function OrderCard({ order }: { order: Order }) {
     const firstItem = order.items[0];
-    const imageUrl = firstItem?.product?.images?.[0]?.image_url || '/images/placeholder-product.svg';
+    const imageUrl =
+        firstItem?.product?.images?.[0]?.image_url ||
+        '/images/placeholder-product.svg';
     const otherItemsCount = order.items.length - 1;
 
     return (
         <Link
             href={`/shop/orders/${order.id}`}
-            className="block bg-white rounded-2xl p-6 border border-terra-100 hover:border-terra-200 hover:shadow-sm transition-all"
+            className="block rounded-2xl border border-terra-100 bg-white p-6 transition-all hover:border-terra-200 hover:shadow-sm"
         >
-            <div className="flex items-start justify-between mb-4">
+            <div className="mb-4 flex items-start justify-between">
                 <div>
-                    <p className="text-sm text-terra-500">#{order.order_number}</p>
-                    <p className="text-xs text-terra-400 mt-1">
-                        {new Date(order.created_at).toLocaleDateString('id-ID', {
-                            day: 'numeric', month: 'long', year: 'numeric'
-                        })}
+                    <p className="text-sm text-terra-500">
+                        #{order.order_number}
+                    </p>
+                    <p className="mt-1 text-xs text-terra-400">
+                        {new Date(order.created_at).toLocaleDateString(
+                            'id-ID',
+                            {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                            },
+                        )}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${order.status.color}`}>
+                    <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${order.status.color}`}
+                    >
                         {STATUS_ICONS[order.status.value]}
                         {order.status.label}
                     </span>
@@ -123,17 +146,30 @@ function OrderCard({ order }: { order: Order }) {
             </div>
 
             <div className="flex items-center gap-4">
-                <img src={imageUrl} alt={firstItem?.product_name} className="w-16 h-16 rounded-lg object-cover bg-sand-100" />
-                <div className="flex-1 min-w-0">
-                    <p className="font-medium text-terra-900 truncate">{firstItem?.product_name}</p>
-                    <p className="text-sm text-terra-500">{firstItem?.quantity} x Rp {firstItem?.unit_price.toLocaleString('id-ID')}</p>
+                <img
+                    src={imageUrl}
+                    alt={firstItem?.product_name}
+                    className="h-16 w-16 rounded-lg bg-sand-100 object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-terra-900">
+                        {firstItem?.product_name}
+                    </p>
+                    <p className="text-sm text-terra-500">
+                        {firstItem?.quantity} x Rp{' '}
+                        {firstItem?.unit_price.toLocaleString('id-ID')}
+                    </p>
                     {otherItemsCount > 0 && (
-                        <p className="text-xs text-terra-400 mt-1">+{otherItemsCount} produk lainnya</p>
+                        <p className="mt-1 text-xs text-terra-400">
+                            +{otherItemsCount} produk lainnya
+                        </p>
                     )}
                 </div>
                 <div className="text-right">
                     <p className="text-sm text-terra-500">Total</p>
-                    <p className="font-semibold text-terra-900">{order.total_formatted}</p>
+                    <p className="font-semibold text-terra-900">
+                        {order.total_formatted}
+                    </p>
                 </div>
                 <ChevronRight size={20} className="text-terra-300" />
             </div>
@@ -143,16 +179,22 @@ function OrderCard({ order }: { order: Order }) {
 
 function EmptyState() {
     return (
-        <div className="text-center py-20 bg-white rounded-2xl">
-            <div className="w-20 h-20 bg-sand-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="rounded-2xl bg-white py-20 text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sand-100">
                 <Package size={32} className="text-terra-300" />
             </div>
-            <h3 className="text-xl font-medium text-terra-900 mb-2">Belum Ada Pesanan</h3>
-            <p className="text-terra-500 mb-8">Anda belum memiliki riwayat pesanan</p>
-            <Link href="/shop/products" className="inline-flex items-center gap-2 bg-terra-900 text-white px-6 py-3 rounded-full hover:bg-wood transition-colors">
+            <h3 className="mb-2 text-xl font-medium text-terra-900">
+                Belum Ada Pesanan
+            </h3>
+            <p className="mb-8 text-terra-500">
+                Anda belum memiliki riwayat pesanan
+            </p>
+            <Link
+                href="/shop/products"
+                className="inline-flex items-center gap-2 rounded-full bg-terra-900 px-6 py-3 text-white transition-colors hover:bg-wood"
+            >
                 Mulai Belanja
             </Link>
         </div>
     );
 }
-

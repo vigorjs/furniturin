@@ -20,7 +20,7 @@ export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="space-y-6">
+        <div className="mt-6 space-y-6">
             <HeadingSmall
                 title="Delete account"
                 description="Delete your account and all of its resources"

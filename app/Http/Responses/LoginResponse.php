@@ -16,7 +16,7 @@ class LoginResponse implements LoginResponseContract
     public function toResponse($request): Response
     {
         $user = $request->user();
-        
+
         // Determine redirect path based on user role
         $redirectPath = $this->getRedirectPath($user);
 
@@ -36,7 +36,7 @@ class LoginResponse implements LoginResponseContract
         }
 
         // Customer redirects to user dashboard or shop
-        return '/dashboard';
+        return '/';
     }
 }
 
