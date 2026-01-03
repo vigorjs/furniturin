@@ -35,8 +35,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <>
             <div className="bg-noise" />
-            <main className="min-h-screen bg-sand-50 pt-20 pb-20 md:pt-28">
-                <div className="mx-auto max-w-[1400px] px-6 md:px-12">
+            <main className="min-h-screen bg-sand-50 pt-20 pb-20">
+                <div className="mx-auto max-w-[1400px] px-6 pt-8 md:px-12">
                     <div className="mb-8 md:mb-12">
                         <h1 className="font-serif text-3xl font-medium text-terra-900 md:text-4xl">
                             Settings

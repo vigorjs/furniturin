@@ -77,7 +77,7 @@ export default function HotSale({ products, categories, filters }: Props) {
             />
             <div className="bg-noise" />
             <ShopLayout>
-                <main className="min-h-screen bg-neutral-50 pt-28 pb-20">
+                <main className="min-h-screen bg-neutral-50 pt-18 pb-20">
                     {/* Hero Banner - Updated to new design */}
                     <motion.div
                         initial="hidden"

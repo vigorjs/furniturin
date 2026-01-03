@@ -73,13 +73,13 @@ export default function Clearance({ products, categories, filters }: Props) {
             />
             <div className="bg-noise" />
             <ShopLayout>
-                <main className="min-h-screen bg-neutral-50 pt-28 pb-20">
+                <main className="min-h-screen bg-neutral-50 pt-18 pb-20">
                     {/* Hero Banner - Updated to new design */}
                     <motion.div
                         initial="hidden"
                         animate="visible"
                         variants={containerVariants}
-                        className="mb-12 bg-gradient-to-r from-neutral-800 to-neutral-700 py-16 text-white"
+                        className="mb-12 bg-gradient-to-r from-teal-600 to-teal-500 py-16 text-white"
                     >
                         <div className="mx-auto max-w-[1400px] px-6 text-center md:px-12">
                             <motion.div

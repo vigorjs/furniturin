@@ -1,10 +1,10 @@
-import { Link, router, usePage } from '@inertiajs/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
-import { ShopLayout } from '@/layouts/ShopLayout';
 import { SEOHead } from '@/components/seo';
-import { ApiProduct } from '@/types/shop';
+import { ShopLayout } from '@/layouts/ShopLayout';
 import { SiteSettings } from '@/types';
+import { ApiProduct } from '@/types/shop';
+import { Link, router, usePage } from '@inertiajs/react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowRight, Heart, ShoppingBag, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface Props {
@@ -23,7 +23,7 @@ export default function WishlistIndex({ products: initialProducts }: Props) {
         router.delete(`/shop/wishlist/${productId}`, {
             preserveScroll: true,
             onSuccess: () => {
-                setProducts(products.filter(p => p.id !== productId));
+                setProducts(products.filter((p) => p.id !== productId));
             },
             onError: (error) => {
                 console.error('Failed to remove from wishlist:', error);
@@ -43,39 +43,50 @@ export default function WishlistIndex({ products: initialProducts }: Props) {
             />
             <div className="bg-noise" />
             <ShopLayout>
-            <main className="min-h-screen bg-white pt-28 pb-20">
-                <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-12">
-                        <div>
-                            <h1 className="font-serif text-3xl md:text-4xl text-terra-900 mb-2">Wishlist Saya</h1>
-                            <p className="text-terra-500">{products.length} produk tersimpan</p>
+                <main className="min-h-screen bg-white pt-20 pb-20">
+                    <div className="mx-auto max-w-[1400px] px-6 pt-8 md:px-12">
+                        {/* Header */}
+                        <div className="mb-12 flex items-center justify-between">
+                            <div>
+                                <h1 className="mb-2 font-serif text-3xl font-medium text-terra-900 md:text-4xl">
+                                    Wishlist Saya
+                                </h1>
+                                <p className="text-terra-500">
+                                    {products.length} produk tersimpan
+                                </p>
+                            </div>
+                            <Link
+                                href="/shop/products"
+                                className="flex items-center gap-2 text-wood transition-colors hover:text-terra-900"
+                            >
+                                <span>Lanjut Belanja</span>
+                                <ArrowRight size={18} />
+                            </Link>
                         </div>
-                        <Link href="/shop/products" className="flex items-center gap-2 text-wood hover:text-terra-900 transition-colors">
-                            <span>Lanjut Belanja</span>
-                            <ArrowRight size={18} />
-                        </Link>
-                    </div>
 
-                    {/* Products Grid */}
-                    {products.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            <AnimatePresence>
-                                {products.map((product) => (
-                                    <WishlistCard
-                                        key={product.id}
-                                        product={product}
-                                        onRemove={() => handleRemove(product.id)}
-                                        isRemoving={removingId === product.id}
-                                    />
-                                ))}
-                            </AnimatePresence>
-                        </div>
-                    ) : (
-                        <EmptyState />
-                    )}
-                </div>
-            </main>
+                        {/* Products Grid */}
+                        {products.length > 0 ? (
+                            <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+                                <AnimatePresence>
+                                    {products.map((product) => (
+                                        <WishlistCard
+                                            key={product.id}
+                                            product={product}
+                                            onRemove={() =>
+                                                handleRemove(product.id)
+                                            }
+                                            isRemoving={
+                                                removingId === product.id
+                                            }
+                                        />
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        ) : (
+                            <EmptyState />
+                        )}
+                    </div>
+                </main>
             </ShopLayout>
         </>
     );
@@ -88,7 +99,10 @@ interface WishlistCardProps {
 }
 
 function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
-    const imageUrl = product.primary_image?.image_url || product.images?.[0]?.image_url || '/images/placeholder-product.svg';
+    const imageUrl =
+        product.primary_image?.image_url ||
+        product.images?.[0]?.image_url ||
+        '/images/placeholder-product.svg';
 
     return (
         <motion.div
@@ -96,21 +110,28 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="group relative bg-white rounded-2xl overflow-hidden border border-terra-100 hover:border-terra-200 transition-colors"
+            className="group relative overflow-hidden rounded-2xl border border-terra-100 bg-white transition-colors hover:border-terra-200"
         >
             {/* Image */}
-            <Link href={`/shop/products/${product.slug}`} className="block aspect-square overflow-hidden bg-sand-50">
-                <img src={imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <Link
+                href={`/shop/products/${product.slug}`}
+                className="block aspect-square overflow-hidden bg-sand-50"
+            >
+                <img
+                    src={imageUrl}
+                    alt={product.name}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
             </Link>
 
             {/* Remove Button */}
             <button
                 onClick={onRemove}
                 disabled={isRemoving}
-                className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full text-terra-600 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                className="absolute top-3 right-3 rounded-full bg-white/90 p-2 text-terra-600 backdrop-blur-sm transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
             >
                 {isRemoving ? (
-                    <div className="w-5 h-5 border-2 border-terra-300 border-t-transparent rounded-full animate-spin" />
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-terra-300 border-t-transparent" />
                 ) : (
                     <Trash2 size={18} />
                 )}
@@ -118,7 +139,7 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
 
             {/* Discount Badge */}
             {product.has_discount && (
-                <span className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                <span className="absolute top-3 left-3 rounded-full bg-red-500 px-2 py-1 text-xs font-medium text-white">
                     -{product.discount_percentage}%
                 </span>
             )}
@@ -126,30 +147,38 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
             {/* Content */}
             <div className="p-4">
                 {product.category && (
-                    <span className="text-xs text-terra-400 uppercase tracking-wider">{product.category.name}</span>
+                    <span className="text-xs tracking-wider text-terra-400 uppercase">
+                        {product.category.name}
+                    </span>
                 )}
                 <Link href={`/shop/products/${product.slug}`}>
-                    <h3 className="font-medium text-terra-900 mt-1 line-clamp-2 group-hover:text-wood transition-colors">
+                    <h3 className="mt-1 line-clamp-2 font-medium text-terra-900 transition-colors group-hover:text-wood">
                         {product.name}
                     </h3>
                 </Link>
-                <div className="flex items-center gap-2 mt-2">
-                    <span className="font-semibold text-terra-900">{product.final_price_formatted}</span>
+                <div className="mt-2 flex items-center gap-2">
+                    <span className="font-semibold text-terra-900">
+                        {product.final_price_formatted}
+                    </span>
                     {product.has_discount && (
-                        <span className="text-sm text-terra-400 line-through">{product.price_formatted}</span>
+                        <span className="text-sm text-terra-400 line-through">
+                            {product.price_formatted}
+                        </span>
                     )}
                 </div>
 
                 {/* Stock Status */}
                 <div className="mt-3 flex items-center justify-between">
                     {product.is_in_stock ? (
-                        <span className="text-xs text-green-600">Stok Tersedia</span>
+                        <span className="text-xs text-green-600">
+                            Stok Tersedia
+                        </span>
                     ) : (
                         <span className="text-xs text-red-500">Stok Habis</span>
                     )}
                     <button
                         disabled={!product.is_in_stock}
-                        className="p-2 bg-terra-900 text-white rounded-full hover:bg-wood transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="rounded-full bg-terra-900 p-2 text-white transition-colors hover:bg-wood disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <ShoppingBag size={16} />
                     </button>
@@ -161,19 +190,23 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
 
 function EmptyState() {
     return (
-        <div className="text-center py-20">
-            <div className="w-20 h-20 bg-sand-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="py-20 text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sand-100">
                 <Heart size={32} className="text-terra-300" />
             </div>
-            <h3 className="text-xl font-medium text-terra-900 mb-2">Wishlist Anda Kosong</h3>
-            <p className="text-terra-500 mb-8 max-w-md mx-auto">
+            <h3 className="mb-2 text-xl font-medium text-terra-900">
+                Wishlist Anda Kosong
+            </h3>
+            <p className="mx-auto mb-8 max-w-md text-terra-500">
                 Simpan produk favorit Anda untuk memudahkan belanja nanti
             </p>
-            <Link href="/shop/products" className="inline-flex items-center gap-2 bg-terra-900 text-white px-6 py-3 rounded-full hover:bg-wood transition-colors">
+            <Link
+                href="/shop/products"
+                className="inline-flex items-center gap-2 rounded-full bg-terra-900 px-6 py-3 text-white transition-colors hover:bg-wood"
+            >
                 <span>Jelajahi Produk</span>
                 <ArrowRight size={18} />
             </Link>
         </div>
     );
 }
-

@@ -58,29 +58,25 @@
     --color-neutral-800: #1a1a1a; /* Neutral Dark (Text) */
     --color-neutral-900: #0d0d0d;
 
-    /* Terra Colors - Remapped to Neutral (no brown) */
-    --color-terra-50: #fafafa;
-    --color-terra-100: #f5f5f5;
-    --color-terra-200: #e5e5e5;
-    --color-terra-300: #d4d4d4;
-    --color-terra-400: #a3a3a3;
-    --color-terra-500: #737373;
-    --color-terra-600: #525252;
-    --color-terra-700: #404040;
-    --color-terra-800: #262626;
-    --color-terra-900: #171717;
+    /* Legacy Aliases (mapped to Brand Colors) */
+    --color-terra-50: var(--color-neutral-50);
+    --color-terra-100: var(--color-neutral-100);
+    --color-terra-200: var(--color-neutral-200);
+    --color-terra-300: var(--color-neutral-300);
+    --color-terra-400: var(--color-neutral-400);
+    --color-terra-500: var(--color-neutral-500);
+    --color-terra-600: var(--color-neutral-600);
+    --color-terra-700: var(--color-neutral-700);
+    --color-terra-800: var(--color-neutral-800);
+    --color-terra-900: var(--color-neutral-900);
 
-    /* Wood Colors - Remapped to Teal/Neutral (no brown) */
-    --color-wood-light: #4dadbc;
-    --color-wood: #02545f; /* Primary Teal */
-    --color-wood-dark: #013e47;
+    --color-wood-light: var(--color-teal-300);
+    --color-wood: var(--color-teal-500);
+    --color-wood-dark: var(--color-teal-700);
 
-    /* Sand Colors - Remapped to Neutral (no brown) */
-    --color-sand-50: #fafafa;
-    --color-sand-100: #f5f5f5;
-    --color-sand-200: #e5e5e5;
-
-    /* Animations */
+    --color-sand-50: var(--color-neutral-50);
+    --color-sand-100: var(--color-neutral-100);
+    --color-sand-200: var(--color-neutral-200);
     --animate-spin-slow: spin 12s linear infinite;
     --animate-float: float 6s ease-in-out infinite;
 
@@ -232,13 +228,13 @@
         background: transparent;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: var(--color-terra-200);
+        background: var(--color-neutral-200);
         border-radius: 2px;
     }
 
     /* Text outline effect */
-    .text-outline-terra {
-        -webkit-text-stroke: 1px #292524;
+    .text-outline {
+        -webkit-text-stroke: 1px var(--color-neutral-800);
         color: transparent;
     }
 }
