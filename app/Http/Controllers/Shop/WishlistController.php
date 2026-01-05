@@ -40,24 +40,37 @@ class WishlistController extends Controller implements HasMiddleware
             ->pluck('product')
             ->filter(); // Remove null products (deleted)
 
+        \Illuminate\Support\Facades\Log::info('Wishlist index', [
+            'user_id' => $user->id,
+            'raw_count' => $user->wishlists()->count(),
+            'filtered_count' => $wishlistProducts->count(),
+        ]);
+
         return Inertia::render('Shop/Wishlist/Index', [
-            'products' => ProductResource::collection($wishlistProducts),
+            'products' => ProductResource::collection($wishlistProducts)->resolve(),
         ]);
     }
 
     /**
      * Toggle product in wishlist.
      */
-    public function toggle(Request $request, Product $product): JsonResponse
+    public function toggle(Request $request, Product $product): \Illuminate\Http\RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
 
+        \Illuminate\Support\Facades\Log::info('Wishlist toggle request', [
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'product_name' => $product->name
+        ]);
+
         $isInWishlist = $user->toggleWishlist($product);
 
-        return response()->json([
-            'success' => true,
-            'is_in_wishlist' => $isInWishlist,
+        \Illuminate\Support\Facades\Log::info('Wishlist toggle result', ['in_wishlist' => $isInWishlist]);
+
+        return redirect()->back()->with('flash', [
+            'type' => 'success',
             'message' => $isInWishlist
                 ? 'Produk ditambahkan ke wishlist'
                 : 'Produk dihapus dari wishlist',
@@ -67,15 +80,15 @@ class WishlistController extends Controller implements HasMiddleware
     /**
      * Remove product from wishlist.
      */
-    public function destroy(Request $request, Product $product): JsonResponse
+    public function destroy(Request $request, Product $product): \Illuminate\Http\RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
 
         $user->wishlists()->where('product_id', $product->id)->delete();
 
-        return response()->json([
-            'success' => true,
+        return redirect()->back()->with('flash', [
+            'type' => 'success',
             'message' => 'Produk dihapus dari wishlist',
         ]);
     }

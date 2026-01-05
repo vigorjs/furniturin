@@ -147,6 +147,8 @@ export interface ApiProduct {
     images?: ProductImage[];
     primary_image?: ProductImage | null;
     reviews?: ProductReview[];
+    is_wishlisted?: boolean;
+    rating_counts?: Record<number, number>;
     created_at: string;
     updated_at: string;
 }
@@ -238,4 +240,3 @@ export interface HomePageProps {
     values: HomeValue[];
     pageSiteSettings: HomeSiteSettings;
 }
-

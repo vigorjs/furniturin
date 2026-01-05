@@ -1,7 +1,7 @@
 import { BreadcrumbStructuredData, SEOHead } from '@/components/seo';
 import { QuickViewModal } from '@/components/shop';
 import { ShopLayout } from '@/layouts/ShopLayout';
-import { SiteSettings } from '@/types';
+import { SharedData, SiteSettings } from '@/types';
 import {
     ApiCategory,
     ApiProduct,
@@ -17,6 +17,7 @@ import {
     Grid3X3,
     Heart,
     LayoutList,
+    Loader2,
     Search,
     ShoppingBag,
     SlidersHorizontal,
@@ -24,6 +25,7 @@ import {
     X,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Props {
     products: PaginatedResponse<ApiProduct>;
@@ -54,9 +56,20 @@ export default function ProductsIndex({
     currentCategory,
     filters,
 }: Props) {
+    console.log(
+        'Categories in Index:',
+        categories,
+        'Current Category:',
+        currentCategory,
+    );
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
     const siteName = siteSettings?.site_name || 'Latif Living';
     const safeFilters = Array.isArray(filters) ? {} : filters;
+
+    // Handle CategoryResource wrapping (data property)
+    const normalizedCategories = Array.isArray(categories)
+        ? categories
+        : (categories as any)?.data || [];
 
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [showFilters, setShowFilters] = useState(false);
@@ -64,7 +77,11 @@ export default function ProductsIndex({
         safeFilters.filter?.name || '',
     );
     const [selectedCategory, setSelectedCategory] = useState<number | null>(
-        safeFilters.filter?.category_id || currentCategory?.id || null,
+        safeFilters.filter?.category_id
+            ? Number(safeFilters.filter.category_id)
+            : currentCategory?.id
+              ? Number(currentCategory.id)
+              : null,
     );
     const [selectedSort, setSelectedSort] = useState(
         safeFilters.sort || '-created_at',
@@ -172,7 +189,7 @@ export default function ProductsIndex({
             />
             <BreadcrumbStructuredData items={breadcrumbItems} />
             <div className="bg-noise" />
-            <ShopLayout>
+            <ShopLayout featuredCategories={normalizedCategories}>
                 <main className="min-h-screen bg-white pt-8 pb-20">
                     <div className="mx-auto max-w-[1400px] px-6 md:px-12">
                         {/* Breadcrumb */}
@@ -215,25 +232,28 @@ export default function ProductsIndex({
                                         onChange={(e) =>
                                             setSearchQuery(e.target.value)
                                         }
-                                        className="w-full rounded-full border border-neutral-200 py-3 pr-4 pl-12 transition-colors focus:border-teal-500 focus:outline-none"
+                                        className="w-full rounded-sm border border-neutral-200 py-3 pr-4 pl-12 transition-colors focus:border-teal-500 focus:outline-none"
                                     />
                                 </div>
                                 <button
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className={`rounded-full border p-3 transition-colors ${showFilters ? 'border-teal-500 bg-teal-500 text-white' : 'border-neutral-200 hover:border-teal-500'}`}
+                                    onClick={() => setShowFilters(true)}
+                                    className="flex items-center gap-2 rounded-sm border border-neutral-200 bg-white px-4 py-3 text-neutral-700 transition-colors hover:border-teal-500 hover:text-teal-600"
                                 >
                                     <SlidersHorizontal size={20} />
+                                    <span className="hidden sm:inline">
+                                        Filter
+                                    </span>
                                 </button>
-                                <div className="hidden items-center gap-2 rounded-full border border-neutral-200 p-1 md:flex">
+                                <div className="hidden items-center gap-1 rounded-sm border border-neutral-200 p-1 md:flex">
                                     <button
                                         onClick={() => setViewMode('grid')}
-                                        className={`rounded-full p-2 transition-colors ${viewMode === 'grid' ? 'bg-teal-500 text-white' : ''}`}
+                                        className={`rounded-sm p-2 transition-colors ${viewMode === 'grid' ? 'bg-teal-500 text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}
                                     >
                                         <Grid3X3 size={18} />
                                     </button>
                                     <button
                                         onClick={() => setViewMode('list')}
-                                        className={`rounded-full p-2 transition-colors ${viewMode === 'list' ? 'bg-teal-500 text-white' : ''}`}
+                                        className={`rounded-sm p-2 transition-colors ${viewMode === 'list' ? 'bg-teal-500 text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}
                                     >
                                         <LayoutList size={18} />
                                     </button>
@@ -241,35 +261,100 @@ export default function ProductsIndex({
                             </div>
                         </div>
 
-                        <div className="flex gap-8">
-                            {/* Sidebar Filters */}
-                            {showFilters && (
-                                <FilterSidebar
-                                    categories={categories}
-                                    selectedCategory={selectedCategory}
-                                    setSelectedCategory={setSelectedCategory}
-                                    priceRange={priceRange}
-                                    setPriceRange={setPriceRange}
-                                    selectedSort={selectedSort}
-                                    setSelectedSort={setSelectedSort}
-                                    onApply={applyFilters}
-                                    onClear={clearFilters}
-                                    hasActiveFilters={!!hasActiveFilters}
-                                />
-                            )}
+                        {/* Active Filters */}
+                        {hasActiveFilters && (
+                            <div className="mb-6 flex flex-wrap items-center gap-2">
+                                <span className="text-sm text-neutral-500">
+                                    Active Filters:
+                                </span>
 
-                            {/* Products Grid */}
-                            <div className="flex-1">
-                                <ProductGrid
-                                    products={products.data}
-                                    viewMode={viewMode}
-                                    onQuickView={setQuickViewProduct}
-                                />
-                                <Pagination meta={products.meta} />
+                                {selectedCategory && (
+                                    <button
+                                        onClick={() =>
+                                            setSelectedCategory(null)
+                                        }
+                                        className="flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
+                                    >
+                                        {(() => {
+                                            const cat =
+                                                normalizedCategories.find(
+                                                    (c: ApiCategory) =>
+                                                        Number(c.id) ===
+                                                        Number(
+                                                            selectedCategory,
+                                                        ),
+                                                );
+                                            return (
+                                                cat?.name ||
+                                                (currentCategory &&
+                                                Number(currentCategory.id) ===
+                                                    Number(selectedCategory)
+                                                    ? currentCategory.name
+                                                    : 'Category')
+                                            );
+                                        })()}
+                                        <X size={14} />
+                                    </button>
+                                )}
+
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className="flex items-center gap-1 rounded-sm bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
+                                    >
+                                        Search: {searchQuery}
+                                        <X size={14} />
+                                    </button>
+                                )}
+
+                                {(priceRange.min || priceRange.max) && (
+                                    <button
+                                        onClick={() => setPriceRange({})}
+                                        className="flex items-center gap-1 rounded-sm bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
+                                    >
+                                        Price
+                                        <X size={14} />
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={clearFilters}
+                                    className="text-sm text-neutral-500 underline hover:text-neutral-900"
+                                >
+                                    Clear All
+                                </button>
                             </div>
+                        )}
+
+                        {/* Product Content */}
+                        <div className="flex-1">
+                            <ProductGrid
+                                products={products.data}
+                                viewMode={viewMode}
+                                onQuickView={setQuickViewProduct}
+                            />
+                            <Pagination meta={products.meta} />
                         </div>
                     </div>
                 </main>
+
+                <FilterDrawer
+                    isOpen={showFilters}
+                    onClose={() => setShowFilters(false)}
+                    categories={normalizedCategories}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={setSelectedCategory}
+                    priceRange={priceRange}
+                    setPriceRange={setPriceRange}
+                    selectedSort={selectedSort}
+                    setSelectedSort={setSelectedSort}
+                    onApply={() => {
+                        applyFilters();
+                        setShowFilters(false);
+                    }}
+                    onClear={clearFilters}
+                    hasActiveFilters={!!hasActiveFilters}
+                />
 
                 <QuickViewModal
                     product={quickViewProduct}
@@ -281,8 +366,10 @@ export default function ProductsIndex({
     );
 }
 
-// ==================== Filter Sidebar ====================
-interface FilterSidebarProps {
+// ==================== Filter Drawer ====================
+interface FilterDrawerProps {
+    isOpen: boolean;
+    onClose: () => void;
     categories: ApiCategory[];
     selectedCategory: number | null;
     setSelectedCategory: (id: number | null) => void;
@@ -295,7 +382,25 @@ interface FilterSidebarProps {
     hasActiveFilters: boolean;
 }
 
-function FilterSidebar({
+// ... (imports remain the same, just removing createPortal usually) but since I can't edit multiple distinct blocks easily without multi_replace, I will focus on the component function first.
+
+// wait, I can do it in two steps or use standard replace for the component.
+
+// Re-add import for createPortal if missing (I'll do it in a separate step or assume it's there? It was removed. Need to add it back).
+// Actually, I can replace the component first, then add the import.
+
+// Import CATEGORIES from constants at the top (need separate tool or do it here if possible? I cannot add import easily without messing up top of file. I will just use the prop categories first. If user insists on data, I will suggest checking backend)
+// Wait, I can add fallback if I import it. I'll add the import in a previous step?
+// No, I'll rewrite the component first.
+// Actually, I can use the replace_file_content to replace the FilterDrawer AND the ShopLayout usage.
+
+// First, let's fix the FilterDrawer component.
+
+// Import CATEGORIES
+
+function FilterDrawer({
+    isOpen,
+    onClose,
     categories,
     selectedCategory,
     setSelectedCategory,
@@ -306,105 +411,186 @@ function FilterSidebar({
     onApply,
     onClear,
     hasActiveFilters,
-}: FilterSidebarProps) {
-    return (
-        <motion.aside
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="w-72 flex-shrink-0"
-        >
-            <div className="sticky top-28 space-y-8">
-                {/* Sort */}
-                <div>
-                    <h3 className="mb-4 font-medium text-neutral-900">
-                        Urutkan
-                    </h3>
-                    <select
-                        value={selectedSort}
-                        onChange={(e) => {
-                            setSelectedSort(e.target.value);
-                        }}
-                        className="w-full rounded-sm border border-neutral-200 p-3 focus:border-teal-500 focus:outline-none"
-                    >
-                        {SORT_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+}: FilterDrawerProps) {
+    const [mounted, setMounted] = useState(false);
+    // Two states for animation:
+    // 1. shouldRender: controls whether the component is in the DOM (createPortal)
+    // 2. isVisible: controls the CSS opacity/transform classes
+    const [shouldRender, setShouldRender] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
 
-                {/* Categories */}
-                <div>
-                    <h3 className="mb-4 font-medium text-neutral-900">
-                        Kategori
-                    </h3>
-                    <div className="space-y-2">
-                        <button
-                            onClick={() => setSelectedCategory(null)}
-                            className={`w-full rounded-lg px-4 py-2 text-left transition-colors ${!selectedCategory ? 'bg-teal-500 text-white' : 'hover:bg-neutral-100'}`}
-                        >
-                            Semua Kategori
-                        </button>
-                        {categories.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setSelectedCategory(cat.id)}
-                                className={`w-full rounded-lg px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-500 text-white' : 'hover:bg-neutral-100'}`}
-                            >
-                                {cat.name}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+    console.log('FilterDrawer Categories Prop:', categories);
 
-                {/* Price Range */}
-                <div>
-                    <h3 className="mb-4 font-medium text-neutral-900">
-                        Rentang Harga
-                    </h3>
-                    <div className="space-y-2">
-                        {PRICE_RANGES.map((range, i) => (
-                            <button
-                                key={i}
-                                onClick={() =>
-                                    setPriceRange({
-                                        min: range.min,
-                                        max: range.max ?? undefined,
-                                    })
-                                }
-                                className={`w-full rounded-lg px-4 py-2 text-left text-sm transition-colors ${
-                                    priceRange.min === range.min &&
-                                    priceRange.max === (range.max ?? undefined)
-                                        ? 'bg-teal-500 text-white'
-                                        : 'hover:bg-neutral-100'
-                                }`}
-                            >
-                                {range.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
+    useEffect(() => {
+        if (isOpen) {
+            // Mount first
+            setShouldRender(true);
+            // Then fade in (use double RAF to ensure paint happens first)
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setIsVisible(true);
+                });
+            });
+        } else {
+            // Fade out first
+            setIsVisible(false);
+            // Then unmount after transition matches duration (300ms)
+            const timer = setTimeout(() => {
+                setShouldRender(false);
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
+
+    if (!mounted || typeof document === 'undefined' || !shouldRender)
+        return null;
+
+    // Safety check for categories
+    const safeCategories = Array.isArray(categories) ? categories : [];
+
+    return createPortal(
+        <>
+            {/* Backdrop */}
+            <div
+                className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
+                    isVisible ? 'opacity-100' : 'opacity-0'
+                }`}
+                onClick={onClose}
+                aria-hidden="true"
+            />
+            {/* Drawer */}
+            <div
+                className={`fixed top-0 right-0 z-[60] flex h-full w-full max-w-sm transform flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
+                    isVisible ? 'translate-x-0' : 'translate-x-full'
+                }`}
+                onTransitionEnd={() => {
+                    if (!isOpen && !isVisible) {
+                        // Optional cleanup if needed
+                    }
+                }}
+            >
+                <div className="flex items-center justify-between border-b border-neutral-100 p-6">
+                    <h2 className="font-display text-xl font-semibold text-neutral-900">
+                        Filter & Sort
+                    </h2>
                     <button
-                        onClick={onApply}
-                        className="flex-1 rounded-full bg-teal-500 py-3 font-medium text-white transition-colors hover:bg-teal-600"
+                        onClick={onClose}
+                        className="rounded-sm p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
                     >
-                        Terapkan
+                        <X size={24} />
                     </button>
-                    {hasActiveFilters && (
-                        <button
-                            onClick={onClear}
-                            className="rounded-full border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-900"
+                </div>
+
+                <div className="flex-1 space-y-8 overflow-y-auto p-6">
+                    {/* Sort */}
+                    <div>
+                        <h3 className="mb-4 font-medium text-neutral-900">
+                            Urutkan
+                        </h3>
+                        <select
+                            value={selectedSort}
+                            onChange={(e) => {
+                                setSelectedSort(e.target.value);
+                            }}
+                            className="w-full rounded-sm border border-neutral-200 p-3 ring-teal-500 focus:border-teal-500 focus:ring-1 focus:outline-none"
                         >
-                            <X size={18} />
+                            {SORT_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Categories */}
+                    <div>
+                        <h3 className="mb-4 font-medium text-neutral-900">
+                            Kategori
+                        </h3>
+                        <div className="space-y-2">
+                            <button
+                                onClick={() => setSelectedCategory(null)}
+                                className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${!selectedCategory ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                            >
+                                Semua Kategori
+                            </button>
+                            {safeCategories.length > 0 ? (
+                                safeCategories.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() =>
+                                            setSelectedCategory(cat.id)
+                                        }
+                                        className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                    >
+                                        {cat.name}
+                                    </button>
+                                ))
+                            ) : (
+                                <p className="px-4 py-2 text-sm text-neutral-400">
+                                    Tidak ada kategori tersedia
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Price Range */}
+                    <div>
+                        <h3 className="mb-4 font-medium text-neutral-900">
+                            Rentang Harga
+                        </h3>
+                        <div className="space-y-2">
+                            {PRICE_RANGES.map((range, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() =>
+                                        setPriceRange({
+                                            min: range.min,
+                                            max: range.max ?? undefined,
+                                        })
+                                    }
+                                    className={`w-full rounded-sm px-4 py-2 text-left text-sm transition-colors ${
+                                        priceRange.min === range.min &&
+                                        priceRange.max ===
+                                            (range.max ?? undefined)
+                                            ? 'bg-teal-50 font-medium text-teal-700'
+                                            : 'text-neutral-600 hover:bg-neutral-50'
+                                    }`}
+                                >
+                                    {range.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="border-t border-neutral-100 bg-neutral-50 p-6">
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onApply}
+                            className="flex-1 rounded-sm bg-teal-600 py-3 font-medium text-white shadow-sm transition-colors hover:bg-teal-700"
+                        >
+                            Terapkan Filter
                         </button>
-                    )}
+                        {hasActiveFilters && (
+                            <button
+                                onClick={onClear}
+                                className="rounded-sm border border-neutral-200 bg-white px-4 py-3 text-neutral-600 transition-colors hover:border-neutral-300 hover:text-neutral-900"
+                            >
+                                Reset
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
-        </motion.aside>
+        </>,
+        document.body,
     );
 }
 
@@ -468,6 +654,64 @@ function ProductCard({
     index,
     onQuickView,
 }: ProductCardProps) {
+    const { auth } = usePage<SharedData>().props;
+    const [isWishlisted, setIsWishlisted] = useState(product.is_wishlisted);
+    const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+    // Sync prop changes
+    useEffect(() => {
+        setIsWishlisted(product.is_wishlisted);
+    }, [product.is_wishlisted]);
+
+    const handleWishlistToggle = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!auth?.user) {
+            router.visit('/login');
+            return;
+        }
+
+        setIsTogglingWishlist(true);
+
+        router.post(
+            `/shop/wishlist/${product.id}`,
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => {
+                    setIsTogglingWishlist(false);
+                },
+            },
+        );
+    };
+
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!auth?.user) {
+            router.visit('/login');
+            return;
+        }
+
+        setIsAddingToCart(true);
+
+        router.post(
+            '/shop/cart',
+            { product_id: product.id, quantity: 1 },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => {
+                    setIsAddingToCart(false);
+                },
+            },
+        );
+    };
+
     const imageUrl =
         product.primary_image?.image_url ||
         product.images?.[0]?.image_url ||
@@ -495,7 +739,7 @@ function ProductCard({
                                 e.preventDefault();
                                 onQuickView(product);
                             }}
-                            className="absolute right-2 bottom-2 rounded-full bg-white/90 p-2 text-neutral-900 opacity-0 transition-colors group-hover:opacity-100 hover:bg-white"
+                            className="absolute right-2 bottom-2 rounded-sm bg-white/90 p-2 text-neutral-900 opacity-0 transition-colors group-hover:opacity-100 hover:bg-white"
                             title="Quick View"
                         >
                             <Eye size={16} />
@@ -540,20 +784,45 @@ function ProductCard({
                             </div>
                             <div className="flex gap-2">
                                 <button
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                    }}
-                                    className="rounded-full border border-neutral-200 p-3 transition-colors hover:border-neutral-900"
+                                    onClick={handleWishlistToggle}
+                                    disabled={isTogglingWishlist}
+                                    className={`rounded-sm border p-3 transition-colors disabled:cursor-not-allowed ${
+                                        isWishlisted
+                                            ? 'border-red-200 bg-red-50 text-red-500'
+                                            : 'border-neutral-200 hover:border-neutral-900'
+                                    }`}
                                 >
-                                    <Heart size={18} />
+                                    {isTogglingWishlist ? (
+                                        <Loader2
+                                            size={18}
+                                            className="animate-spin"
+                                        />
+                                    ) : (
+                                        <Heart
+                                            size={18}
+                                            className={
+                                                isWishlisted
+                                                    ? 'fill-current'
+                                                    : ''
+                                            }
+                                        />
+                                    )}
                                 </button>
                                 <button
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                    }}
-                                    className="rounded-full bg-teal-500 p-3 text-white transition-colors hover:bg-teal-600"
+                                    onClick={handleAddToCart}
+                                    disabled={
+                                        !product.is_in_stock || isAddingToCart
+                                    }
+                                    className="rounded-sm bg-teal-500 p-3 text-white transition-colors hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    <ShoppingBag size={18} />
+                                    {isAddingToCart ? (
+                                        <Loader2
+                                            size={18}
+                                            className="animate-spin"
+                                        />
+                                    ) : (
+                                        <ShoppingBag size={18} />
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -578,12 +847,12 @@ function ProductCard({
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     {product.has_discount && (
-                        <span className="absolute top-4 left-4 rounded-full bg-red-500 px-3 py-1 text-sm font-medium text-white">
+                        <span className="absolute top-4 left-4 rounded-sm bg-red-500 px-3 py-1 text-sm font-medium text-white">
                             -{product.discount_percentage}%
                         </span>
                     )}
                     {product.sale_type.value !== 'regular' && (
-                        <span className="absolute top-4 right-4 rounded-full bg-teal-500 px-3 py-1 text-sm font-medium text-white">
+                        <span className="absolute top-4 right-4 rounded-sm bg-teal-500 px-3 py-1 text-sm font-medium text-white">
                             {product.sale_type.label}
                         </span>
                     )}
@@ -593,26 +862,41 @@ function ProductCard({
                                 e.preventDefault();
                                 onQuickView(product);
                             }}
-                            className="rounded-full bg-white/90 p-3 text-neutral-900 transition-colors hover:bg-white"
+                            className="rounded-sm bg-white/90 p-3 text-neutral-900 transition-colors hover:bg-white"
                             title="Quick View"
                         >
                             <Eye size={18} />
                         </button>
                         <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                            }}
-                            className="rounded-full bg-white/90 p-3 text-neutral-900 transition-colors hover:bg-white"
+                            onClick={handleWishlistToggle}
+                            disabled={isTogglingWishlist}
+                            className={`rounded-sm p-3 transition-colors disabled:cursor-not-allowed ${
+                                isWishlisted
+                                    ? 'bg-red-50 text-red-500'
+                                    : 'bg-white/90 text-neutral-900 hover:bg-white'
+                            }`}
                         >
-                            <Heart size={18} />
+                            {isTogglingWishlist ? (
+                                <Loader2 size={18} className="animate-spin" />
+                            ) : (
+                                <Heart
+                                    size={18}
+                                    className={
+                                        isWishlisted ? 'fill-current' : ''
+                                    }
+                                />
+                            )}
                         </button>
                         <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                            }}
-                            className="rounded-full bg-teal-500 p-3 text-white transition-colors hover:bg-teal-600"
+                            onClick={handleAddToCart}
+                            disabled={!product.is_in_stock || isAddingToCart}
+                            className="rounded-sm bg-teal-500 p-3 text-white transition-colors hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <ShoppingBag size={18} />
+                            {isAddingToCart ? (
+                                <Loader2 size={18} className="animate-spin" />
+                            ) : (
+                                <ShoppingBag size={18} />
+                            )}
                         </button>
                     </div>
                 </div>
@@ -712,7 +996,7 @@ function Pagination({ meta }: PaginationProps) {
                 <button
                     onClick={() => goToPage(current - 1)}
                     disabled={current === 1}
-                    className="rounded-lg border border-neutral-200 p-2 transition-colors hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-sm border border-neutral-200 p-2 transition-colors hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <ChevronLeft size={18} />
                 </button>
@@ -721,7 +1005,7 @@ function Pagination({ meta }: PaginationProps) {
                         <button
                             key={i}
                             onClick={() => goToPage(page)}
-                            className={`h-10 w-10 rounded-lg font-medium transition-colors ${
+                            className={`h-10 w-10 rounded-sm font-medium transition-colors ${
                                 page === current
                                     ? 'bg-teal-500 text-white'
                                     : 'border border-neutral-200 hover:border-neutral-900'
@@ -738,7 +1022,7 @@ function Pagination({ meta }: PaginationProps) {
                 <button
                     onClick={() => goToPage(current + 1)}
                     disabled={current === last}
-                    className="rounded-lg border border-neutral-200 p-2 transition-colors hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-sm border border-neutral-200 p-2 transition-colors hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <ChevronRight size={18} />
                 </button>

@@ -67,6 +67,13 @@ class ProductResource extends JsonResource
             'reviews' => $this->relationLoaded('reviews')
                 ? ProductReviewResource::collection($this->reviews)->resolve()
                 : [],
+            'is_wishlisted' => $request->user()?->hasProductInWishlist($this->resource) ?? false,
+            'rating_counts' => $this->reviews()
+                ->toBase()
+                ->selectRaw('ROUND(rating) as star, count(*) as count')
+                ->groupBy('star')
+                ->pluck('count', 'star')
+                ->toArray(),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

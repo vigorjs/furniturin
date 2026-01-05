@@ -11,23 +11,16 @@ interface Props {
     products: ApiProduct[];
 }
 
-export default function WishlistIndex({ products: initialProducts }: Props) {
+export default function WishlistIndex({ products }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
     const siteName = siteSettings?.site_name || 'Latif Living';
-    const [products, setProducts] = useState(initialProducts);
     const [removingId, setRemovingId] = useState<number | null>(null);
 
-    const handleRemove = async (productId: number) => {
+    const handleRemove = (productId: number) => {
         setRemovingId(productId);
 
         router.delete(`/shop/wishlist/${productId}`, {
             preserveScroll: true,
-            onSuccess: () => {
-                setProducts(products.filter((p) => p.id !== productId));
-            },
-            onError: (error) => {
-                console.error('Failed to remove from wishlist:', error);
-            },
             onFinish: () => {
                 setRemovingId(null);
             },
@@ -48,16 +41,16 @@ export default function WishlistIndex({ products: initialProducts }: Props) {
                         {/* Header */}
                         <div className="mb-12 flex items-center justify-between">
                             <div>
-                                <h1 className="mb-2 font-serif text-3xl font-medium text-terra-900 md:text-4xl">
+                                <h1 className="mb-2 font-serif text-3xl font-medium text-neutral-900 md:text-4xl">
                                     Wishlist Saya
                                 </h1>
-                                <p className="text-terra-500">
+                                <p className="text-neutral-500">
                                     {products.length} produk tersimpan
                                 </p>
                             </div>
                             <Link
                                 href="/shop/products"
-                                className="flex items-center gap-2 text-wood transition-colors hover:text-terra-900"
+                                className="flex items-center gap-2 text-teal-700 transition-colors hover:text-teal-900"
                             >
                                 <span>Lanjut Belanja</span>
                                 <ArrowRight size={18} />
@@ -128,10 +121,10 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
             <button
                 onClick={onRemove}
                 disabled={isRemoving}
-                className="absolute top-3 right-3 rounded-full bg-white/90 p-2 text-terra-600 backdrop-blur-sm transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                className="absolute top-3 right-3 rounded-sm bg-white/90 p-2 text-neutral-600 backdrop-blur-sm transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
             >
                 {isRemoving ? (
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-terra-300 border-t-transparent" />
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-300 border-t-transparent" />
                 ) : (
                     <Trash2 size={18} />
                 )}
@@ -139,7 +132,7 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
 
             {/* Discount Badge */}
             {product.has_discount && (
-                <span className="absolute top-3 left-3 rounded-full bg-red-500 px-2 py-1 text-xs font-medium text-white">
+                <span className="absolute top-3 left-3 rounded-sm bg-red-500 px-2 py-1 text-xs font-medium text-white">
                     -{product.discount_percentage}%
                 </span>
             )}
@@ -147,21 +140,21 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
             {/* Content */}
             <div className="p-4">
                 {product.category && (
-                    <span className="text-xs tracking-wider text-terra-400 uppercase">
+                    <span className="text-xs tracking-wider text-neutral-400 uppercase">
                         {product.category.name}
                     </span>
                 )}
                 <Link href={`/shop/products/${product.slug}`}>
-                    <h3 className="mt-1 line-clamp-2 font-medium text-terra-900 transition-colors group-hover:text-wood">
+                    <h3 className="mt-1 line-clamp-2 font-medium text-neutral-900 transition-colors group-hover:text-teal-900">
                         {product.name}
                     </h3>
                 </Link>
                 <div className="mt-2 flex items-center gap-2">
-                    <span className="font-semibold text-terra-900">
+                    <span className="font-semibold text-neutral-900">
                         {product.final_price_formatted}
                     </span>
                     {product.has_discount && (
-                        <span className="text-sm text-terra-400 line-through">
+                        <span className="text-sm text-neutral-400 line-through">
                             {product.price_formatted}
                         </span>
                     )}
@@ -178,7 +171,7 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
                     )}
                     <button
                         disabled={!product.is_in_stock}
-                        className="rounded-full bg-terra-900 p-2 text-white transition-colors hover:bg-wood disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-sm bg-teal-900 p-2 text-white transition-colors hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <ShoppingBag size={16} />
                     </button>
@@ -191,18 +184,18 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
 function EmptyState() {
     return (
         <div className="py-20 text-center">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sand-100">
-                <Heart size={32} className="text-terra-300" />
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-sm bg-sand-100">
+                <Heart size={32} className="text-neutral-400" />
             </div>
-            <h3 className="mb-2 text-xl font-medium text-terra-900">
+            <h3 className="mb-2 text-xl font-medium text-neutral-900">
                 Wishlist Anda Kosong
             </h3>
-            <p className="mx-auto mb-8 max-w-md text-terra-500">
+            <p className="mx-auto mb-8 max-w-md text-neutral-500">
                 Simpan produk favorit Anda untuk memudahkan belanja nanti
             </p>
             <Link
                 href="/shop/products"
-                className="inline-flex items-center gap-2 rounded-full bg-terra-900 px-6 py-3 text-white transition-colors hover:bg-wood"
+                className="inline-flex items-center gap-2 rounded-sm bg-teal-900 px-6 py-3 text-white transition-colors hover:bg-teal-800"
             >
                 <span>Jelajahi Produk</span>
                 <ArrowRight size={18} />
