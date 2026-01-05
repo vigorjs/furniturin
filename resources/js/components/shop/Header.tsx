@@ -109,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-12">
                     {/* Logo */}
                     <div
-                        className="group flex cursor-pointer items-center"
+                        className="group flex flex-1 cursor-pointer items-center justify-start"
                         onClick={onLogoClick}
                     >
                         <img
@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Navigation Links */}
-                    <div className="hidden items-center gap-8 lg:flex">
+                    <div className="hidden flex-none items-center gap-8 lg:flex">
                         {NAV_ITEMS.map((item) => (
                             <Link
                                 key={item.label}
@@ -133,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Right Side Icons */}
-                    <div className="flex items-center gap-1 md:gap-2">
+                    <div className="flex flex-1 items-center justify-end gap-1 md:gap-2">
                         {/* Search */}
                         <button
                             onClick={() => setSearchOpen(true)}
