@@ -36,7 +36,7 @@ export default function CheckoutSuccess({ order }: Props) {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-2xl p-8 md:p-12 text-center"
+                        className="bg-white rounded-sm p-8 md:p-12 text-center"
                     >
                         <motion.div
                             initial={{ scale: 0 }}
@@ -53,7 +53,7 @@ export default function CheckoutSuccess({ order }: Props) {
                         </p>
 
                         {order && (
-                            <div className="bg-sand-50 rounded-xl p-6 mb-8 text-left">
+                            <div className="bg-sand-50 rounded-sm p-6 mb-8 text-left">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Package className="w-5 h-5 text-terra-600" />
                                     <span className="font-medium text-terra-900">Detail Pesanan</span>
@@ -96,7 +96,7 @@ export default function CheckoutSuccess({ order }: Props) {
                     </motion.div>
 
                     {/* Tips */}
-                    <div className="mt-8 bg-wood/10 rounded-xl p-6">
+                    <div className="mt-8 bg-wood/10 rounded-sm p-6">
                         <h3 className="font-medium text-terra-900 mb-3">Langkah Selanjutnya</h3>
                         <ul className="space-y-2 text-sm text-terra-600">
                             <li className="flex items-start gap-2">

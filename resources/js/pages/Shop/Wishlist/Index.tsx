@@ -43,8 +43,8 @@ export default function WishlistIndex({ products: initialProducts }: Props) {
             />
             <div className="bg-noise" />
             <ShopLayout>
-                <main className="min-h-screen bg-white pt-20 pb-20">
-                    <div className="mx-auto max-w-[1400px] px-6 pt-8 md:px-12">
+                <main className="min-h-screen bg-white pb-20">
+                    <div className="mx-auto max-w-[1400px] px-6 py-12 md:px-12">
                         {/* Header */}
                         <div className="mb-12 flex items-center justify-between">
                             <div>
@@ -110,7 +110,7 @@ function WishlistCard({ product, onRemove, isRemoving }: WishlistCardProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="group relative overflow-hidden rounded-2xl border border-terra-100 bg-white transition-colors hover:border-terra-200"
+            className="group relative overflow-hidden rounded-sm border border-terra-100 bg-white transition-colors hover:border-terra-200"
         >
             {/* Image */}
             <Link

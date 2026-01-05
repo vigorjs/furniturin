@@ -173,7 +173,7 @@ export default function ProductsIndex({
             <BreadcrumbStructuredData items={breadcrumbItems} />
             <div className="bg-noise" />
             <ShopLayout>
-                <main className="min-h-screen bg-white pt-28 pb-20">
+                <main className="min-h-screen bg-white pt-8 pb-20">
                     <div className="mx-auto max-w-[1400px] px-6 md:px-12">
                         {/* Breadcrumb */}
                         <nav className="mb-8 flex items-center gap-2 text-sm text-neutral-500">
@@ -324,7 +324,7 @@ function FilterSidebar({
                         onChange={(e) => {
                             setSelectedSort(e.target.value);
                         }}
-                        className="w-full rounded-xl border border-neutral-200 p-3 focus:border-teal-500 focus:outline-none"
+                        className="w-full rounded-sm border border-neutral-200 p-3 focus:border-teal-500 focus:outline-none"
                     >
                         {SORT_OPTIONS.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -482,9 +482,9 @@ function ProductCard({
             >
                 <Link
                     href={`/shop/products/${product.slug}`}
-                    className="group flex gap-6 rounded-2xl border border-neutral-100 bg-white p-4 transition-shadow hover:shadow-lg"
+                    className="group flex gap-6 rounded-sm border border-neutral-100 bg-white p-4 transition-shadow hover:shadow-lg"
                 >
-                    <div className="relative h-48 w-48 flex-shrink-0 overflow-hidden rounded-xl bg-neutral-100">
+                    <div className="relative h-48 w-48 flex-shrink-0 overflow-hidden rounded-sm bg-neutral-100">
                         <img
                             src={imageUrl}
                             alt={product.name}
@@ -571,7 +571,7 @@ function ProductCard({
             className="group"
         >
             <Link href={`/shop/products/${product.slug}`}>
-                <div className="relative mb-4 aspect-square overflow-hidden rounded-2xl bg-neutral-100">
+                <div className="relative mb-4 aspect-square overflow-hidden rounded-sm bg-neutral-100">
                     <img
                         src={imageUrl}
                         alt={product.name}

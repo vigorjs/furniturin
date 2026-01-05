@@ -64,7 +64,7 @@ export const NewsletterSection = () => {
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.3 }}
                     variants={containerVariants}
-                    className="flex flex-col items-center justify-between gap-12 rounded-sm bg-teal-500 p-12 md:p-20 lg:flex-row"
+                    className="flex flex-col items-center justify-between gap-12 rounded-sm bg-teal-600 p-12 md:p-20 lg:flex-row"
                 >
                     <motion.div
                         variants={itemVariants}
@@ -102,18 +102,18 @@ export const NewsletterSection = () => {
                                                 setData('email', e.target.value)
                                             }
                                             placeholder="Your email address"
-                                            className={`w-full rounded-sm border-none py-4 pr-4 pl-12 sm:w-80 ${
+                                            className={`w-full rounded-sm border-none bg-white py-4 pr-4 pl-12 sm:w-80 ${
                                                 errors.email
                                                     ? 'ring-2 ring-red-500'
                                                     : ''
-                                            } transition-all focus:ring-2 focus:ring-accent-500 focus:outline-none`}
+                                            } transition-all focus:ring-2 focus:ring-teal-300 focus:outline-none`}
                                             disabled={processing}
                                         />
                                     </div>
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="flex items-center justify-center gap-2 rounded-sm bg-accent-500 px-8 py-4 font-semibold text-neutral-800 transition-colors hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="flex items-center justify-center gap-2 rounded-sm bg-amber-400 px-8 py-4 font-semibold text-neutral-800 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         {processing ? (
                                             <>

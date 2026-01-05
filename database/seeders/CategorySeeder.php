@@ -65,6 +65,59 @@ class CategorySeeder extends Seeder
                     ['name' => 'Ayunan', 'description' => 'Ayunan untuk bersantai'],
                 ],
             ],
+            [
+                'name' => 'Dapur',
+                'description' => 'Furniture dan perlengkapan dapur modern',
+                'is_featured' => true,
+                'children' => [
+                    ['name' => 'Kitchen Set', 'description' => 'Set dapur lengkap custom'],
+                    ['name' => 'Rak Dapur', 'description' => 'Rak penyimpanan dapur'],
+                    ['name' => 'Meja Dapur', 'description' => 'Meja persiapan dapur'],
+                ],
+            ],
+            [
+                'name' => 'Kamar Anak',
+                'description' => 'Furniture khusus untuk kamar anak-anak',
+                'is_featured' => false,
+                'children' => [
+                    ['name' => 'Tempat Tidur Anak', 'description' => 'Tempat tidur aman untuk anak'],
+                    ['name' => 'Meja Belajar', 'description' => 'Meja belajar ergonomis untuk anak'],
+                    ['name' => 'Lemari Anak', 'description' => 'Lemari dengan desain menarik'],
+                    ['name' => 'Rak Mainan', 'description' => 'Rak penyimpanan mainan'],
+                ],
+            ],
+            [
+                'name' => 'Kamar Mandi',
+                'description' => 'Furniture dan aksesoris kamar mandi',
+                'is_featured' => false,
+                'children' => [
+                    ['name' => 'Vanity', 'description' => 'Meja wastafel dengan cermin'],
+                    ['name' => 'Rak Handuk', 'description' => 'Rak untuk handuk dan perlengkapan'],
+                    ['name' => 'Kabinet Kamar Mandi', 'description' => 'Kabinet penyimpanan'],
+                ],
+            ],
+            [
+                'name' => 'Lorong & Entrance',
+                'description' => 'Furniture untuk area masuk dan lorong rumah',
+                'is_featured' => false,
+                'children' => [
+                    ['name' => 'Meja Konsol', 'description' => 'Meja dekoratif untuk lorong'],
+                    ['name' => 'Rak Sepatu', 'description' => 'Rak penyimpanan sepatu'],
+                    ['name' => 'Gantungan Baju', 'description' => 'Stand gantungan pakaian'],
+                    ['name' => 'Cermin Besar', 'description' => 'Cermin dekoratif untuk entrance'],
+                ],
+            ],
+            [
+                'name' => 'Dekorasi',
+                'description' => 'Aksesoris dan dekorasi pelengkap ruangan',
+                'is_featured' => true,
+                'children' => [
+                    ['name' => 'Lampu', 'description' => 'Lampu dekoratif dan fungsional'],
+                    ['name' => 'Vas & Pot', 'description' => 'Vas bunga dan pot tanaman'],
+                    ['name' => 'Jam Dinding', 'description' => 'Jam dekoratif untuk dinding'],
+                    ['name' => 'Pigura', 'description' => 'Frame foto dan artwork'],
+                ],
+            ],
         ];
 
         $sortOrder = 1;
@@ -84,8 +137,10 @@ class CategorySeeder extends Seeder
 
             $childSortOrder = 1;
             foreach ($categoryData['children'] as $childData) {
+                // Use parent-child slug to avoid collisions
+                $childSlug = Str::slug($categoryData['name'] . ' ' . $childData['name']);
                 Category::firstOrCreate(
-                    ['slug' => Str::slug($childData['name'])],
+                    ['slug' => $childSlug],
                     [
                         'parent_id' => $parent->id,
                         'name' => $childData['name'],
@@ -101,3 +156,4 @@ class CategorySeeder extends Seeder
         }
     }
 }
+

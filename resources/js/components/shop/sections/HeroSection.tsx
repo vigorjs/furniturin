@@ -13,14 +13,19 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ settings }) => {
     const { scrollY } = useScroll();
     const opacity = useTransform(scrollY, [0, 400], [1, 0]);
-    const scale = useTransform(scrollY, [0, 400], [1, 1.1]);
+    // Parallax effect: Image moves slower than content
+    // We start with a taller image and move it effectively "down" (relative to container) to counteract the scroll
+    const y = useTransform(scrollY, [0, 1000], [0, 200]);
 
     const heroImage = settings.image_main || HERO_PLACEHOLDER;
 
     return (
-        <section className="relative flex h-screen min-h-[700px] items-center justify-center overflow-hidden">
+        <section className="relative flex h-screen min-h-[700px] justify-center overflow-hidden">
             {/* Background Image with Parallax */}
-            <motion.div style={{ scale }} className="absolute inset-0 z-0">
+            <motion.div
+                style={{ y }}
+                className="absolute -top-[12.5%] left-0 z-0 h-[125%] w-full"
+            >
                 <img
                     src={heroImage}
                     className="h-full w-full object-cover"
@@ -33,7 +38,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ settings }) => {
             {/* Content */}
             <motion.div
                 style={{ opacity }}
-                className="relative z-10 mx-auto max-w-4xl px-6 text-center"
+                className="relative z-10 mx-auto max-w-4xl px-6 pt-36 text-center"
             >
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}

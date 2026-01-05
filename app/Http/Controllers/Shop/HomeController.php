@@ -26,12 +26,11 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
-        // Featured Categories (3 items for homepage display)
+        // Featured Categories (for navbar display)
         $featuredCategories = Category::where('is_active', true)
             ->where('is_featured', true)
             ->whereNull('parent_id')
             ->orderBy('sort_order')
-            ->limit(3)
             ->get();
 
         // Testimonials (approved reviews with high rating)

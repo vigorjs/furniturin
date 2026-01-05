@@ -28,7 +28,7 @@ export const CompareDrawer: React.FC = () => {
                         <div className="p-6">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                                 {compareItems.map((product) => (
-                                    <div key={product.id} className="relative bg-sand-50 rounded-xl p-3">
+                                    <div key={product.id} className="relative bg-sand-50 rounded-sm p-3">
                                         <button onClick={() => removeFromCompare(product.id)} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 z-10">
                                             <X size={14} />
                                         </button>
@@ -41,7 +41,7 @@ export const CompareDrawer: React.FC = () => {
                                 ))}
                                 {/* Empty Slots */}
                                 {Array.from({ length: maxItems - compareItems.length }).map((_, i) => (
-                                    <div key={`empty-${i}`} className="aspect-square bg-terra-50 rounded-xl border-2 border-dashed border-terra-200 flex items-center justify-center">
+                                    <div key={`empty-${i}`} className="aspect-square bg-terra-50 rounded-sm border-2 border-dashed border-terra-200 flex items-center justify-center">
                                         <span className="text-sm text-terra-400">Tambah produk</span>
                                     </div>
                                 ))}

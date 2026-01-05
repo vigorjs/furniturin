@@ -52,7 +52,7 @@ export function WhatsAppButton({
                         initial={{ opacity: 0, y: 20, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                        className="absolute bottom-20 right-0 w-80 bg-white rounded-2xl shadow-2xl overflow-hidden mb-2"
+                        className="absolute bottom-20 right-0 w-80 bg-white rounded-sm shadow-2xl overflow-hidden mb-2"
                     >
                         {/* Header */}
                         <div className="bg-[#075E54] text-white p-4 flex items-center justify-between">

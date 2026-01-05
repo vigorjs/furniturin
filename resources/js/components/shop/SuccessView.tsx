@@ -23,7 +23,7 @@ export const SuccessView: React.FC<SuccessViewProps> = ({ onContinue }) => {
                 <p className="text-terra-600 mb-8 leading-relaxed">
                     Terima kasih atas pesanan Anda. Kami akan segera memproses dan mengirimkan pesanan Anda. Konfirmasi telah dikirim ke email Anda.
                 </p>
-                <div className="bg-sand-50 p-6 rounded-2xl mb-8">
+                <div className="bg-sand-50 p-6 rounded-sm mb-8">
                     <p className="text-terra-500 text-sm mb-2">Nomor Pesanan</p>
                     <p className="font-mono text-xl text-terra-900">{orderNumber}</p>
                 </div>

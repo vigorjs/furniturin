@@ -1,18 +1,38 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Image as ImageIcon, X } from 'lucide-react';
+import {
+    ArrowLeft,
+    ChevronDown,
+    FolderTree,
+    Image as ImageIcon,
+    X,
+} from 'lucide-react';
 import { useState } from 'react';
 
-export default function CreateCategory() {
+interface ParentCategory {
+    id: number;
+    name: string;
+    slug: string;
+}
+
+interface CreateCategoryProps {
+    parentCategories: ParentCategory[];
+}
+
+export default function CreateCategory({
+    parentCategories,
+}: CreateCategoryProps) {
     const { data, setData, processing, errors } = useForm<{
         name: string;
         description: string;
+        parent_id: number | null;
         is_active: boolean;
         is_featured: boolean;
         image: File | null;
     }>({
         name: '',
         description: '',
+        parent_id: null,
         is_active: true,
         is_featured: false,
         image: null,
@@ -82,6 +102,53 @@ export default function CreateCategory() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <div className="space-y-6">
+                            {/* Parent Category Selection */}
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Kategori Induk
+                                </label>
+                                <p className="mb-3 text-sm text-terra-500">
+                                    Pilih kategori induk jika ini adalah
+                                    sub-kategori. Kosongkan jika ini adalah
+                                    kategori utama.
+                                </p>
+                                <div className="relative">
+                                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <FolderTree className="h-5 w-5 text-terra-400" />
+                                    </div>
+                                    <select
+                                        value={data.parent_id ?? ''}
+                                        onChange={(e) =>
+                                            setData(
+                                                'parent_id',
+                                                e.target.value
+                                                    ? Number(e.target.value)
+                                                    : null,
+                                            )
+                                        }
+                                        className="w-full appearance-none rounded-xl border border-terra-200 bg-sand-50 py-3 pr-10 pl-10 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    >
+                                        <option value="">
+                                            — Tidak ada (Kategori Utama) —
+                                        </option>
+                                        {parentCategories.map((cat) => (
+                                            <option key={cat.id} value={cat.id}>
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <ChevronDown className="h-5 w-5 text-terra-400" />
+                                    </div>
+                                </div>
+                                {errors.parent_id && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.parent_id}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Category Name */}
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-terra-700">
                                     Nama Kategori *
@@ -102,6 +169,7 @@ export default function CreateCategory() {
                                 )}
                             </div>
 
+                            {/* Description */}
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-terra-700">
                                     Deskripsi
@@ -171,6 +239,7 @@ export default function CreateCategory() {
                                 )}
                             </div>
 
+                            {/* Checkboxes */}
                             <div className="space-y-3">
                                 <label className="flex cursor-pointer items-center gap-3">
                                     <input

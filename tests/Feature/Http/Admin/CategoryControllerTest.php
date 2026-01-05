@@ -38,7 +38,8 @@ describe('Admin CategoryController', function () {
     it('shows categories list for admin', function () {
         $admin = createAdmin();
         $admin->givePermissionTo('view categories');
-        Category::factory()->count(5)->create();
+        // Create root categories (no parent)
+        Category::factory()->count(5)->create(['parent_id' => null]);
 
         $response = $this->actingAs($admin)->get(route('admin.categories.index'));
 

@@ -111,7 +111,7 @@ export default function CheckoutIndex({ cart, addresses, paymentMethods, payment
                         <div className="grid lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2 space-y-6">
                                 {/* Shipping Address */}
-                                <div className="bg-white rounded-2xl p-6">
+                                <div className="bg-white rounded-sm p-6">
                                     <div className="flex items-center justify-between mb-4">
                                         <h2 className="font-serif text-xl text-terra-900 flex items-center gap-2">
                                             <MapPin className="w-5 h-5" /> Alamat Pengiriman
@@ -123,7 +123,7 @@ export default function CheckoutIndex({ cart, addresses, paymentMethods, payment
                                     {addressList.length > 0 ? (
                                         <div className="space-y-3">
                                             {addressList.map((addr) => (
-                                                <label key={addr.id} className={`block p-4 border-2 rounded-xl cursor-pointer transition-colors ${data.address_id === addr.id ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
+                                                <label key={addr.id} className={`block p-4 border-2 rounded-sm cursor-pointer transition-colors ${data.address_id === addr.id ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
                                                     <div className="flex items-start gap-3">
                                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${data.address_id === addr.id ? 'border-wood bg-wood' : 'border-terra-300'}`}>
                                                             {data.address_id === addr.id && <Check className="w-3 h-3 text-white" />}
@@ -193,13 +193,13 @@ interface ShippingSectionProps {
 
 function ShippingSection({ selectedShipping, setSelectedShipping, error }: ShippingSectionProps) {
     return (
-        <div className="bg-white rounded-2xl p-6">
+        <div className="bg-white rounded-sm p-6">
             <h2 className="font-serif text-xl text-terra-900 flex items-center gap-2 mb-4">
                 <Package className="w-5 h-5" /> Metode Pengiriman
             </h2>
             <div className="space-y-3">
                 {SHIPPING_METHODS.map((method) => (
-                    <label key={method.value} className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedShipping === method.value ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
+                    <label key={method.value} className={`flex items-center justify-between p-4 border-2 rounded-sm cursor-pointer transition-colors ${selectedShipping === method.value ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
                         <div className="flex items-center gap-3">
                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedShipping === method.value ? 'border-wood bg-wood' : 'border-terra-300'}`}>
                                 {selectedShipping === method.value && <Check className="w-3 h-3 text-white" />}
@@ -228,13 +228,13 @@ interface PaymentSectionProps {
 
 function PaymentSection({ paymentMethods, selectedPayment, setSelectedPayment, error }: PaymentSectionProps) {
     return (
-        <div className="bg-white rounded-2xl p-6">
+        <div className="bg-white rounded-sm p-6">
             <h2 className="font-serif text-xl text-terra-900 flex items-center gap-2 mb-4">
                 <CreditCard className="w-5 h-5" /> Metode Pembayaran
             </h2>
             <div className="space-y-3">
                 {paymentMethods.map((method) => (
-                    <label key={method.value} className={`block p-4 border-2 rounded-xl cursor-pointer transition-colors ${selectedPayment === method.value ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
+                    <label key={method.value} className={`block p-4 border-2 rounded-sm cursor-pointer transition-colors ${selectedPayment === method.value ? 'border-wood bg-wood/5' : 'border-terra-100 hover:border-terra-200'}`}>
                         <div className="flex items-start gap-3">
                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${selectedPayment === method.value ? 'border-wood bg-wood' : 'border-terra-300'}`}>
                                 {selectedPayment === method.value && <Check className="w-3 h-3 text-white" />}
@@ -281,7 +281,7 @@ function OrderSummary({ cart, getProductImage, processing, selectedAddress, sele
 
     return (
         <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl p-6 sticky top-28">
+            <div className="bg-white rounded-sm p-6 sticky top-28">
                 <h2 className="font-serif text-xl text-terra-900 mb-4">Ringkasan Pesanan</h2>
 
                 {/* Items */}

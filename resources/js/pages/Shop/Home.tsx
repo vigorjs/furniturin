@@ -117,7 +117,7 @@ export default function Home({
                 showWhatsApp={true}
                 whatsAppMessage={`Halo, saya tertarik dengan produk di ${siteSettings?.site_name || pageSiteSettings.name}`}
                 bannerVisible={bannerVisible}
-                isHeroPage={true}
+                featuredCategories={featuredCategories.data}
             >
                 <main className="min-h-screen bg-white">
                     <LandingView

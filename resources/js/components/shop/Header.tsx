@@ -1,5 +1,6 @@
 import { NAV_ITEMS } from '@/data/constants';
 import { SiteSettings } from '@/types';
+import { ApiCategory } from '@/types/shop';
 import { Link, router, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -28,7 +29,7 @@ interface HeaderProps {
     onCartClick: () => void;
     onLogoClick: () => void;
     bannerVisible?: boolean;
-    isHeroPage?: boolean; // If true, header is transparent initially (for pages with hero)
+    featuredCategories?: ApiCategory[];
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -36,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
     onCartClick,
     onLogoClick,
     bannerVisible = false,
-    isHeroPage = false, // Default to solid header for inner pages
+    featuredCategories = [],
 }) => {
     const { auth, wishlistCount, siteSettings } = usePage<{
         auth?: { user?: AuthUser };
@@ -46,18 +47,11 @@ export const Header: React.FC<HeaderProps> = ({
     const siteName = siteSettings?.site_name || 'Furniturin';
     const user = auth?.user;
 
-    const [scrolled, setScrolled] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const userMenuRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 50);
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -108,20 +102,10 @@ export const Header: React.FC<HeaderProps> = ({
         }
     };
 
-    const topPosition = bannerVisible ? 'top-10' : 'top-0';
-
-    // Determine if header should be solid (scrolled OR not a hero page)
-    const isSolidHeader = scrolled || !isHeroPage;
-
     return (
-        <>
-            <nav
-                className={`fixed ${topPosition} z-40 w-full transition-all duration-300 ${
-                    isSolidHeader
-                        ? 'border-b border-neutral-100 bg-white/95 py-3 shadow-sm backdrop-blur-md'
-                        : 'bg-transparent py-5'
-                }`}
-            >
+        <header className="relative z-40 w-full bg-white">
+            {/* Main Navigation */}
+            <nav className="border-b border-neutral-100 py-3">
                 <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-12">
                     {/* Logo */}
                     <div
@@ -131,9 +115,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <img
                             src="/assets/images/logo.webp"
                             alt={siteName}
-                            className={`h-7 w-auto object-contain transition-all md:h-8 ${
-                                isSolidHeader ? '' : 'brightness-0 invert'
-                            }`}
+                            className="h-7 w-auto object-contain transition-all md:h-8"
                         />
                     </div>
 
@@ -143,11 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className={`text-sm font-medium transition-colors ${
-                                    isSolidHeader
-                                        ? 'text-neutral-600 hover:text-teal-500'
-                                        : 'text-white/90 hover:text-white'
-                                }`}
+                                className="text-sm font-medium text-neutral-600 transition-colors hover:text-teal-500"
                             >
                                 {item.label}
                             </Link>
@@ -159,11 +137,7 @@ export const Header: React.FC<HeaderProps> = ({
                         {/* Search */}
                         <button
                             onClick={() => setSearchOpen(true)}
-                            className={`rounded-sm p-2.5 transition-colors ${
-                                isSolidHeader
-                                    ? 'text-neutral-700 hover:bg-neutral-100'
-                                    : 'text-white hover:bg-white/10'
-                            }`}
+                            className="rounded-sm p-2.5 text-neutral-700 transition-colors hover:bg-neutral-100"
                         >
                             <Search size={20} />
                         </button>
@@ -172,11 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
                         {user && (
                             <Link
                                 href="/shop/wishlist"
-                                className={`relative hidden rounded-sm p-2.5 transition-colors md:flex ${
-                                    isSolidHeader
-                                        ? 'text-neutral-700 hover:bg-neutral-100'
-                                        : 'text-white hover:bg-white/10'
-                                }`}
+                                className="relative hidden rounded-sm p-2.5 text-neutral-700 transition-colors hover:bg-neutral-100 md:flex"
                             >
                                 <Heart size={20} />
                                 {(wishlistCount ?? 0) > 0 && (
@@ -190,11 +160,7 @@ export const Header: React.FC<HeaderProps> = ({
                         {/* Cart */}
                         <button
                             onClick={onCartClick}
-                            className={`group relative rounded-sm p-2.5 transition-colors ${
-                                isSolidHeader
-                                    ? 'text-neutral-700 hover:bg-neutral-100'
-                                    : 'text-white hover:bg-white/10'
-                            }`}
+                            className="group relative rounded-sm p-2.5 text-neutral-700 transition-colors hover:bg-neutral-100"
                         >
                             <ShoppingBag
                                 size={20}
@@ -217,11 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     onClick={() =>
                                         setUserMenuOpen(!userMenuOpen)
                                     }
-                                    className={`flex items-center gap-2 rounded-sm p-2 transition-colors ${
-                                        isSolidHeader
-                                            ? 'text-neutral-700 hover:bg-neutral-100'
-                                            : 'text-white hover:bg-white/10'
-                                    }`}
+                                    className="flex items-center gap-2 rounded-sm p-2 text-neutral-700 transition-colors hover:bg-neutral-100"
                                 >
                                     {user.avatar_url ? (
                                         <img
@@ -233,11 +195,7 @@ export const Header: React.FC<HeaderProps> = ({
                                         <div className="flex h-8 w-8 items-center justify-center rounded-sm bg-teal-500/20">
                                             <User
                                                 size={18}
-                                                className={
-                                                    isSolidHeader
-                                                        ? 'text-teal-500'
-                                                        : 'text-white'
-                                                }
+                                                className="text-teal-500"
                                             />
                                         </div>
                                     )}
@@ -302,11 +260,7 @@ export const Header: React.FC<HeaderProps> = ({
                         ) : (
                             <Link
                                 href="/login"
-                                className={`hidden items-center gap-2 rounded-sm px-5 py-2.5 text-sm font-medium transition-all md:flex ${
-                                    isSolidHeader
-                                        ? 'bg-teal-500 text-white hover:bg-teal-600'
-                                        : 'bg-white text-teal-500 hover:bg-accent-500 hover:text-neutral-800'
-                                }`}
+                                className="hidden items-center gap-2 rounded-sm bg-teal-500 px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-teal-600 md:flex"
                             >
                                 <User size={16} />
                                 <span>Sign In</span>
@@ -314,18 +268,29 @@ export const Header: React.FC<HeaderProps> = ({
                         )}
 
                         {/* Mobile Menu */}
-                        <button
-                            className={`p-2.5 lg:hidden ${
-                                isSolidHeader
-                                    ? 'text-neutral-700'
-                                    : 'text-white'
-                            }`}
-                        >
+                        <button className="p-2.5 text-neutral-700 lg:hidden">
                             <Menu size={22} />
                         </button>
                     </div>
                 </div>
             </nav>
+
+            {/* Featured Categories Bar - Pottery Barn Style */}
+            {featuredCategories.length > 0 && (
+                <div className="border-b border-neutral-100 bg-white">
+                    <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-6 overflow-x-auto px-6 py-2.5 md:gap-10 md:px-12">
+                        {featuredCategories.map((category) => (
+                            <Link
+                                key={category.id}
+                                href={`/shop/products?filter[category_id]=${category.id}`}
+                                className="text-xs font-medium tracking-wide whitespace-nowrap text-neutral-600 uppercase transition-colors hover:text-teal-500"
+                            >
+                                {category.name}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Search Modal */}
             <AnimatePresence>
@@ -387,7 +352,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </motion.div>
                 )}
             </AnimatePresence>
-        </>
+        </header>
     );
 };
 

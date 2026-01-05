@@ -203,7 +203,7 @@ interface ImageGalleryProps {
 function ImageGallery({ images, selectedIndex, setSelectedIndex, onZoom, product }: ImageGalleryProps) {
     return (
         <div className="space-y-4">
-            <div className="relative aspect-square rounded-3xl overflow-hidden bg-sand-100 cursor-zoom-in" onClick={onZoom}>
+            <div className="relative aspect-square rounded-sm overflow-hidden bg-sand-100 cursor-zoom-in" onClick={onZoom}>
                 <AnimatePresence mode="wait">
                     <motion.img
                         key={selectedIndex}
@@ -237,7 +237,7 @@ function ImageGallery({ images, selectedIndex, setSelectedIndex, onZoom, product
                 <div className="flex gap-3 overflow-x-auto pb-2">
                     {images.map((img, idx) => (
                         <button key={img.id || idx} onClick={() => setSelectedIndex(idx)}
-                            className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors ${idx === selectedIndex ? 'border-terra-900' : 'border-transparent hover:border-terra-300'}`}>
+                            className={`flex-shrink-0 w-20 h-20 rounded-sm overflow-hidden border-2 transition-colors ${idx === selectedIndex ? 'border-terra-900' : 'border-transparent hover:border-terra-300'}`}>
                             <img src={img.image_url} alt="" className="w-full h-full object-cover" />
                         </button>
                     ))}
@@ -377,7 +377,7 @@ function RelatedProducts({ products }: { products: ApiProduct[] }) {
                     const imageUrl = product.primary_image?.image_url || product.images?.[0]?.image_url || '/images/placeholder-product.svg';
                     return (
                         <Link key={product.id} href={`/shop/products/${product.slug}`} className="group">
-                            <div className="aspect-square rounded-2xl overflow-hidden bg-sand-100 mb-3">
+                            <div className="aspect-square rounded-sm overflow-hidden bg-sand-100 mb-3">
                                 <img src={imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                             </div>
                             <h3 className="font-medium text-terra-900 group-hover:text-wood transition-colors line-clamp-1">{product.name}</h3>
@@ -411,7 +411,7 @@ function CustomerReviews({ reviews, averageRating, reviewCount }: CustomerReview
             <h2 className="font-serif text-2xl text-terra-900 mb-8">Ulasan Pelanggan</h2>
             <div className="grid md:grid-cols-3 gap-8">
                 {/* Rating Summary */}
-                <div className="bg-sand-50 rounded-2xl p-6">
+                <div className="bg-sand-50 rounded-sm p-6">
                     <div className="text-center mb-6">
                         <div className="text-5xl font-bold text-terra-900 mb-2">{Number(averageRating || 0).toFixed(1)}</div>
                         <div className="flex justify-center mb-2">

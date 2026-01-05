@@ -96,7 +96,7 @@ export default function CartIndex({ cart }: Props) {
                     <h1 className="font-serif text-3xl text-terra-900 mb-8">Keranjang Belanja</h1>
 
                     {!cart || cart.items.length === 0 ? (
-                        <div className="bg-white rounded-2xl p-12 text-center">
+                        <div className="bg-white rounded-sm p-12 text-center">
                             <ShoppingBag className="w-16 h-16 mx-auto text-terra-200 mb-4" />
                             <h2 className="font-serif text-2xl text-terra-900 mb-2">Keranjang Kosong</h2>
                             <p className="text-terra-500 mb-6">Mulai belanja untuk mengisi keranjang Anda</p>
@@ -137,7 +137,7 @@ export default function CartIndex({ cart }: Props) {
 
                             {/* Order Summary */}
                             <div className="lg:col-span-1">
-                                <div className="bg-white rounded-2xl p-6 sticky top-28">
+                                <div className="bg-white rounded-sm p-6 sticky top-28">
                                     <h2 className="font-serif text-xl text-terra-900 mb-4">Ringkasan Pesanan</h2>
                                     <div className="space-y-3 mb-6">
                                         <div className="flex justify-between text-terra-600">
@@ -180,8 +180,8 @@ interface CartItemCardProps {
 
 function CartItemCard({ item, loading, onUpdateQuantity, onRemove, onSaveForLater, getProductImage }: CartItemCardProps) {
     return (
-        <div className={`bg-white rounded-2xl p-4 flex gap-4 ${loading ? 'opacity-50' : ''}`}>
-            <Link href={`/shop/products/${item.product.slug}`} className="w-24 h-24 bg-terra-100 rounded-xl overflow-hidden flex-shrink-0">
+        <div className={`bg-white rounded-sm p-4 flex gap-4 ${loading ? 'opacity-50' : ''}`}>
+            <Link href={`/shop/products/${item.product.slug}`} className="w-24 h-24 bg-terra-100 rounded-sm overflow-hidden flex-shrink-0">
                 <img src={getProductImage(item.product)} alt={item.product.name} className="w-full h-full object-cover" />
             </Link>
             <div className="flex-1 min-w-0">
@@ -233,8 +233,8 @@ interface SavedItemCardProps {
 
 function SavedItemCard({ item, loading, onMoveToCart, onRemove, getProductImage }: SavedItemCardProps) {
     return (
-        <div className={`bg-white rounded-2xl p-4 flex gap-4 ${loading ? 'opacity-50' : ''}`}>
-            <Link href={`/shop/products/${item.product.slug}`} className="w-20 h-20 bg-terra-100 rounded-xl overflow-hidden flex-shrink-0">
+        <div className={`bg-white rounded-sm p-4 flex gap-4 ${loading ? 'opacity-50' : ''}`}>
+            <Link href={`/shop/products/${item.product.slug}`} className="w-20 h-20 bg-terra-100 rounded-sm overflow-hidden flex-shrink-0">
                 <img src={getProductImage(item.product)} alt={item.product.name} className="w-full h-full object-cover" />
             </Link>
             <div className="flex-1 min-w-0">

@@ -63,9 +63,9 @@ export default function OrdersIndex({ orders }: Props) {
             <Head title={`Pesanan Saya - ${siteName}`} />
             <div className="bg-noise" />
             <ShopLayout>
-                <main className="min-h-screen bg-sand-50 pt-28 pb-20">
-                    <div className="mx-auto max-w-[1400px] px-6 md:px-12">
-                        <h1 className="mb-8 font-serif text-3xl text-terra-900">
+                <main className="min-h-screen bg-white pb-20">
+                    <div className="mx-auto max-w-[1400px] px-6 py-12 md:px-12">
+                        <h1 className="mb-8 font-serif text-3xl font-medium text-terra-900 md:text-4xl">
                             Pesanan Saya
                         </h1>
 
@@ -117,7 +117,7 @@ function OrderCard({ order }: { order: Order }) {
     return (
         <Link
             href={`/shop/orders/${order.id}`}
-            className="block rounded-2xl border border-terra-100 bg-white p-6 transition-all hover:border-terra-200 hover:shadow-sm"
+            className="block rounded-sm border border-terra-100 bg-white p-6 transition-all hover:border-terra-200 hover:shadow-sm"
         >
             <div className="mb-4 flex items-start justify-between">
                 <div>
@@ -179,7 +179,7 @@ function OrderCard({ order }: { order: Order }) {
 
 function EmptyState() {
     return (
-        <div className="rounded-2xl bg-white py-20 text-center">
+        <div className="rounded-sm bg-white py-20 text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sand-100">
                 <Package size={32} className="text-terra-300" />
             </div>

@@ -65,7 +65,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url, ti
             {isOpen && (
                 <>
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
-                    <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl z-50 overflow-hidden">
+                    <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-sm shadow-2xl z-50 overflow-hidden">
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-terra-100">
                             <h2 className="font-serif text-xl text-terra-900">Bagikan Produk</h2>
@@ -77,7 +77,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url, ti
                         {/* Product Preview */}
                         <div className="p-6 bg-sand-50 flex gap-4">
                             {imageUrl && (
-                                <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-terra-100">
+                                <div className="w-20 h-20 rounded-sm overflow-hidden flex-shrink-0 bg-terra-100">
                                     <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                                 </div>
                             )}
@@ -92,7 +92,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url, ti
                             <p className="text-sm text-terra-500 mb-4">Bagikan melalui</p>
                             <div className="grid grid-cols-4 gap-3 mb-6">
                                 {shareLinks.map((link) => (
-                                    <button key={link.name} onClick={() => handleShare(link.url)} className={`flex flex-col items-center gap-2 p-4 rounded-xl text-white transition-colors ${link.color}`}>
+                                    <button key={link.name} onClick={() => handleShare(link.url)} className={`flex flex-col items-center gap-2 p-4 rounded-sm text-white transition-colors ${link.color}`}>
                                         <link.icon size={24} />
                                         <span className="text-xs">{link.name}</span>
                                     </button>
@@ -101,11 +101,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, url, ti
 
                             {/* Copy Link */}
                             <div className="flex gap-2">
-                                <div className="flex-1 flex items-center gap-2 bg-terra-50 rounded-xl px-4 py-3">
+                                <div className="flex-1 flex items-center gap-2 bg-terra-50 rounded-sm px-4 py-3">
                                     <Link2 size={18} className="text-terra-400 flex-shrink-0" />
                                     <input type="text" value={shareUrl} readOnly className="flex-1 bg-transparent text-sm text-terra-700 outline-none truncate" />
                                 </div>
-                                <button onClick={handleCopyLink} className={`px-4 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 ${copied ? 'bg-green-500 text-white' : 'bg-terra-900 text-white hover:bg-wood'}`}>
+                                <button onClick={handleCopyLink} className={`px-4 py-3 rounded-sm font-medium transition-colors flex items-center gap-2 ${copied ? 'bg-green-500 text-white' : 'bg-terra-900 text-white hover:bg-wood'}`}>
                                     {copied ? <><Check size={18} /> Tersalin</> : <><Copy size={18} /> Salin</>}
                                 </button>
                             </div>

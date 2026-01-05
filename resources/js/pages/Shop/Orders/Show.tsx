@@ -1,8 +1,22 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Package, MapPin, CreditCard, Truck, Clock, CheckCircle, XCircle, AlertCircle, Copy, MessageCircle, Building2, Banknote } from 'lucide-react';
 import { ShopLayout } from '@/layouts/ShopLayout';
-import { useState } from 'react';
 import { SiteSettings } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import {
+    AlertCircle,
+    ArrowLeft,
+    Banknote,
+    Building2,
+    CheckCircle,
+    Clock,
+    Copy,
+    CreditCard,
+    MapPin,
+    MessageCircle,
+    Package,
+    Truck,
+    XCircle,
+} from 'lucide-react';
+import { useState } from 'react';
 
 interface OrderStatus {
     value: string;
@@ -80,11 +94,16 @@ export default function OrderShow({ order, paymentSettings }: Props) {
     const [copied, setCopied] = useState(false);
 
     const handleCancel = async () => {
-        if (!confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
+        if (!confirm('Apakah Anda yakin ingin membatalkan pesanan ini?'))
+            return;
         setCancelling(true);
-        router.post(`/shop/orders/${order.id}/cancel`, {}, {
-            onFinish: () => setCancelling(false),
-        });
+        router.post(
+            `/shop/orders/${order.id}/cancel`,
+            {},
+            {
+                onFinish: () => setCancelling(false),
+            },
+        );
     };
 
     const copyToClipboard = (text: string) => {
@@ -94,13 +113,25 @@ export default function OrderShow({ order, paymentSettings }: Props) {
     };
 
     // Safe access to status with fallback
-    const status = order.status || { value: 'pending', label: 'Menunggu', color: 'bg-yellow-100 text-yellow-800' };
-    const paymentStatus = order.payment_status || { value: 'pending', label: 'Menunggu', color: 'bg-yellow-100 text-yellow-800' };
-    const paymentMethod = order.payment_method || { value: 'unknown', label: 'Unknown' };
+    const status = order.status || {
+        value: 'pending',
+        label: 'Menunggu',
+        color: 'bg-yellow-100 text-yellow-800',
+    };
+    const paymentStatus = order.payment_status || {
+        value: 'pending',
+        label: 'Menunggu',
+        color: 'bg-yellow-100 text-yellow-800',
+    };
+    const paymentMethod = order.payment_method || {
+        value: 'unknown',
+        label: 'Unknown',
+    };
     const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
 
     const canCancel = status.value === 'pending';
-    const needsPayment = paymentStatus.value === 'pending' && status.value !== 'cancelled';
+    const needsPayment =
+        paymentStatus.value === 'pending' && status.value !== 'cancelled';
     const isBankTransfer = paymentMethod.value === 'bank_transfer';
     const isCOD = paymentMethod.value === 'cod';
 
@@ -122,244 +153,386 @@ export default function OrderShow({ order, paymentSettings }: Props) {
             <Head title={`Pesanan #${order.order_number} - ${siteName}`} />
             <div className="bg-noise" />
             <ShopLayout>
-            <main className="min-h-screen bg-sand-50 pt-28 pb-20">
-                <div className="max-w-4xl mx-auto px-6 md:px-12">
-                    {/* Back Button */}
-                    <Link href="/shop/orders" className="inline-flex items-center gap-2 text-terra-600 hover:text-terra-900 mb-6">
-                        <ArrowLeft size={18} />
-                        <span>Kembali ke Pesanan</span>
-                    </Link>
+                <main className="min-h-screen bg-sand-50 pb-20">
+                    <div className="mx-auto max-w-[1400px] px-6 py-12 md:px-12">
+                        {/* Back Button */}
+                        <Link
+                            href="/shop/orders"
+                            className="mb-6 inline-flex items-center gap-2 text-terra-600 hover:text-terra-900"
+                        >
+                            <ArrowLeft size={18} />
+                            <span>Kembali ke Pesanan</span>
+                        </Link>
 
-                    {/* Header */}
-                    <div className="bg-white rounded-2xl p-6 mb-6">
-                        <div className="flex items-start justify-between flex-wrap gap-4">
-                            <div>
-                                <h1 className="font-serif text-2xl text-terra-900">Pesanan #{order.order_number}</h1>
-                                <p className="text-sm text-terra-500 mt-1">
-                                    {new Date(order.created_at).toLocaleDateString('id-ID', {
-                                        day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                                    })}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${status.color}`}>
-                                    {STATUS_ICONS[status.value]}
-                                    {status.label}
-                                </span>
-                                {canCancel && (
-                                    <button
-                                        onClick={handleCancel}
-                                        disabled={cancelling}
-                                        className="px-4 py-2 border border-red-200 text-red-600 rounded-full text-sm hover:bg-red-50 disabled:opacity-50"
+                        {/* Header */}
+                        <div className="mb-6 rounded-sm bg-white p-6">
+                            <div className="flex flex-wrap items-start justify-between gap-4">
+                                <div>
+                                    <h1 className="font-serif text-2xl text-terra-900">
+                                        Pesanan #{order.order_number}
+                                    </h1>
+                                    <p className="mt-1 text-sm text-terra-500">
+                                        {new Date(
+                                            order.created_at,
+                                        ).toLocaleDateString('id-ID', {
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span
+                                        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${status.color}`}
                                     >
-                                        {cancelling ? 'Membatalkan...' : 'Batalkan'}
-                                    </button>
+                                        {STATUS_ICONS[status.value]}
+                                        {status.label}
+                                    </span>
+                                    {canCancel && (
+                                        <button
+                                            onClick={handleCancel}
+                                            disabled={cancelling}
+                                            className="rounded-full border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                        >
+                                            {cancelling
+                                                ? 'Membatalkan...'
+                                                : 'Batalkan'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {order.tracking_number && (
+                                <div className="mt-4 rounded-sm bg-blue-50 p-4">
+                                    <p className="text-sm text-blue-800">
+                                        <strong>No. Resi:</strong>{' '}
+                                        {order.tracking_number}
+                                    </p>
+                                </div>
+                            )}
+
+                            {order.cancellation_reason && (
+                                <div className="mt-4 rounded-sm bg-red-50 p-4">
+                                    <p className="text-sm text-red-800">
+                                        <strong>Alasan Pembatalan:</strong>{' '}
+                                        {order.cancellation_reason}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid gap-6 md:grid-cols-3">
+                            {/* Items */}
+                            <div className="rounded-sm bg-white p-6 md:col-span-2">
+                                <h2 className="mb-4 flex items-center gap-2 font-medium text-terra-900">
+                                    <Package size={18} />
+                                    Produk Dipesan
+                                </h2>
+                                <div className="space-y-4">
+                                    {items.map((item) => {
+                                        const imageUrl =
+                                            item.product?.images?.[0]
+                                                ?.image_url ||
+                                            '/images/placeholder-product.svg';
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className="flex gap-4 border-b border-terra-100 pb-4 last:border-0 last:pb-0"
+                                            >
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={item.product_name}
+                                                    className="h-20 w-20 rounded-lg bg-sand-100 object-cover"
+                                                />
+                                                <div className="flex-1">
+                                                    {item.product ? (
+                                                        <Link
+                                                            href={`/shop/products/${item.product.slug}`}
+                                                            className="font-medium text-terra-900 hover:text-wood"
+                                                        >
+                                                            {item.product_name}
+                                                        </Link>
+                                                    ) : (
+                                                        <p className="font-medium text-terra-900">
+                                                            {item.product_name}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-sm text-terra-500">
+                                                        SKU: {item.product_sku}
+                                                    </p>
+                                                    <p className="text-sm text-terra-500">
+                                                        {item.quantity} x Rp{' '}
+                                                        {item.unit_price.toLocaleString(
+                                                            'id-ID',
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <p className="font-medium text-terra-900">
+                                                    Rp{' '}
+                                                    {item.subtotal.toLocaleString(
+                                                        'id-ID',
+                                                    )}
+                                                </p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Sidebar */}
+                            <div className="space-y-6">
+                                {/* Shipping */}
+                                <div className="rounded-sm bg-white p-6">
+                                    <h2 className="mb-4 flex items-center gap-2 font-medium text-terra-900">
+                                        <MapPin size={18} />
+                                        Alamat Pengiriman
+                                    </h2>
+                                    <p className="font-medium text-terra-900">
+                                        {order.shipping_name}
+                                    </p>
+                                    <p className="text-sm text-terra-600">
+                                        {order.shipping_phone}
+                                    </p>
+                                    <p className="mt-2 text-sm text-terra-600">
+                                        {order.shipping_address}
+                                    </p>
+                                    <p className="text-sm text-terra-600">
+                                        {order.shipping_city},{' '}
+                                        {order.shipping_province}{' '}
+                                        {order.shipping_postal_code}
+                                    </p>
+                                </div>
+
+                                {/* Payment */}
+                                <div className="rounded-sm bg-white p-6">
+                                    <h2 className="mb-4 flex items-center gap-2 font-medium text-terra-900">
+                                        <CreditCard size={18} />
+                                        Pembayaran
+                                    </h2>
+                                    <div className="mb-2 flex justify-between text-sm">
+                                        <span className="text-terra-500">
+                                            Metode
+                                        </span>
+                                        <span className="flex items-center gap-1 text-terra-900">
+                                            {isBankTransfer ? (
+                                                <Building2 size={14} />
+                                            ) : (
+                                                <Banknote size={14} />
+                                            )}
+                                            {paymentMethod.label}
+                                        </span>
+                                    </div>
+                                    <div className="mb-2 flex justify-between text-sm">
+                                        <span className="text-terra-500">
+                                            Status
+                                        </span>
+                                        <span className={paymentStatus.color}>
+                                            {paymentStatus.label}
+                                        </span>
+                                    </div>
+                                    <div className="mt-3 space-y-2 border-t border-terra-100 pt-3">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-terra-500">
+                                                Subtotal
+                                            </span>
+                                            <span>
+                                                {order.subtotal_formatted}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-terra-500">
+                                                Ongkir
+                                            </span>
+                                            <span>
+                                                {order.shipping_cost_formatted}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between border-t border-terra-100 pt-2 font-medium text-terra-900">
+                                            <span>Total</span>
+                                            <span>{order.total_formatted}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Bank Transfer Info */}
+                                {needsPayment &&
+                                    isBankTransfer &&
+                                    paymentSettings?.bank_account_number && (
+                                        <div className="rounded-sm border border-terra-200 bg-gradient-to-br from-terra-50 to-terra-100/50 p-6 shadow-sm">
+                                            <div className="mb-5 flex items-center gap-3">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-terra-600">
+                                                    <Building2
+                                                        size={20}
+                                                        className="text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <h2 className="font-semibold text-terra-900">
+                                                        Transfer ke Rekening
+                                                    </h2>
+                                                    <p className="text-xs text-terra-500">
+                                                        Selesaikan pembayaran
+                                                        Anda
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <div className="rounded-sm border border-terra-100 bg-white/80 p-4 backdrop-blur">
+                                                    <p className="mb-1 text-xs text-terra-500">
+                                                        Bank
+                                                    </p>
+                                                    <p className="font-semibold text-terra-900">
+                                                        {
+                                                            paymentSettings.bank_name
+                                                        }
+                                                    </p>
+                                                </div>
+                                                <div className="rounded-sm border border-terra-100 bg-white/80 p-4 backdrop-blur">
+                                                    <p className="mb-1 text-xs text-terra-500">
+                                                        Nomor Rekening
+                                                    </p>
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="font-mono text-lg font-semibold tracking-wider text-terra-900">
+                                                            {
+                                                                paymentSettings.bank_account_number
+                                                            }
+                                                        </p>
+                                                        <button
+                                                            onClick={() =>
+                                                                copyToClipboard(
+                                                                    paymentSettings.bank_account_number,
+                                                                )
+                                                            }
+                                                            className="rounded-lg p-2 text-terra-500 transition-colors hover:bg-terra-100 hover:text-terra-700"
+                                                            title="Salin nomor rekening"
+                                                        >
+                                                            <Copy size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="rounded-sm border border-terra-100 bg-white/80 p-4 backdrop-blur">
+                                                    <p className="mb-1 text-xs text-terra-500">
+                                                        Atas Nama
+                                                    </p>
+                                                    <p className="font-semibold text-terra-900">
+                                                        {
+                                                            paymentSettings.bank_account_name
+                                                        }
+                                                    </p>
+                                                </div>
+                                                <div className="rounded-sm bg-terra-600 p-4">
+                                                    <p className="mb-1 text-xs text-terra-200">
+                                                        Total yang Harus
+                                                        Ditransfer
+                                                    </p>
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-2xl font-bold text-white">
+                                                            {
+                                                                order.total_formatted
+                                                            }
+                                                        </p>
+                                                        <button
+                                                            onClick={() =>
+                                                                copyToClipboard(
+                                                                    String(
+                                                                        order.total ||
+                                                                            0,
+                                                                    ),
+                                                                )
+                                                            }
+                                                            className="rounded-lg p-2 text-terra-200 transition-colors hover:bg-terra-500 hover:text-white"
+                                                            title="Salin nominal"
+                                                        >
+                                                            <Copy size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 flex items-center justify-center gap-2 rounded-sm bg-white/60 py-3 text-terra-600">
+                                                <Clock size={16} />
+                                                <p className="text-sm font-medium">
+                                                    Batas waktu:{' '}
+                                                    <span className="text-terra-800">
+                                                        {
+                                                            paymentSettings.payment_deadline_hours
+                                                        }{' '}
+                                                        jam
+                                                    </span>
+                                                </p>
+                                            </div>
+
+                                            {copied && (
+                                                <div className="mt-3 flex items-center justify-center gap-2 rounded-sm bg-green-50 py-2 text-green-600">
+                                                    <CheckCircle size={16} />
+                                                    <p className="text-sm font-medium">
+                                                        Tersalin ke clipboard!
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                {/* COD Info */}
+                                {needsPayment && isCOD && (
+                                    <div className="rounded-sm border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 p-6 shadow-sm">
+                                        <div className="mb-4 flex items-center gap-3">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-amber-500">
+                                                <Banknote
+                                                    size={20}
+                                                    className="text-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <h2 className="font-semibold text-amber-900">
+                                                    Bayar di Tempat (COD)
+                                                </h2>
+                                                <p className="text-xs text-amber-600">
+                                                    Cash on Delivery
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="rounded-sm border border-amber-100 bg-white/80 p-4 backdrop-blur">
+                                            <p className="text-sm text-amber-800">
+                                                Siapkan uang tunai sebesar:
+                                            </p>
+                                            <p className="mt-1 text-2xl font-bold text-amber-900">
+                                                {order.total_formatted}
+                                            </p>
+                                            <p className="mt-2 text-xs text-amber-600">
+                                                Pembayaran dilakukan saat barang
+                                                diterima
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* WhatsApp Confirmation */}
+                                {needsPayment && paymentSettings?.whatsapp && (
+                                    <a
+                                        href={whatsappUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="group flex w-full items-center justify-center gap-3 rounded-sm bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 font-semibold text-white shadow-lg shadow-green-500/25 transition-all duration-300 hover:scale-[1.02] hover:from-green-600 hover:to-green-700 hover:shadow-green-500/40"
+                                    >
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 transition-colors group-hover:bg-white/30">
+                                            <MessageCircle size={18} />
+                                        </div>
+                                        <span>
+                                            {isBankTransfer
+                                                ? 'Konfirmasi Transfer via WhatsApp'
+                                                : 'Konfirmasi Pesanan via WhatsApp'}
+                                        </span>
+                                    </a>
                                 )}
                             </div>
                         </div>
-
-                        {order.tracking_number && (
-                            <div className="mt-4 p-4 bg-blue-50 rounded-xl">
-                                <p className="text-sm text-blue-800">
-                                    <strong>No. Resi:</strong> {order.tracking_number}
-                                </p>
-                            </div>
-                        )}
-
-                        {order.cancellation_reason && (
-                            <div className="mt-4 p-4 bg-red-50 rounded-xl">
-                                <p className="text-sm text-red-800">
-                                    <strong>Alasan Pembatalan:</strong> {order.cancellation_reason}
-                                </p>
-                            </div>
-                        )}
                     </div>
-
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {/* Items */}
-                        <div className="md:col-span-2 bg-white rounded-2xl p-6">
-                            <h2 className="font-medium text-terra-900 mb-4 flex items-center gap-2">
-                                <Package size={18} />Produk Dipesan
-                            </h2>
-                            <div className="space-y-4">
-                                {items.map((item) => {
-                                    const imageUrl = item.product?.images?.[0]?.image_url || '/images/placeholder-product.svg';
-                                    return (
-                                        <div key={item.id} className="flex gap-4 pb-4 border-b border-terra-100 last:border-0 last:pb-0">
-                                            <img src={imageUrl} alt={item.product_name} className="w-20 h-20 rounded-lg object-cover bg-sand-100" />
-                                            <div className="flex-1">
-                                                {item.product ? (
-                                                    <Link href={`/shop/products/${item.product.slug}`} className="font-medium text-terra-900 hover:text-wood">
-                                                        {item.product_name}
-                                                    </Link>
-                                                ) : (
-                                                    <p className="font-medium text-terra-900">{item.product_name}</p>
-                                                )}
-                                                <p className="text-sm text-terra-500">SKU: {item.product_sku}</p>
-                                                <p className="text-sm text-terra-500">{item.quantity} x Rp {item.unit_price.toLocaleString('id-ID')}</p>
-                                            </div>
-                                            <p className="font-medium text-terra-900">Rp {item.subtotal.toLocaleString('id-ID')}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Sidebar */}
-                        <div className="space-y-6">
-                            {/* Shipping */}
-                            <div className="bg-white rounded-2xl p-6">
-                                <h2 className="font-medium text-terra-900 mb-4 flex items-center gap-2">
-                                    <MapPin size={18} />Alamat Pengiriman
-                                </h2>
-                                <p className="font-medium text-terra-900">{order.shipping_name}</p>
-                                <p className="text-sm text-terra-600">{order.shipping_phone}</p>
-                                <p className="text-sm text-terra-600 mt-2">{order.shipping_address}</p>
-                                <p className="text-sm text-terra-600">{order.shipping_city}, {order.shipping_province} {order.shipping_postal_code}</p>
-                            </div>
-
-                            {/* Payment */}
-                            <div className="bg-white rounded-2xl p-6">
-                                <h2 className="font-medium text-terra-900 mb-4 flex items-center gap-2">
-                                    <CreditCard size={18} />Pembayaran
-                                </h2>
-                                <div className="flex justify-between text-sm mb-2">
-                                    <span className="text-terra-500">Metode</span>
-                                    <span className="text-terra-900 flex items-center gap-1">
-                                        {isBankTransfer ? <Building2 size={14} /> : <Banknote size={14} />}
-                                        {paymentMethod.label}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-sm mb-2">
-                                    <span className="text-terra-500">Status</span>
-                                    <span className={paymentStatus.color}>{paymentStatus.label}</span>
-                                </div>
-                                <div className="border-t border-terra-100 pt-3 mt-3 space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-terra-500">Subtotal</span>
-                                        <span>{order.subtotal_formatted}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-terra-500">Ongkir</span>
-                                        <span>{order.shipping_cost_formatted}</span>
-                                    </div>
-                                    <div className="flex justify-between font-medium text-terra-900 pt-2 border-t border-terra-100">
-                                        <span>Total</span>
-                                        <span>{order.total_formatted}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Bank Transfer Info */}
-                            {needsPayment && isBankTransfer && paymentSettings?.bank_account_number && (
-                                <div className="bg-gradient-to-br from-terra-50 to-terra-100/50 rounded-2xl p-6 border border-terra-200 shadow-sm">
-                                    <div className="flex items-center gap-3 mb-5">
-                                        <div className="w-10 h-10 bg-terra-600 rounded-xl flex items-center justify-center">
-                                            <Building2 size={20} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <h2 className="font-semibold text-terra-900">Transfer ke Rekening</h2>
-                                            <p className="text-xs text-terra-500">Selesaikan pembayaran Anda</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <div className="bg-white/80 backdrop-blur rounded-xl p-4 border border-terra-100">
-                                            <p className="text-xs text-terra-500 mb-1">Bank</p>
-                                            <p className="font-semibold text-terra-900">{paymentSettings.bank_name}</p>
-                                        </div>
-                                        <div className="bg-white/80 backdrop-blur rounded-xl p-4 border border-terra-100">
-                                            <p className="text-xs text-terra-500 mb-1">Nomor Rekening</p>
-                                            <div className="flex items-center justify-between">
-                                                <p className="font-semibold text-terra-900 font-mono text-lg tracking-wider">{paymentSettings.bank_account_number}</p>
-                                                <button
-                                                    onClick={() => copyToClipboard(paymentSettings.bank_account_number)}
-                                                    className="text-terra-500 hover:text-terra-700 hover:bg-terra-100 p-2 rounded-lg transition-colors"
-                                                    title="Salin nomor rekening"
-                                                >
-                                                    <Copy size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="bg-white/80 backdrop-blur rounded-xl p-4 border border-terra-100">
-                                            <p className="text-xs text-terra-500 mb-1">Atas Nama</p>
-                                            <p className="font-semibold text-terra-900">{paymentSettings.bank_account_name}</p>
-                                        </div>
-                                        <div className="bg-terra-600 rounded-xl p-4">
-                                            <p className="text-xs text-terra-200 mb-1">Total yang Harus Ditransfer</p>
-                                            <div className="flex items-center justify-between">
-                                                <p className="font-bold text-2xl text-white">{order.total_formatted}</p>
-                                                <button
-                                                    onClick={() => copyToClipboard(String(order.total || 0))}
-                                                    className="text-terra-200 hover:text-white hover:bg-terra-500 p-2 rounded-lg transition-colors"
-                                                    title="Salin nominal"
-                                                >
-                                                    <Copy size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-4 flex items-center justify-center gap-2 text-terra-600 bg-white/60 rounded-xl py-3">
-                                        <Clock size={16} />
-                                        <p className="text-sm font-medium">
-                                            Batas waktu: <span className="text-terra-800">{paymentSettings.payment_deadline_hours} jam</span>
-                                        </p>
-                                    </div>
-
-                                    {copied && (
-                                        <div className="mt-3 flex items-center justify-center gap-2 text-green-600 bg-green-50 rounded-xl py-2">
-                                            <CheckCircle size={16} />
-                                            <p className="text-sm font-medium">Tersalin ke clipboard!</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* COD Info */}
-                            {needsPayment && isCOD && (
-                                <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl p-6 border border-amber-200 shadow-sm">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-                                            <Banknote size={20} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <h2 className="font-semibold text-amber-900">Bayar di Tempat (COD)</h2>
-                                            <p className="text-xs text-amber-600">Cash on Delivery</p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white/80 backdrop-blur rounded-xl p-4 border border-amber-100">
-                                        <p className="text-sm text-amber-800">
-                                            Siapkan uang tunai sebesar:
-                                        </p>
-                                        <p className="font-bold text-2xl text-amber-900 mt-1">{order.total_formatted}</p>
-                                        <p className="text-xs text-amber-600 mt-2">
-                                            Pembayaran dilakukan saat barang diterima
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* WhatsApp Confirmation */}
-                            {needsPayment && paymentSettings?.whatsapp && (
-                                <a
-                                    href={whatsappUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="group flex items-center justify-center gap-3 w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 px-6 rounded-2xl font-semibold transition-all duration-300 shadow-lg shadow-green-500/25 hover:shadow-green-500/40 hover:scale-[1.02]"
-                                >
-                                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                                        <MessageCircle size={18} />
-                                    </div>
-                                    <span>{isBankTransfer ? 'Konfirmasi Transfer via WhatsApp' : 'Konfirmasi Pesanan via WhatsApp'}</span>
-                                </a>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </main>
+                </main>
             </ShopLayout>
         </>
     );
 }
-

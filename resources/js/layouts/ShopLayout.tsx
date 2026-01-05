@@ -5,6 +5,7 @@ import {
     WhatsAppButton,
 } from '@/components/shop';
 import { SiteSettings } from '@/types';
+import { ApiCategory } from '@/types/shop';
 import { router, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
@@ -45,7 +46,7 @@ interface ShopLayoutProps {
     showWhatsApp?: boolean;
     whatsAppMessage?: string;
     bannerVisible?: boolean;
-    isHeroPage?: boolean; // If true, header starts transparent (for pages with hero)
+    featuredCategories?: ApiCategory[];
 }
 
 export function ShopLayout({
@@ -54,7 +55,7 @@ export function ShopLayout({
     showWhatsApp = true,
     whatsAppMessage = "Hello, I'd like to inquire about a product",
     bannerVisible = false,
-    isHeroPage = false, // Default to solid header for inner pages
+    featuredCategories = [],
 }: ShopLayoutProps) {
     const { cart, siteSettings } = usePage<{
         cart: SharedCart;
@@ -125,7 +126,7 @@ export function ShopLayout({
                 onCartClick={() => setIsCartOpen(true)}
                 onLogoClick={() => router.visit('/shop')}
                 bannerVisible={bannerVisible}
-                isHeroPage={isHeroPage}
+                featuredCategories={featuredCategories}
             />
 
             {children}

@@ -125,7 +125,7 @@ export function RecentlyViewedSection({ excludeProductId, maxItems = 6, classNam
                 <div id="recently-viewed-container" className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-4">
                     {products.map((product, index) => (
                         <motion.div key={product.id || `recently-viewed-${index}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="flex-shrink-0 w-[260px]">
-                            <Link href={`/shop/products/${product.slug}`} className="group block bg-white rounded-2xl overflow-hidden border border-terra-100 hover:shadow-lg transition-all">
+                            <Link href={`/shop/products/${product.slug}`} className="group block bg-white rounded-sm overflow-hidden border border-terra-100 hover:shadow-lg transition-all">
                                 <div className="relative aspect-square overflow-hidden">
                                     <img src={product.image_url || '/images/placeholder-product.svg'} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                     {product.has_discount && (

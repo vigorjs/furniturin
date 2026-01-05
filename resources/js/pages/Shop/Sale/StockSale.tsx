@@ -91,7 +91,7 @@ export default function StockSale({ products, categories, filters }: Props) {
 
                     {/* Category Filter */}
                     {showFilters && (
-                        <div className="bg-white rounded-2xl p-6 mb-8">
+                        <div className="bg-white rounded-sm p-6 mb-8">
                             <h3 className="font-medium text-terra-900 mb-4">Kategori</h3>
                             <div className="flex flex-wrap gap-2">
                                 <button onClick={() => handleCategoryFilter(null)} className={`px-4 py-2 rounded-full text-sm ${!safeFilters.filter?.category_id ? 'bg-terra-900 text-white' : 'bg-terra-100 text-terra-700 hover:bg-terra-200'}`}>
@@ -114,7 +114,7 @@ export default function StockSale({ products, categories, filters }: Props) {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-20 bg-white rounded-2xl">
+                        <div className="text-center py-20 bg-white rounded-sm">
                             <Warehouse size={48} className="mx-auto text-terra-300 mb-4" />
                             <h3 className="text-xl font-medium text-terra-900 mb-2">Belum Ada Produk Stock Sale</h3>
                             <p className="text-terra-500 mb-6">Nantikan penawaran harga pabrik dari kami!</p>
@@ -142,7 +142,7 @@ export default function StockSale({ products, categories, filters }: Props) {
 function ProductCard({ product }: { product: ApiProduct }) {
     const imageUrl = product.primary_image?.image_url || product.images?.[0]?.image_url || '/images/placeholder-product.svg';
     return (
-        <Link href={`/shop/products/${product.slug}`} className="group bg-white rounded-2xl overflow-hidden border border-terra-100 hover:shadow-lg transition-all">
+        <Link href={`/shop/products/${product.slug}`} className="group bg-white rounded-sm overflow-hidden border border-terra-100 hover:shadow-lg transition-all">
             <div className="relative aspect-square overflow-hidden">
                 <img src={imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <span className="absolute top-3 right-3 bg-terra-900 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">

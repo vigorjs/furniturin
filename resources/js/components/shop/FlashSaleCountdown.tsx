@@ -46,7 +46,7 @@ export function FlashSaleCountdown({ endDate, title = 'Flash Sale Berakhir Dalam
 
     if (isExpired) {
         return (
-            <div className={`bg-terra-100 rounded-2xl p-6 text-center ${className}`}>
+            <div className={`bg-terra-100 rounded-sm p-6 text-center ${className}`}>
                 <p className="text-terra-600 font-medium">Flash Sale telah berakhir</p>
             </div>
         );
@@ -60,7 +60,7 @@ export function FlashSaleCountdown({ endDate, title = 'Flash Sale Berakhir Dalam
     ];
 
     return (
-        <div className={`bg-gradient-to-r from-terra-800 to-wood-dark rounded-2xl p-6 text-white ${className}`}>
+        <div className={`bg-gradient-to-r from-terra-800 to-wood-dark rounded-sm p-6 text-white ${className}`}>
             <div className="flex items-center justify-center gap-2 mb-4">
                 <Flame className="animate-pulse text-wood-light" size={24} />
                 <h3 className="font-medium text-lg">{title}</h3>
@@ -74,7 +74,7 @@ export function FlashSaleCountdown({ endDate, title = 'Flash Sale Berakhir Dalam
                             key={`${unit.label}-${unit.value}`}
                             initial={{ scale: 1.1 }}
                             animate={{ scale: 1 }}
-                            className="bg-white/20 backdrop-blur-sm rounded-xl p-3 min-w-[70px] text-center"
+                            className="bg-white/20 backdrop-blur-sm rounded-sm p-3 min-w-[70px] text-center"
                         >
                             <div className="text-3xl font-bold tabular-nums">
                                 {String(unit.value).padStart(2, '0')}

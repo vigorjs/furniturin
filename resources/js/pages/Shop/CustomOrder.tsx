@@ -126,21 +126,21 @@ export default function CustomOrder() {
                 <div className="max-w-4xl mx-auto px-6 md:px-12">
                     {/* Info Cards */}
                     <div className="grid md:grid-cols-3 gap-6 mb-12">
-                        <div className="bg-white rounded-2xl p-6 border border-terra-100 text-center">
+                        <div className="bg-white rounded-sm p-6 border border-terra-100 text-center">
                             <div className="w-12 h-12 bg-wood/10 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Palette size={24} className="text-wood-dark" />
                             </div>
                             <h3 className="font-medium text-terra-900 mb-2">Desain Bebas</h3>
                             <p className="text-sm text-terra-500">Upload referensi atau gambarkan ide Anda</p>
                         </div>
-                        <div className="bg-white rounded-2xl p-6 border border-terra-100 text-center">
+                        <div className="bg-white rounded-sm p-6 border border-terra-100 text-center">
                             <div className="w-12 h-12 bg-wood/10 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Ruler size={24} className="text-wood-dark" />
                             </div>
                             <h3 className="font-medium text-terra-900 mb-2">Ukuran Presisi</h3>
                             <p className="text-sm text-terra-500">Sesuaikan dengan ruangan Anda</p>
                         </div>
-                        <div className="bg-white rounded-2xl p-6 border border-terra-100 text-center">
+                        <div className="bg-white rounded-sm p-6 border border-terra-100 text-center">
                             <div className="w-12 h-12 bg-wood/10 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle size={24} className="text-wood-dark" />
                             </div>
@@ -150,22 +150,22 @@ export default function CustomOrder() {
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 border border-terra-100">
+                    <form onSubmit={handleSubmit} className="bg-white rounded-sm p-8 border border-terra-100">
                         <h2 className="font-serif text-2xl text-terra-900 mb-6">Form Permintaan Custom</h2>
 
                         {/* Contact Info */}
                         <div className="grid md:grid-cols-3 gap-4 mb-8">
                             <div>
                                 <label className="block text-sm font-medium text-terra-700 mb-2">Nama Lengkap *</label>
-                                <input type="text" required value={data.name} onChange={e => setData('name', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Nama Anda" />
+                                <input type="text" required value={data.name} onChange={e => setData('name', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Nama Anda" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-terra-700 mb-2">Email *</label>
-                                <input type="email" required value={data.email} onChange={e => setData('email', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="email@example.com" />
+                                <input type="email" required value={data.email} onChange={e => setData('email', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="email@example.com" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-terra-700 mb-2">No. WhatsApp *</label>
-                                <input type="tel" required value={data.phone} onChange={e => setData('phone', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="08xxxxxxxxxx" />
+                                <input type="tel" required value={data.phone} onChange={e => setData('phone', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="08xxxxxxxxxx" />
                             </div>
                         </div>
 
@@ -173,14 +173,14 @@ export default function CustomOrder() {
                         <div className="grid md:grid-cols-2 gap-4 mb-8">
                             <div>
                                 <label className="block text-sm font-medium text-terra-700 mb-2">Jenis Furniture *</label>
-                                <select required value={data.furniture_type} onChange={e => setData('furniture_type', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none bg-white">
+                                <select required value={data.furniture_type} onChange={e => setData('furniture_type', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none bg-white">
                                     <option value="">Pilih jenis furniture</option>
                                     {FURNITURE_TYPES.map(type => (<option key={type} value={type}>{type}</option>))}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-terra-700 mb-2">Material *</label>
-                                <select required value={data.material} onChange={e => setData('material', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none bg-white">
+                                <select required value={data.material} onChange={e => setData('material', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none bg-white">
                                     <option value="">Pilih material</option>
                                     {MATERIALS.map(m => (<option key={m.id} value={m.id}>{m.name} - {m.description}</option>))}
                                 </select>
@@ -191,9 +191,9 @@ export default function CustomOrder() {
                         <div className="mb-8">
                             <label className="block text-sm font-medium text-terra-700 mb-2">Ukuran (cm) - Opsional</label>
                             <div className="grid grid-cols-3 gap-4">
-                                <input type="number" value={data.width} onChange={e => setData('width', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Lebar" />
-                                <input type="number" value={data.height} onChange={e => setData('height', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Tinggi" />
-                                <input type="number" value={data.depth} onChange={e => setData('depth', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Kedalaman" />
+                                <input type="number" value={data.width} onChange={e => setData('width', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Lebar" />
+                                <input type="number" value={data.height} onChange={e => setData('height', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Tinggi" />
+                                <input type="number" value={data.depth} onChange={e => setData('depth', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Kedalaman" />
                             </div>
                         </div>
 
@@ -201,18 +201,18 @@ export default function CustomOrder() {
                         <div className="grid md:grid-cols-2 gap-4 mb-8">
                             <div>
                                 <label className="block text-sm font-medium text-terra-700 mb-2">Warna/Finishing</label>
-                                <input type="text" value={data.color} onChange={e => setData('color', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Contoh: Natural, Walnut, Putih" />
+                                <input type="text" value={data.color} onChange={e => setData('color', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Contoh: Natural, Walnut, Putih" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-terra-700 mb-2">Estimasi Budget</label>
-                                <input type="text" value={data.budget} onChange={e => setData('budget', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Contoh: 5-10 juta" />
+                                <input type="text" value={data.budget} onChange={e => setData('budget', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none" placeholder="Contoh: 5-10 juta" />
                             </div>
                         </div>
 
                         {/* Description */}
                         <div className="mb-8">
                             <label className="block text-sm font-medium text-terra-700 mb-2">Deskripsi Detail *</label>
-                            <textarea required rows={4} value={data.description} onChange={e => setData('description', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none resize-none" placeholder="Jelaskan detail furniture yang Anda inginkan..." />
+                            <textarea required rows={4} value={data.description} onChange={e => setData('description', e.target.value)} className="w-full px-4 py-3 rounded-sm border border-terra-200 focus:border-wood focus:ring-1 focus:ring-wood outline-none resize-none" placeholder="Jelaskan detail furniture yang Anda inginkan..." />
                         </div>
 
                         {/* Image Upload */}
@@ -221,7 +221,7 @@ export default function CustomOrder() {
                             <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
                             <div className="flex flex-wrap gap-4">
                                 {previewImages.map((src, idx) => (
-                                    <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-terra-200">
+                                    <div key={idx} className="relative w-24 h-24 rounded-sm overflow-hidden border border-terra-200">
                                         <img src={src} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
                                         <button type="button" onClick={() => removeImage(idx)} className="absolute top-1 right-1 w-6 h-6 bg-terra-900/80 rounded-full flex items-center justify-center text-white hover:bg-terra-900">
                                             <X size={14} />
@@ -229,7 +229,7 @@ export default function CustomOrder() {
                                     </div>
                                 ))}
                                 {previewImages.length < 5 && (
-                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="w-24 h-24 rounded-xl border-2 border-dashed border-terra-300 flex flex-col items-center justify-center text-terra-400 hover:border-wood hover:text-wood transition-colors">
+                                    <button type="button" onClick={() => fileInputRef.current?.click()} className="w-24 h-24 rounded-sm border-2 border-dashed border-terra-300 flex flex-col items-center justify-center text-terra-400 hover:border-wood hover:text-wood transition-colors">
                                         <Upload size={24} />
                                         <span className="text-xs mt-1">Upload</span>
                                     </button>
@@ -238,7 +238,7 @@ export default function CustomOrder() {
                         </div>
 
                         {/* Submit */}
-                        <button type="submit" disabled={isSubmitting} className="w-full bg-terra-900 text-white py-4 rounded-xl font-medium hover:bg-wood-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                        <button type="submit" disabled={isSubmitting} className="w-full bg-terra-900 text-white py-4 rounded-sm font-medium hover:bg-wood-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
                             {isSubmitting ? (<><span className="animate-spin">⏳</span> Mengirim...</>) : (<><Send size={20} /> Kirim Permintaan</>)}
                         </button>
                     </form>

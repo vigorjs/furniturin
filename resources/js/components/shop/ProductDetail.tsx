@@ -32,7 +32,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, a
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
                     {/* Image Gallery */}
                     <div className="space-y-4">
-                        <div className="aspect-[4/5] bg-terra-100 rounded-3xl overflow-hidden">
+                        <div className="aspect-[4/5] bg-terra-100 rounded-sm overflow-hidden">
                             <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                         </div>
                     </div>
@@ -95,7 +95,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack, a
                         </button>
 
                         {/* Delivery Info */}
-                        <div className="mt-8 p-6 bg-sand-50 rounded-2xl space-y-4">
+                        <div className="mt-8 p-6 bg-sand-50 rounded-sm space-y-4">
                             <div className="flex items-center gap-4">
                                 <Truck className="text-wood" size={24} />
                                 <div>

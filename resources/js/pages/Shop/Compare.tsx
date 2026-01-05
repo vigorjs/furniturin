@@ -78,7 +78,7 @@ export default function Compare({ products }: Props) {
                     </div>
 
                     {products.length < 2 ? (
-                        <div className="text-center py-20 bg-white rounded-2xl">
+                        <div className="text-center py-20 bg-white rounded-sm">
                             <GitCompare size={48} className="mx-auto text-terra-300 mb-4" />
                             <h3 className="text-xl font-medium text-terra-900 mb-2">Pilih minimal 2 produk</h3>
                             <p className="text-terra-500 mb-6">Tambahkan produk untuk membandingkan</p>
@@ -87,7 +87,7 @@ export default function Compare({ products }: Props) {
                             </Link>
                         </div>
                     ) : (
-                        <div className="bg-white rounded-2xl overflow-hidden border border-terra-100">
+                        <div className="bg-white rounded-sm overflow-hidden border border-terra-100">
                             {/* Product Images & Names */}
                             <div className="grid" style={{ gridTemplateColumns: `200px repeat(${products.length}, 1fr)` }}>
                                 <div className="p-4 bg-terra-50 font-medium text-terra-700">Produk</div>
@@ -96,7 +96,7 @@ export default function Compare({ products }: Props) {
                                         <button onClick={() => handleRemove(product.id)} className="absolute top-2 right-2 w-8 h-8 bg-terra-100 hover:bg-red-100 text-terra-600 hover:text-red-500 rounded-full flex items-center justify-center transition-colors">
                                             <X size={16} />
                                         </button>
-                                        <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-sand-50">
+                                        <div className="aspect-square rounded-sm overflow-hidden mb-3 bg-sand-50">
                                             <img src={product.primary_image?.image_url || product.images?.[0]?.image_url || '/images/placeholder-product.svg'} alt={product.name} className="w-full h-full object-cover" />
                                         </div>
                                         <Link href={`/shop/products/${product.slug}`} className="font-medium text-terra-900 hover:text-wood line-clamp-2">{product.name}</Link>

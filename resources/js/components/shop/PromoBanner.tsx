@@ -136,7 +136,7 @@ export function PromoBanner({ type = 'banner', storageKey = 'promo_dismissed', d
                 <>
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50" onClick={handleDismiss} />
                     <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md">
-                        <div className={`bg-gradient-to-br ${currentPromo.bgColor} rounded-3xl p-8 text-white text-center shadow-2xl`}>
+                        <div className={`bg-gradient-to-br ${currentPromo.bgColor} rounded-sm p-8 text-white text-center shadow-2xl`}>
                             <button onClick={handleDismiss} className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"><X size={20} /></button>
                             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4"><Icon size={32} /></div>
                             <h2 className="text-2xl font-bold mb-2">{currentPromo.title}</h2>

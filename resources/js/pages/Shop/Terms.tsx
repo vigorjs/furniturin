@@ -13,7 +13,7 @@ export default function Terms() {
             <ShopLayout>
                 <main className="min-h-screen bg-sand-50 pt-28 pb-20">
                     <div className="max-w-4xl mx-auto px-6 md:px-12">
-                        <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-terra-100">
+                        <div className="bg-white rounded-sm p-8 md:p-12 shadow-sm border border-terra-100">
                             <h1 className="font-serif text-4xl text-terra-900 mb-8">Syarat & Ketentuan</h1>
                             <p className="text-terra-500 text-sm mb-8">Terakhir diperbarui: Desember 2025</p>
 

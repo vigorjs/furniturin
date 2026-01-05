@@ -1,10 +1,10 @@
+import { SEOHead } from '@/components/seo';
+import { ShopLayout } from '@/layouts/ShopLayout';
+import { SiteSettings } from '@/types';
+import { ApiCategory } from '@/types/shop';
 import { Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { ShopLayout } from '@/layouts/ShopLayout';
-import { SEOHead } from '@/components/seo';
-import { ApiCategory } from '@/types/shop';
-import { SiteSettings } from '@/types';
 
 interface Props {
     categories: ApiCategory[] | { data: ApiCategory[] };
@@ -16,43 +16,63 @@ const PLACEHOLDER_CATEGORY = '/images/placeholder-category.svg';
 export default function CategoriesIndex({ categories }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
     const siteName = siteSettings?.site_name || 'Latif Living';
-    const categoriesList = Array.isArray(categories) ? categories : categories.data;
+    const categoriesList = Array.isArray(categories)
+        ? categories
+        : categories.data;
 
     return (
         <>
             <SEOHead
                 title="Kategori Produk"
                 description={`Jelajahi kategori furnitur ${siteName}. Temukan koleksi untuk ruang tamu, ruang makan, kamar tidur, kantor, outdoor, dan lainnya.`}
-                keywords={['kategori furnitur', 'ruang tamu', 'ruang makan', 'kamar tidur', 'furnitur kantor', 'outdoor furniture']}
+                keywords={[
+                    'kategori furnitur',
+                    'ruang tamu',
+                    'ruang makan',
+                    'kamar tidur',
+                    'furnitur kantor',
+                    'outdoor furniture',
+                ]}
             />
             <div className="bg-noise" />
             <ShopLayout>
-            <main className="min-h-screen bg-white pt-28 pb-20">
-                <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-                    {/* Header */}
-                    <div className="text-center mb-16">
-                        <h1 className="font-serif text-4xl md:text-5xl text-terra-900 mb-4">Jelajahi Kategori</h1>
-                        <p className="text-terra-500 max-w-xl mx-auto">
-                            Temukan koleksi furniture berkualitas untuk setiap ruangan di rumah Anda
-                        </p>
-                    </div>
-
-                    {/* Categories Grid - Bento Style */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {categoriesList.map((category, index) => (
-                            <CategoryCard key={category.id} category={category} index={index} />
-                        ))}
-                    </div>
-
-                    {/* Empty State */}
-                    {categoriesList.length === 0 && (
-                        <div className="text-center py-20">
-                            <h3 className="text-xl font-medium text-terra-900 mb-2">Belum ada kategori</h3>
-                            <p className="text-terra-500">Kategori produk akan segera tersedia</p>
+                <main className="min-h-screen bg-white pt-8 pb-20">
+                    <div className="mx-auto max-w-[1400px] px-6 md:px-12">
+                        {/* Header */}
+                        <div className="mb-16 text-center">
+                            <h1 className="mb-4 font-serif text-4xl text-terra-900 md:text-5xl">
+                                Jelajahi Kategori
+                            </h1>
+                            <p className="mx-auto max-w-xl text-terra-500">
+                                Temukan koleksi furniture berkualitas untuk
+                                setiap ruangan di rumah Anda
+                            </p>
                         </div>
-                    )}
-                </div>
-            </main>
+
+                        {/* Categories Grid - Bento Style */}
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {categoriesList.map((category, index) => (
+                                <CategoryCard
+                                    key={category.id}
+                                    category={category}
+                                    index={index}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Empty State */}
+                        {categoriesList.length === 0 && (
+                            <div className="py-20 text-center">
+                                <h3 className="mb-2 text-xl font-medium text-terra-900">
+                                    Belum ada kategori
+                                </h3>
+                                <p className="text-terra-500">
+                                    Kategori produk akan segera tersedia
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </main>
             </ShopLayout>
         </>
     );
@@ -78,35 +98,48 @@ function CategoryCard({ category, index }: CategoryCardProps) {
         >
             <Link
                 href={`/shop/category/${category.slug}`}
-                className="group block relative overflow-hidden rounded-3xl bg-sand-100 h-full"
+                className="group relative block h-full overflow-hidden rounded-sm bg-sand-100"
             >
-                <div className={`relative ${isLarge ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}>
+                <div
+                    className={`relative ${isLarge ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}
+                >
                     <img
                         src={imageUrl}
                         alt={category.name}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
                     {/* Content */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                        <h3 className="font-serif text-2xl md:text-3xl text-white mb-2">{category.name}</h3>
+                    <div className="absolute right-0 bottom-0 left-0 p-6 md:p-8">
+                        <h3 className="mb-2 font-serif text-2xl text-white md:text-3xl">
+                            {category.name}
+                        </h3>
                         {category.description && (
-                            <p className="text-white/80 text-sm mb-4 line-clamp-2">{category.description}</p>
+                            <p className="mb-4 line-clamp-2 text-sm text-white/80">
+                                {category.description}
+                            </p>
                         )}
                         {category.products_count !== undefined && (
-                            <span className="text-white/60 text-sm">{category.products_count} Produk</span>
+                            <span className="text-sm text-white/60">
+                                {category.products_count} Produk
+                            </span>
                         )}
-                        <div className="flex items-center gap-2 mt-4 text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all">
-                            <span className="text-sm font-medium">Lihat Koleksi</span>
-                            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                        <div className="mt-4 flex translate-y-2 transform items-center gap-2 text-white opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
+                            <span className="text-sm font-medium">
+                                Lihat Koleksi
+                            </span>
+                            <ArrowRight
+                                size={16}
+                                className="transition-transform group-hover:translate-x-1"
+                            />
                         </div>
                     </div>
 
                     {/* Featured Badge */}
                     {category.is_featured && (
-                        <span className="absolute top-4 left-4 bg-wood text-white px-3 py-1 rounded-full text-sm font-medium">
+                        <span className="absolute top-4 left-4 rounded-full bg-wood px-3 py-1 text-sm font-medium text-white">
                             Unggulan
                         </span>
                     )}
@@ -115,4 +148,3 @@ function CategoryCard({ category, index }: CategoryCardProps) {
         </motion.div>
     );
 }
-

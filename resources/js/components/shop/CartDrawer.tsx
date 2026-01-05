@@ -47,7 +47,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                         <div className="space-y-4 mb-6">
                                             {cart.map((item) => (
                                                 <div key={item.id} className="flex gap-4 pb-4 border-b border-terra-100 last:border-0">
-                                                    <div className="w-20 h-24 bg-terra-100 rounded-xl overflow-hidden flex-shrink-0">
+                                                    <div className="w-20 h-24 bg-terra-100 rounded-sm overflow-hidden flex-shrink-0">
                                                         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                                     </div>
                                                     <div className="flex-1 flex flex-col justify-between">
@@ -81,7 +81,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                             <h3 className="font-medium text-terra-700 mb-4 flex items-center gap-2"><Bookmark size={16} /> Disimpan untuk Nanti ({savedItems.length})</h3>
                                             <div className="space-y-4">
                                                 {savedItems.map((item) => (
-                                                    <div key={item.id} className="flex gap-3 pb-4 border-b border-terra-100 last:border-0 bg-sand-50 p-3 rounded-xl">
+                                                    <div key={item.id} className="flex gap-3 pb-4 border-b border-terra-100 last:border-0 bg-sand-50 p-3 rounded-sm">
                                                         <div className="w-16 h-20 bg-terra-100 rounded-lg overflow-hidden flex-shrink-0">
                                                             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                                         </div>
