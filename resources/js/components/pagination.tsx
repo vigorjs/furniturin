@@ -56,22 +56,22 @@ export default function Pagination({
 
     return (
         <div
-            className={`flex flex-col items-center justify-between gap-4 border-t border-terra-100 px-6 py-4 sm:flex-row ${className}`}
+            className={`flex flex-col items-center justify-between gap-4 border-t border-neutral-100 px-6 py-4 sm:flex-row ${className}`}
         >
             <div className="flex items-center gap-4">
                 {/* Info Text */}
                 {currentMeta && (
-                    <div className="text-sm text-terra-500">
+                    <div className="text-sm text-neutral-500">
                         Menampilkan{' '}
-                        <span className="font-medium text-terra-900">
+                        <span className="font-medium text-neutral-900">
                             {currentMeta.from || 0}
                         </span>{' '}
                         sampai{' '}
-                        <span className="font-medium text-terra-900">
+                        <span className="font-medium text-neutral-900">
                             {currentMeta.to || 0}
                         </span>{' '}
                         dari{' '}
-                        <span className="font-medium text-terra-900">
+                        <span className="font-medium text-neutral-900">
                             {currentMeta.total}
                         </span>{' '}
                         data
@@ -80,11 +80,11 @@ export default function Pagination({
 
                 {/* Per Page Dropdown */}
                 <div className="flex items-center gap-2">
-                    <span className="text-sm text-terra-500">Tampilkan</span>
+                    <span className="text-sm text-neutral-500">Tampilkan</span>
                     <select
                         value={currentMeta?.per_page || 15}
                         onChange={handlePerPageChange}
-                        className="rounded-lg border-terra-200 bg-sand-50 py-1 pr-8 pl-2 text-sm focus:border-wood focus:ring-wood"
+                        className="rounded-lg border-neutral-200 bg-neutral-50 py-1 pr-8 pl-2 text-sm focus:border-teal-600 focus:ring-teal-600"
                     >
                         <option value="5">5</option>
                         <option value="10">10</option>
@@ -111,7 +111,7 @@ export default function Pagination({
                             <Link
                                 href={isFirstPage ? '#' : firstPageUrl}
                                 preserveScroll
-                                className={`rounded-lg p-2 text-terra-500 transition-colors ${isFirstPage ? 'cursor-not-allowed opacity-50' : 'hover:bg-terra-100'}`}
+                                className={`rounded-lg p-2 text-neutral-500 transition-colors ${isFirstPage ? 'cursor-not-allowed opacity-50' : 'hover:bg-neutral-100'}`}
                                 as="button"
                                 disabled={isFirstPage}
                             >
@@ -134,7 +134,7 @@ export default function Pagination({
                                     key={index}
                                     href={link.url || '#'}
                                     preserveScroll
-                                    className={`rounded-lg p-2 text-terra-500 transition-colors ${!link.url ? 'cursor-not-allowed opacity-50' : 'hover:bg-terra-100'}`}
+                                    className={`rounded-lg p-2 text-neutral-500 transition-colors ${!link.url ? 'cursor-not-allowed opacity-50' : 'hover:bg-neutral-100'}`}
                                     as="button"
                                     disabled={!link.url}
                                 >
@@ -149,7 +149,7 @@ export default function Pagination({
                                     key={index}
                                     href={link.url || '#'}
                                     preserveScroll
-                                    className={`rounded-lg p-2 text-terra-500 transition-colors ${!link.url ? 'cursor-not-allowed opacity-50' : 'hover:bg-terra-100'}`}
+                                    className={`rounded-lg p-2 text-neutral-500 transition-colors ${!link.url ? 'cursor-not-allowed opacity-50' : 'hover:bg-neutral-100'}`}
                                     as="button"
                                     disabled={!link.url}
                                 >
@@ -178,8 +178,8 @@ export default function Pagination({
                                 preserveScroll
                                 className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
                                     link.active
-                                        ? 'bg-terra-900 text-white'
-                                        : 'text-terra-600 hover:bg-terra-100'
+                                        ? 'bg-teal-600 text-white'
+                                        : 'text-neutral-600 hover:bg-neutral-100'
                                 } `}
                             >
                                 <span
@@ -210,7 +210,7 @@ export default function Pagination({
                             <Link
                                 href={isLastPage ? '#' : lastPageUrl}
                                 preserveScroll
-                                className={`rounded-lg p-2 text-terra-500 transition-colors ${isLastPage ? 'cursor-not-allowed opacity-50' : 'hover:bg-terra-100'}`}
+                                className={`rounded-lg p-2 text-neutral-500 transition-colors ${isLastPage ? 'cursor-not-allowed opacity-50' : 'hover:bg-neutral-100'}`}
                                 as="button"
                                 disabled={isLastPage}
                             >

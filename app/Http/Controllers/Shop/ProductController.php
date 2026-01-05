@@ -22,7 +22,12 @@ class ProductController extends Controller
         $products = QueryBuilder::for(Product::class)
             ->allowedFilters([
                 AllowedFilter::partial('name'),
-                AllowedFilter::exact('category_id'),
+                AllowedFilter::callback('category_id', function ($query, $value) {
+                    $categoryIds = Category::where('id', $value)
+                        ->orWhere('parent_id', $value)
+                        ->pluck('id');
+                    $query->whereIn('category_id', $categoryIds);
+                }),
                 AllowedFilter::exact('sale_type'),
                 AllowedFilter::scope('price_min', 'priceMin'),
                 AllowedFilter::scope('price_max', 'priceMax'),
@@ -39,9 +44,15 @@ class ProductController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        $currentCategory = null;
+        if ($request->filled('filter.category_id')) {
+            $currentCategory = Category::find($request->input('filter.category_id'));
+        }
+
         return Inertia::render('Shop/Products/Index', [
             'products' => ProductResource::collection($products),
             'categories' => CategoryResource::collection($categories),
+            'currentCategory' => $currentCategory ? new CategoryResource($currentCategory) : null,
             'filters' => $request->only(['filter', 'sort']),
         ]);
     }
@@ -73,6 +84,11 @@ class ProductController extends Controller
 
     public function byCategory(Category $category, Request $request): Response
     {
+        // Get all descendant category IDs including self
+        $categoryIds = Category::where('id', $category->id)
+            ->orWhere('parent_id', $category->id)
+            ->pluck('id');
+
         $products = QueryBuilder::for(Product::class)
             ->allowedFilters([
                 AllowedFilter::partial('name'),
@@ -82,7 +98,7 @@ class ProductController extends Controller
             ])
             ->allowedSorts(['name', 'price', 'created_at', 'sold_count', 'average_rating'])
             ->active()
-            ->where('category_id', $category->id)
+            ->whereIn('category_id', $categoryIds)
             ->with(['category', 'images'])
             ->paginate(12)
             ->withQueryString();
@@ -106,7 +122,12 @@ class ProductController extends Controller
         $products = QueryBuilder::for(Product::class)
             ->allowedFilters([
                 AllowedFilter::partial('name'),
-                AllowedFilter::exact('category_id'),
+                AllowedFilter::callback('category_id', function ($query, $value) {
+                     $categoryIds = Category::where('id', $value)
+                        ->orWhere('parent_id', $value)
+                        ->pluck('id');
+                    $query->whereIn('category_id', $categoryIds);
+                }),
                 AllowedFilter::scope('price_min', 'priceMin'),
                 AllowedFilter::scope('price_max', 'priceMax'),
             ])
@@ -123,9 +144,15 @@ class ProductController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        $currentCategory = null;
+        if ($request->filled('filter.category_id')) {
+            $currentCategory = Category::find($request->input('filter.category_id'));
+        }
+
         return Inertia::render('Shop/Sale/HotSale', [
             'products' => ProductResource::collection($products),
             'categories' => CategoryResource::collection($categories),
+            'currentCategory' => $currentCategory ? new CategoryResource($currentCategory) : null,
             'filters' => $request->only(['filter', 'sort']),
         ]);
     }
@@ -135,7 +162,12 @@ class ProductController extends Controller
         $products = QueryBuilder::for(Product::class)
             ->allowedFilters([
                 AllowedFilter::partial('name'),
-                AllowedFilter::exact('category_id'),
+                AllowedFilter::callback('category_id', function ($query, $value) {
+                     $categoryIds = Category::where('id', $value)
+                        ->orWhere('parent_id', $value)
+                        ->pluck('id');
+                    $query->whereIn('category_id', $categoryIds);
+                }),
                 AllowedFilter::scope('price_min', 'priceMin'),
                 AllowedFilter::scope('price_max', 'priceMax'),
             ])
@@ -152,9 +184,15 @@ class ProductController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        $currentCategory = null;
+        if ($request->filled('filter.category_id')) {
+            $currentCategory = Category::find($request->input('filter.category_id'));
+        }
+
         return Inertia::render('Shop/Sale/Clearance', [
             'products' => ProductResource::collection($products),
             'categories' => CategoryResource::collection($categories),
+            'currentCategory' => $currentCategory ? new CategoryResource($currentCategory) : null,
             'filters' => $request->only(['filter', 'sort']),
         ]);
     }
@@ -164,7 +202,12 @@ class ProductController extends Controller
         $products = QueryBuilder::for(Product::class)
             ->allowedFilters([
                 AllowedFilter::partial('name'),
-                AllowedFilter::exact('category_id'),
+                AllowedFilter::callback('category_id', function ($query, $value) {
+                     $categoryIds = Category::where('id', $value)
+                        ->orWhere('parent_id', $value)
+                        ->pluck('id');
+                    $query->whereIn('category_id', $categoryIds);
+                }),
                 AllowedFilter::scope('price_min', 'priceMin'),
                 AllowedFilter::scope('price_max', 'priceMax'),
             ])
@@ -181,9 +224,15 @@ class ProductController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        $currentCategory = null;
+        if ($request->filled('filter.category_id')) {
+            $currentCategory = Category::find($request->input('filter.category_id'));
+        }
+
         return Inertia::render('Shop/Sale/StockSale', [
             'products' => ProductResource::collection($products),
             'categories' => CategoryResource::collection($categories),
+            'currentCategory' => $currentCategory ? new CategoryResource($currentCategory) : null,
             'filters' => $request->only(['filter', 'sort']),
         ]);
     }

@@ -14,6 +14,7 @@ const SALE_END_DATE = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 interface Props {
     products: PaginatedResponse<ApiProduct>;
     categories: ApiCategory[];
+    currentCategory?: ApiCategory;
     filters: { filter?: Record<string, string>; sort?: string };
 }
 
@@ -35,10 +36,21 @@ const itemVariants = {
     },
 };
 
-export default function HotSale({ products, categories, filters }: Props) {
+export default function HotSale({
+    products,
+    categories,
+    currentCategory,
+    filters,
+}: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
     const siteName = siteSettings?.site_name || 'Furniturin';
     const safeFilters = Array.isArray(filters) ? {} : filters;
+
+    // Normalize categories to handle API wrapping
+    const normalizedCategories = Array.isArray(categories)
+        ? categories
+        : (categories as any)?.data || [];
+
     const [showFilters, setShowFilters] = useState(false);
 
     const handleSort = (sort: string) => {
@@ -182,17 +194,19 @@ export default function HotSale({ products, categories, filters }: Props) {
                                     >
                                         All
                                     </button>
-                                    {categories.map((cat) => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() =>
-                                                handleCategoryFilter(cat.id)
-                                            }
-                                            className={`rounded-sm px-4 py-2 text-sm ${safeFilters.filter?.category_id === String(cat.id) ? 'bg-teal-500 text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
-                                        >
-                                            {cat.name}
-                                        </button>
-                                    ))}
+                                    {normalizedCategories.map(
+                                        (cat: ApiCategory) => (
+                                            <button
+                                                key={cat.id}
+                                                onClick={() =>
+                                                    handleCategoryFilter(cat.id)
+                                                }
+                                                className={`rounded-sm px-4 py-2 text-sm ${safeFilters.filter?.category_id === String(cat.id) ? 'bg-teal-500 text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'}`}
+                                            >
+                                                {cat.name}
+                                            </button>
+                                        ),
+                                    )}
                                 </div>
                             </motion.div>
                         )}

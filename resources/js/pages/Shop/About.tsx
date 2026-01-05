@@ -264,7 +264,7 @@ export default function About() {
                             </p>
                             <a
                                 href="/shop/products"
-                                className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 font-medium text-teal-700 transition-colors hover:bg-teal-50"
+                                className="inline-flex items-center gap-2 rounded-sm bg-white px-8 py-4 font-medium text-teal-700 transition-colors hover:bg-teal-50"
                             >
                                 Lihat Koleksi Kami
                             </a>

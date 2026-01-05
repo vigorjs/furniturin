@@ -71,6 +71,11 @@ export default function ProductsIndex({
         ? categories
         : (categories as any)?.data || [];
 
+    const normalizedCurrentCategory =
+        currentCategory && 'data' in currentCategory
+            ? (currentCategory as any).data
+            : currentCategory;
+
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [showFilters, setShowFilters] = useState(false);
     const [searchQuery, setSearchQuery] = useState(
@@ -79,8 +84,8 @@ export default function ProductsIndex({
     const [selectedCategory, setSelectedCategory] = useState<number | null>(
         safeFilters.filter?.category_id
             ? Number(safeFilters.filter.category_id)
-            : currentCategory?.id
-              ? Number(currentCategory.id)
+            : normalizedCurrentCategory?.id
+              ? Number(normalizedCurrentCategory.id)
               : null,
     );
     const [selectedSort, setSelectedSort] = useState(
@@ -136,9 +141,11 @@ export default function ProductsIndex({
         searchQuery || selectedCategory || priceRange.min || priceRange.max;
 
     // SEO Data
-    const pageTitle = currentCategory ? currentCategory.name : 'Semua Produk';
-    const pageDescription = currentCategory
-        ? `Koleksi ${currentCategory.name} berkualitas tinggi di ${siteName}. Temukan berbagai pilihan ${currentCategory.name?.toLowerCase() || ''} dengan harga terbaik.`
+    const pageTitle = normalizedCurrentCategory
+        ? normalizedCurrentCategory.name
+        : 'Semua Produk';
+    const pageDescription = normalizedCurrentCategory
+        ? `Koleksi ${normalizedCurrentCategory.name} berkualitas tinggi di ${siteName}. Temukan berbagai pilihan ${normalizedCurrentCategory.name?.toLowerCase() || ''} dengan harga terbaik.`
         : `Jelajahi koleksi lengkap furnitur berkualitas di ${siteName}. Kursi, meja, lemari, dan berbagai furnitur lainnya dengan harga terjangkau.`;
     const breadcrumbItems = [
         {
@@ -148,14 +155,14 @@ export default function ProductsIndex({
                     ? `${window.location.origin}/shop`
                     : '/shop',
         },
-        ...(currentCategory
+        ...(normalizedCurrentCategory
             ? [
                   {
-                      name: currentCategory.name,
+                      name: normalizedCurrentCategory.name,
                       url:
                           typeof window !== 'undefined'
-                              ? `${window.location.origin}/shop/category/${currentCategory.slug}`
-                              : `/shop/category/${currentCategory.slug}`,
+                              ? `${window.location.origin}/shop/category/${normalizedCurrentCategory.slug}`
+                              : `/shop/category/${normalizedCurrentCategory.slug}`,
                   },
               ]
             : [
@@ -175,8 +182,8 @@ export default function ProductsIndex({
                 title={pageTitle}
                 description={pageDescription}
                 keywords={
-                    currentCategory
-                        ? [currentCategory.name, 'furnitur', 'mebel']
+                    normalizedCurrentCategory
+                        ? [normalizedCurrentCategory.name, 'furnitur', 'mebel']
                         : [
                               'furnitur',
                               'furniture',
@@ -199,8 +206,8 @@ export default function ProductsIndex({
                             </Link>
                             <span>/</span>
                             <span className="text-neutral-900">
-                                {currentCategory
-                                    ? currentCategory.name
+                                {normalizedCurrentCategory
+                                    ? normalizedCurrentCategory.name
                                     : 'Semua Produk'}
                             </span>
                         </nav>
@@ -209,8 +216,8 @@ export default function ProductsIndex({
                         <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
                             <div>
                                 <h1 className="font-serif text-4xl text-neutral-900 md:text-5xl">
-                                    {currentCategory
-                                        ? currentCategory.name
+                                    {normalizedCurrentCategory
+                                        ? normalizedCurrentCategory.name
                                         : 'Semua Produk'}
                                 </h1>
                                 <p className="mt-2 text-neutral-500">
@@ -275,24 +282,17 @@ export default function ProductsIndex({
                                         }
                                         className="flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
                                     >
-                                        {(() => {
-                                            const cat =
-                                                normalizedCategories.find(
-                                                    (c: ApiCategory) =>
-                                                        Number(c.id) ===
-                                                        Number(
-                                                            selectedCategory,
-                                                        ),
-                                                );
-                                            return (
-                                                cat?.name ||
-                                                (currentCategory &&
-                                                Number(currentCategory.id) ===
-                                                    Number(selectedCategory)
-                                                    ? currentCategory.name
-                                                    : 'Category')
-                                            );
-                                        })()}
+                                        {normalizedCategories.find(
+                                            (c: ApiCategory) =>
+                                                Number(c.id) ===
+                                                Number(selectedCategory),
+                                        )?.name ||
+                                            (normalizedCurrentCategory &&
+                                            Number(
+                                                normalizedCurrentCategory.id,
+                                            ) === Number(selectedCategory)
+                                                ? normalizedCurrentCategory.name
+                                                : 'Category')}
                                         <X size={14} />
                                     </button>
                                 )}

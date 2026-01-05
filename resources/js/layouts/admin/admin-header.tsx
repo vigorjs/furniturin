@@ -1,24 +1,3 @@
-import { Link, usePage, router } from '@inertiajs/react';
-import { type BreadcrumbItem, type SharedData } from '@/types';
-import {
-    Bell,
-    Search,
-    Menu,
-    LogOut,
-    User,
-    Settings,
-    ChevronRight,
-    Package,
-    ShoppingCart,
-    Users,
-    LayoutDashboard,
-    PlusCircle,
-    UserPlus,
-    Loader2,
-    Info,
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useInitials } from '@/hooks/use-initials';
 import {
     CommandDialog,
     CommandEmpty,
@@ -31,11 +10,29 @@ import {
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useInitials } from '@/hooks/use-initials';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Link, router, usePage } from '@inertiajs/react';
+import {
+    Bell,
+    ChevronRight,
+    Info,
+    LayoutDashboard,
+    Loader2,
+    LogOut,
+    Menu,
+    Package,
+    PlusCircle,
+    Search,
+    Settings,
+    ShoppingCart,
+    User,
+    UserPlus,
+    Users,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface AdminHeaderProps {
     breadcrumbs?: BreadcrumbItem[];
@@ -84,17 +81,25 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
     }, []);
 
     const markAsRead = async (id: string) => {
-        router.patch(`/admin/notifications/${id}/read`, {}, {
-            preserveScroll: true,
-            onSuccess: () => fetchNotifications()
-        });
+        router.patch(
+            `/admin/notifications/${id}/read`,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => fetchNotifications(),
+            },
+        );
     };
 
     const markAllRead = () => {
-        router.post('/admin/notifications/mark-all-read', {}, {
-             preserveScroll: true,
-             onSuccess: () => fetchNotifications()
-        });
+        router.post(
+            '/admin/notifications/mark-all-read',
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => fetchNotifications(),
+            },
+        );
     };
 
     const handleLogout = () => {
@@ -118,7 +123,9 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
             if (searchQuery.trim().length > 0) {
                 setLoading(true);
                 try {
-                    const response = await fetch(`/admin/search?query=${encodeURIComponent(searchQuery)}`);
+                    const response = await fetch(
+                        `/admin/search?query=${encodeURIComponent(searchQuery)}`,
+                    );
                     if (response.ok) {
                         const data = await response.json();
                         setSearchResults(data);
@@ -141,38 +148,46 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
         command();
     };
 
-    const hasResults = searchResults.products.length > 0 || searchResults.users.length > 0 || searchResults.orders.length > 0;
+    const hasResults =
+        searchResults.products.length > 0 ||
+        searchResults.users.length > 0 ||
+        searchResults.orders.length > 0;
 
     return (
-        <header className="sticky top-0 z-30 bg-white border-b border-terra-100">
+        <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">
             <div className="flex h-16 items-center justify-between px-6">
                 {/* Left side - Mobile menu + Breadcrumbs */}
                 <div className="flex items-center gap-4">
                     {/* Mobile menu button */}
                     <button
                         onClick={() => setShowMobileMenu(!showMobileMenu)}
-                        className="lg:hidden p-2 rounded-lg text-terra-600 hover:bg-terra-50 transition-colors"
+                        className="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-50 lg:hidden"
                     >
-                        <Menu className="w-5 h-5" />
+                        <Menu className="h-5 w-5" />
                     </button>
 
                     {/* Breadcrumbs */}
-                    <nav className="hidden sm:flex items-center gap-2 text-sm">
+                    <nav className="hidden items-center gap-2 text-sm sm:flex">
                         <Link
                             href="/admin"
-                            className="text-terra-500 hover:text-terra-900 transition-colors"
+                            className="text-neutral-500 transition-colors hover:text-neutral-900"
                         >
                             Dashboard
                         </Link>
                         {breadcrumbs.map((crumb, index) => (
-                            <div key={crumb.href} className="flex items-center gap-2">
-                                <ChevronRight className="w-4 h-4 text-terra-300" />
+                            <div
+                                key={crumb.href}
+                                className="flex items-center gap-2"
+                            >
+                                <ChevronRight className="h-4 w-4 text-neutral-300" />
                                 {index === breadcrumbs.length - 1 ? (
-                                    <span className="text-terra-900 font-medium">{crumb.title}</span>
+                                    <span className="font-medium text-neutral-900">
+                                        {crumb.title}
+                                    </span>
                                 ) : (
                                     <Link
                                         href={crumb.href}
-                                        className="text-terra-500 hover:text-terra-900 transition-colors"
+                                        className="text-neutral-500 transition-colors hover:text-neutral-900"
                                     >
                                         {crumb.title}
                                     </Link>
@@ -187,25 +202,28 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                     {/* Search */}
                     <button
                         onClick={() => setOpenSearch(true)}
-                        className="hidden md:flex items-center gap-2 px-3 py-2 w-64 bg-sand-50 border border-terra-200 rounded-xl text-sm text-terra-500 hover:bg-terra-50 hover:text-terra-900 transition-colors group"
+                        className="group hidden w-64 items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 md:flex"
                     >
-                        <Search className="w-4 h-4 text-terra-400 group-hover:text-terra-600" />
+                        <Search className="h-4 w-4 text-neutral-400 group-hover:text-neutral-600" />
                         <span>Cari sesuatu...</span>
-                        <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-white px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                        <kbd className="pointer-events-none ml-auto inline-flex h-5 items-center gap-1 rounded border bg-white px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 select-none">
                             <span className="text-xs">Ctrl</span>K
                         </kbd>
                     </button>
                     {/* Mobile Search Icon */}
-                     <button
+                    <button
                         onClick={() => setOpenSearch(true)}
-                        className="md:hidden p-2 rounded-lg text-terra-500 hover:bg-terra-50 hover:text-terra-900 transition-colors"
+                        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-900 md:hidden"
                     >
-                        <Search className="w-5 h-5" />
+                        <Search className="h-5 w-5" />
                     </button>
 
-                    <CommandDialog open={openSearch} onOpenChange={setOpenSearch}>
-                        <CommandInput 
-                            placeholder="Ketik untuk mencari produk, pelanggan, atau menu..." 
+                    <CommandDialog
+                        open={openSearch}
+                        onOpenChange={setOpenSearch}
+                    >
+                        <CommandInput
+                            placeholder="Ketik untuk mencari produk, pelanggan, atau menu..."
                             value={searchQuery}
                             onValueChange={setSearchQuery}
                         />
@@ -213,52 +231,106 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                             <CommandEmpty>
                                 {loading ? (
                                     <div className="flex items-center justify-center py-6">
-                                        <Loader2 className="w-6 h-6 animate-spin text-wood" />
+                                        <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
                                     </div>
                                 ) : (
-                                    "Tidak ada hasil ditemukan."
+                                    'Tidak ada hasil ditemukan.'
                                 )}
                             </CommandEmpty>
 
                             <CommandGroup heading="Aksi Cepat">
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin/products/create'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() =>
+                                            router.visit(
+                                                '/admin/products/create',
+                                            ),
+                                        )
+                                    }
+                                >
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     <span>Tambah Produk</span>
                                 </CommandItem>
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin/users/create'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() =>
+                                            router.visit('/admin/users/create'),
+                                        )
+                                    }
+                                >
                                     <UserPlus className="mr-2 h-4 w-4" />
                                     <span>Tambah Pengguna</span>
                                 </CommandItem>
                             </CommandGroup>
                             <CommandSeparator />
                             <CommandGroup heading="Halaman Utama">
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() => router.visit('/admin'))
+                                    }
+                                >
                                     <LayoutDashboard className="mr-2 h-4 w-4" />
                                     <span>Dashboard</span>
                                 </CommandItem>
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin/products'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() =>
+                                            router.visit('/admin/products'),
+                                        )
+                                    }
+                                >
                                     <Package className="mr-2 h-4 w-4" />
                                     <span>Produk</span>
                                 </CommandItem>
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin/orders'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() =>
+                                            router.visit('/admin/orders'),
+                                        )
+                                    }
+                                >
                                     <ShoppingCart className="mr-2 h-4 w-4" />
                                     <span>Pesanan</span>
                                 </CommandItem>
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin/customers'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() =>
+                                            router.visit('/admin/customers'),
+                                        )
+                                    }
+                                >
                                     <Users className="mr-2 h-4 w-4" />
                                     <span>Pelanggan</span>
                                 </CommandItem>
                             </CommandGroup>
                             <CommandGroup heading="Pengaturan">
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin/users'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() =>
+                                            router.visit('/admin/users'),
+                                        )
+                                    }
+                                >
                                     <Users className="mr-2 h-4 w-4" />
                                     <span>Manajemen User</span>
                                 </CommandItem>
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin/profile'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() =>
+                                            router.visit('/admin/profile'),
+                                        )
+                                    }
+                                >
                                     <User className="mr-2 h-4 w-4" />
                                     <span>Profil Saya</span>
                                 </CommandItem>
-                                <CommandItem onSelect={() => runCommand(() => router.visit('/admin/settings'))}>
+                                <CommandItem
+                                    onSelect={() =>
+                                        runCommand(() =>
+                                            router.visit('/admin/settings'),
+                                        )
+                                    }
+                                >
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>Pengaturan Toko</span>
                                 </CommandItem>
@@ -268,42 +340,71 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                 <>
                                     {searchResults.products.length > 0 && (
                                         <CommandGroup heading="Produk">
-                                            {searchResults.products.map((product) => (
-                                                <CommandItem 
-                                                    key={product.id}
-                                                    onSelect={() => runCommand(() => router.visit(`/admin/products/${product.id}/edit`))}
-                                                >
-                                                    <Package className="mr-2 h-4 w-4" />
-                                                    <span>{product.name}</span>
-                                                </CommandItem>
-                                            ))}
+                                            {searchResults.products.map(
+                                                (product) => (
+                                                    <CommandItem
+                                                        key={product.id}
+                                                        onSelect={() =>
+                                                            runCommand(() =>
+                                                                router.visit(
+                                                                    `/admin/products/${product.id}/edit`,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        <Package className="mr-2 h-4 w-4" />
+                                                        <span>
+                                                            {product.name}
+                                                        </span>
+                                                    </CommandItem>
+                                                ),
+                                            )}
                                         </CommandGroup>
                                     )}
                                     {searchResults.users.length > 0 && (
                                         <CommandGroup heading="Pelanggan">
                                             {searchResults.users.map((user) => (
-                                                <CommandItem 
+                                                <CommandItem
                                                     key={user.id}
-                                                    onSelect={() => runCommand(() => router.visit(`/admin/customers/${user.id}`))}
+                                                    onSelect={() =>
+                                                        runCommand(() =>
+                                                            router.visit(
+                                                                `/admin/customers/${user.id}`,
+                                                            ),
+                                                        )
+                                                    }
                                                 >
                                                     <User className="mr-2 h-4 w-4" />
                                                     <span>{user.name}</span>
-                                                    <span className="ml-2 text-xs text-muted-foreground">{user.email}</span>
+                                                    <span className="ml-2 text-xs text-muted-foreground">
+                                                        {user.email}
+                                                    </span>
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>
                                     )}
                                     {searchResults.orders.length > 0 && (
                                         <CommandGroup heading="Pesanan">
-                                            {searchResults.orders.map((order) => (
-                                                <CommandItem 
-                                                    key={order.id}
-                                                    onSelect={() => runCommand(() => router.visit(`/admin/orders/${order.id}`))}
-                                                >
-                                                    <ShoppingCart className="mr-2 h-4 w-4" />
-                                                    <span>#{order.order_number}</span>
-                                                </CommandItem>
-                                            ))}
+                                            {searchResults.orders.map(
+                                                (order) => (
+                                                    <CommandItem
+                                                        key={order.id}
+                                                        onSelect={() =>
+                                                            runCommand(() =>
+                                                                router.visit(
+                                                                    `/admin/orders/${order.id}`,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        <ShoppingCart className="mr-2 h-4 w-4" />
+                                                        <span>
+                                                            #
+                                                            {order.order_number}
+                                                        </span>
+                                                    </CommandItem>
+                                                ),
+                                            )}
                                         </CommandGroup>
                                     )}
                                 </>
@@ -314,20 +415,22 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                     {/* Notifications */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="relative p-2 rounded-lg text-terra-500 hover:bg-terra-50 hover:text-terra-900 transition-colors outline-none">
-                                <Bell className="w-5 h-5" />
+                            <button className="relative rounded-lg p-2 text-neutral-500 transition-colors outline-none hover:bg-neutral-50 hover:text-neutral-900">
+                                <Bell className="h-5 w-5" />
                                 {unreadCount > 0 && (
-                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
                                 )}
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-80 p-0">
-                            <div className="p-4 border-b border-border bg-sand-50/50">
+                            <div className="border-b border-border bg-neutral-50/50 p-4">
                                 <div className="flex items-center justify-between">
-                                    <h4 className="font-semibold text-terra-900">Notifikasi ({unreadCount})</h4>
-                                    <button 
-                                        onClick={markAllRead} 
-                                        className="text-xs text-wood hover:text-wood-dark font-medium transition-colors"
+                                    <h4 className="font-semibold text-neutral-900">
+                                        Notifikasi ({unreadCount})
+                                    </h4>
+                                    <button
+                                        onClick={markAllRead}
+                                        className="text-xs font-medium text-teal-600 transition-colors hover:text-teal-700"
                                     >
                                         Tandai semua dibaca
                                     </button>
@@ -336,24 +439,29 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                             <div className="max-h-[300px] overflow-y-auto">
                                 {notifications.length > 0 ? (
                                     notifications.map((notif) => (
-                                        <div 
+                                        <div
                                             key={notif.id}
                                             onClick={() => markAsRead(notif.id)}
-                                            className="p-4 hover:bg-sand-50 transition-colors border-b border-border/50 cursor-pointer group"
+                                            className="group cursor-pointer border-b border-border/50 p-4 transition-colors hover:bg-neutral-50"
                                         >
                                             <div className="flex gap-3">
-                                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                                                    <Info className="w-4 h-4 text-blue-600" />
+                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                                                    <Info className="h-4 w-4 text-blue-600" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-terra-900 group-hover:text-blue-700 transition-colors">
-                                                        {notif.data.title || 'Notifikasi'}
+                                                    <p className="text-sm font-medium text-neutral-900 transition-colors group-hover:text-blue-700">
+                                                        {notif.data.title ||
+                                                            'Notifikasi'}
                                                     </p>
-                                                    <p className="text-xs text-terra-500 mt-0.5 line-clamp-2">
+                                                    <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">
                                                         {notif.data.message}
                                                     </p>
-                                                    <p className="text-[10px] text-terra-400 mt-2">
-                                                        {new Date(notif.created_at).toLocaleString('id-ID')}
+                                                    <p className="mt-2 text-[10px] text-neutral-400">
+                                                        {new Date(
+                                                            notif.created_at,
+                                                        ).toLocaleString(
+                                                            'id-ID',
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
@@ -361,14 +469,16 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                     ))
                                 ) : (
                                     <div className="p-8 text-center">
-                                        <p className="text-sm text-terra-400">Tidak ada notifikasi baru</p>
+                                        <p className="text-sm text-neutral-400">
+                                            Tidak ada notifikasi baru
+                                        </p>
                                     </div>
                                 )}
                             </div>
-                            <div className="p-2 border-t border-border">
+                            <div className="border-t border-border p-2">
                                 <Link
                                     href="/admin/notifications"
-                                    className="flex items-center justify-center w-full py-2 text-sm text-terra-600 hover:text-terra-900 hover:bg-sand-50 rounded-md transition-colors font-medium"
+                                    className="flex w-full items-center justify-center rounded-md py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
                                 >
                                     Lihat Semua Notifikasi
                                 </Link>
@@ -380,24 +490,28 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                     <div className="relative">
                         <button
                             onClick={() => setShowUserMenu(!showUserMenu)}
-                            className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-terra-50 transition-colors"
+                            className="flex items-center gap-3 rounded-xl p-1.5 pr-3 transition-colors hover:bg-neutral-50"
                         >
-                            <div className="w-8 h-8 rounded-full bg-terra-200 flex items-center justify-center">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200">
                                 {auth.user.avatar ? (
                                     <img
                                         src={auth.user.avatar}
                                         alt={auth.user.name}
-                                        className="w-full h-full rounded-full object-cover"
+                                        className="h-full w-full rounded-full object-cover"
                                     />
                                 ) : (
-                                    <span className="text-sm font-medium text-terra-700">
+                                    <span className="text-sm font-medium text-neutral-700">
                                         {getInitials(auth.user.name)}
                                     </span>
                                 )}
                             </div>
-                            <div className="hidden md:block text-left">
-                                <p className="text-sm font-medium text-terra-900">{auth.user.name}</p>
-                                <p className="text-xs text-terra-500">Administrator</p>
+                            <div className="hidden text-left md:block">
+                                <p className="text-sm font-medium text-neutral-900">
+                                    {auth.user.name}
+                                </p>
+                                <p className="text-xs text-neutral-500">
+                                    Administrator
+                                </p>
                             </div>
                         </button>
 
@@ -408,31 +522,35 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                     className="fixed inset-0 z-40"
                                     onClick={() => setShowUserMenu(false)}
                                 />
-                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-terra-100 py-2 z-50">
-                                    <div className="px-4 py-2 border-b border-terra-100">
-                                        <p className="text-sm font-medium text-terra-900">{auth.user.name}</p>
-                                        <p className="text-xs text-terra-500">{auth.user.email}</p>
+                                <div className="absolute top-full right-0 z-50 mt-2 w-56 rounded-xl border border-neutral-100 bg-white py-2 shadow-lg">
+                                    <div className="border-b border-neutral-100 px-4 py-2">
+                                        <p className="text-sm font-medium text-neutral-900">
+                                            {auth.user.name}
+                                        </p>
+                                        <p className="text-xs text-neutral-500">
+                                            {auth.user.email}
+                                        </p>
                                     </div>
                                     <Link
                                         href="/admin/profile"
-                                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-terra-700 hover:bg-terra-50 transition-colors"
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
                                     >
-                                        <User className="w-4 h-4" />
+                                        <User className="h-4 w-4" />
                                         Profil Saya
                                     </Link>
                                     <Link
                                         href="/admin/settings"
-                                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-terra-700 hover:bg-terra-50 transition-colors"
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
                                     >
-                                        <Settings className="w-4 h-4" />
+                                        <Settings className="h-4 w-4" />
                                         Pengaturan
                                     </Link>
-                                    <div className="border-t border-terra-100 mt-2 pt-2">
+                                    <div className="mt-2 border-t border-neutral-100 pt-2">
                                         <button
                                             onClick={handleLogout}
-                                            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
                                         >
-                                            <LogOut className="w-4 h-4" />
+                                            <LogOut className="h-4 w-4" />
                                             Keluar
                                         </button>
                                     </div>
@@ -445,4 +563,3 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
         </header>
     );
 }
-

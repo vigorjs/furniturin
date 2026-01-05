@@ -29,7 +29,10 @@ export default function Register() {
                     <>
                         <div className="grid gap-5">
                             <div className="grid gap-2">
-                                <Label htmlFor="name" className="text-terra-700 font-medium">
+                                <Label
+                                    htmlFor="name"
+                                    className="font-medium text-neutral-700"
+                                >
                                     Nama Lengkap
                                 </Label>
                                 <input
@@ -41,13 +44,16 @@ export default function Register() {
                                     autoComplete="name"
                                     name="name"
                                     placeholder="Masukkan nama lengkap"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 placeholder:text-terra-400 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.name} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email" className="text-terra-700 font-medium">
+                                <Label
+                                    htmlFor="email"
+                                    className="font-medium text-neutral-700"
+                                >
                                     Alamat Email
                                 </Label>
                                 <input
@@ -58,13 +64,16 @@ export default function Register() {
                                     autoComplete="email"
                                     name="email"
                                     placeholder="Masukkan alamat email"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 placeholder:text-terra-400 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password" className="text-terra-700 font-medium">
+                                <Label
+                                    htmlFor="password"
+                                    className="font-medium text-neutral-700"
+                                >
                                     Kata Sandi
                                 </Label>
                                 <input
@@ -75,13 +84,16 @@ export default function Register() {
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder="Minimal 8 karakter"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 placeholder:text-terra-400 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation" className="text-terra-700 font-medium">
+                                <Label
+                                    htmlFor="password_confirmation"
+                                    className="font-medium text-neutral-700"
+                                >
                                     Konfirmasi Kata Sandi
                                 </Label>
                                 <input
@@ -92,9 +104,11 @@ export default function Register() {
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder="Ulangi kata sandi"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 placeholder:text-terra-400 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
-                                <InputError message={errors.password_confirmation} />
+                                <InputError
+                                    message={errors.password_confirmation}
+                                />
                             </div>
 
                             <button
@@ -102,19 +116,21 @@ export default function Register() {
                                 tabIndex={5}
                                 disabled={processing}
                                 data-test="register-user-button"
-                                className="mt-2 w-full bg-terra-900 hover:bg-wood-dark text-white font-medium py-3.5 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3.5 font-medium text-white shadow-sm transition-all duration-300 hover:bg-teal-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                {processing && <Spinner className="text-white" />}
+                                {processing && (
+                                    <Spinner className="text-white" />
+                                )}
                                 Daftar Sekarang
                             </button>
                         </div>
 
-                        <div className="text-center text-sm text-terra-500 pt-2">
+                        <div className="pt-2 text-center text-sm text-neutral-500">
                             Sudah punya akun?{' '}
                             <TextLink
                                 href={login()}
                                 tabIndex={6}
-                                className="text-wood font-medium hover:text-wood-dark transition-colors"
+                                className="font-medium text-teal-600 transition-colors hover:text-teal-700"
                             >
                                 Masuk di sini
                             </TextLink>

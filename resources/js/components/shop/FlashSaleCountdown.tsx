@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Clock } from 'lucide-react';
+import { Clock, Flame } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface FlashSaleCountdownProps {
     endDate: Date;
@@ -30,11 +30,19 @@ function calculateTimeLeft(endDate: Date): TimeLeft {
     };
 }
 
-export function FlashSaleCountdown({ endDate, title = 'Flash Sale Berakhir Dalam', className = '' }: FlashSaleCountdownProps) {
+export function FlashSaleCountdown({
+    endDate,
+    title = 'Flash Sale Berakhir Dalam',
+    className = '',
+}: FlashSaleCountdownProps) {
     const initialTime = useMemo(() => calculateTimeLeft(endDate), [endDate]);
     const [timeLeft, setTimeLeft] = useState<TimeLeft>(initialTime);
 
-    const isExpired = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0;
+    const isExpired =
+        timeLeft.days === 0 &&
+        timeLeft.hours === 0 &&
+        timeLeft.minutes === 0 &&
+        timeLeft.seconds === 0;
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -46,8 +54,12 @@ export function FlashSaleCountdown({ endDate, title = 'Flash Sale Berakhir Dalam
 
     if (isExpired) {
         return (
-            <div className={`bg-terra-100 rounded-sm p-6 text-center ${className}`}>
-                <p className="text-terra-600 font-medium">Flash Sale telah berakhir</p>
+            <div
+                className={`rounded-sm bg-terra-100 p-6 text-center ${className}`}
+            >
+                <p className="font-medium text-terra-600">
+                    Flash Sale telah berakhir
+                </p>
             </div>
         );
     }
@@ -60,11 +72,11 @@ export function FlashSaleCountdown({ endDate, title = 'Flash Sale Berakhir Dalam
     ];
 
     return (
-        <div className={`bg-gradient-to-r from-terra-800 to-wood-dark rounded-sm p-6 text-white ${className}`}>
-            <div className="flex items-center justify-center gap-2 mb-4">
-                <Flame className="animate-pulse text-wood-light" size={24} />
-                <h3 className="font-medium text-lg">{title}</h3>
-                <Clock size={20} className="text-wood-light" />
+        <div className={`rounded-sm p-6 text-white ${className}`}>
+            <div className="mb-4 flex items-center justify-center gap-2">
+                <Flame className="animate-pulse text-accent-500" size={24} />
+                <h3 className="text-lg font-medium">{title}</h3>
+                <Clock size={20} className="text-accent-500" />
             </div>
 
             <div className="flex items-center justify-center gap-3">
@@ -74,17 +86,19 @@ export function FlashSaleCountdown({ endDate, title = 'Flash Sale Berakhir Dalam
                             key={`${unit.label}-${unit.value}`}
                             initial={{ scale: 1.1 }}
                             animate={{ scale: 1 }}
-                            className="bg-white/20 backdrop-blur-sm rounded-sm p-3 min-w-[70px] text-center"
+                            className="min-w-[70px] rounded-sm bg-white/20 p-3 text-center backdrop-blur-sm"
                         >
                             <div className="text-3xl font-bold tabular-nums">
                                 {String(unit.value).padStart(2, '0')}
                             </div>
-                            <div className="text-xs opacity-80 uppercase tracking-wider">
+                            <div className="text-xs tracking-wider uppercase opacity-80">
                                 {unit.label}
                             </div>
                         </motion.div>
                         {index < timeUnits.length - 1 && (
-                            <span className="text-2xl font-bold opacity-60">:</span>
+                            <span className="text-2xl font-bold opacity-60">
+                                :
+                            </span>
                         )}
                     </div>
                 ))}
@@ -112,19 +126,24 @@ function calculateTimeLeftCompact(endDate: Date): string {
 
 // Compact version for product cards or smaller spaces
 export function FlashSaleCountdownCompact({ endDate }: { endDate: Date }) {
-    const initialTime = useMemo(() => calculateTimeLeftCompact(endDate), [endDate]);
+    const initialTime = useMemo(
+        () => calculateTimeLeftCompact(endDate),
+        [endDate],
+    );
     const [timeLeft, setTimeLeft] = useState(initialTime);
 
     useEffect(() => {
-        const timer = setInterval(() => setTimeLeft(calculateTimeLeftCompact(endDate)), 1000);
+        const timer = setInterval(
+            () => setTimeLeft(calculateTimeLeftCompact(endDate)),
+            1000,
+        );
         return () => clearInterval(timer);
     }, [endDate]);
 
     return (
-        <div className="flex items-center gap-1.5 bg-wood-dark text-white px-2.5 py-1 rounded-full text-xs font-medium">
+        <div className="flex items-center gap-1.5 rounded-full bg-neutral-800 px-2.5 py-1 text-xs font-medium text-white">
             <Clock size={12} />
             <span className="tabular-nums">{timeLeft}</span>
         </div>
     );
 }
-

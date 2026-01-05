@@ -70,7 +70,12 @@ const settingsNavItems: NavItem[] = [
         icon: UserCog,
         permission: 'manage roles',
     },
-    { title: 'Profil Saya', href: '/admin/profile', icon: Users, permission: '' },
+    {
+        title: 'Profil Saya',
+        href: '/admin/profile',
+        icon: Users,
+        permission: '',
+    },
     {
         title: 'Pengaturan',
         href: '/admin/settings',
@@ -118,7 +123,7 @@ export default function AdminSidebar({
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'fixed inset-y-0 left-0 z-50 flex flex-col bg-gradient-to-b from-terra-900 via-terra-800 to-wood-dark transition-all duration-300',
+                    'fixed inset-y-0 left-0 z-50 flex flex-col bg-gradient-to-b from-teal-900 via-teal-800 to-teal-950 transition-all duration-300',
                     collapsed ? 'w-20' : 'w-72',
                     'hidden lg:flex',
                 )}
@@ -162,7 +167,7 @@ export default function AdminSidebar({
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 overflow-y-auto px-4 py-4">
+                <nav className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-4">
                     {/* Main Menu */}
                     <div className="space-y-1">
                         {!collapsed && (
@@ -187,7 +192,11 @@ export default function AdminSidebar({
                                     )}
                                 >
                                     <item.icon className="h-5 w-5 flex-shrink-0" />
-                                    {!collapsed && <span>{item.title}</span>}
+                                    {!collapsed && (
+                                        <span className="truncate">
+                                            {item.title}
+                                        </span>
+                                    )}
                                 </Link>
                             ))}
                     </div>
@@ -216,7 +225,11 @@ export default function AdminSidebar({
                                     )}
                                 >
                                     <item.icon className="h-5 w-5 flex-shrink-0" />
-                                    {!collapsed && <span>{item.title}</span>}
+                                    {!collapsed && (
+                                        <span className="truncate">
+                                            {item.title}
+                                        </span>
+                                    )}
                                 </Link>
                             ))}
                     </div>
@@ -232,7 +245,9 @@ export default function AdminSidebar({
                         )}
                     >
                         <Store className="h-5 w-5 flex-shrink-0" />
-                        {!collapsed && <span>Lihat Toko</span>}
+                        {!collapsed && (
+                            <span className="truncate">Lihat Toko</span>
+                        )}
                     </Link>
                 </div>
             </aside>

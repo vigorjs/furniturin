@@ -26,10 +26,10 @@ export const TrustSection: React.FC<TrustSectionProps> = ({ logos }) => (
         </section>
 
         {/* Marquee Section */}
-        <div className="overflow-hidden bg-teal-500 py-5 whitespace-nowrap">
+        <div className="overflow-hidden bg-teal-500 py-6 whitespace-nowrap">
             <motion.div
                 animate={{ x: ['0%', '-50%'] }}
-                transition={{ repeat: Infinity, ease: 'linear', duration: 25 }}
+                transition={{ repeat: Infinity, ease: 'linear', duration: 45 }}
                 className="inline-block"
             >
                 {Array(4)
@@ -39,7 +39,7 @@ export const TrustSection: React.FC<TrustSectionProps> = ({ logos }) => (
                     .map((text, i) => (
                         <span
                             key={i}
-                            className="mx-4 font-display text-2xl font-medium text-white/50 md:text-3xl"
+                            className="mx-8 font-serif text-lg font-medium tracking-[0.2em] text-teal-100/90 uppercase md:text-xl"
                         >
                             {text}
                         </span>

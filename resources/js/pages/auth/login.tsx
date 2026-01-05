@@ -28,7 +28,7 @@ export default function Login({
             <Head title="Masuk" />
 
             {status && (
-                <div className="mb-6 text-center text-sm font-medium text-green-600 bg-green-50 py-3 px-4 rounded-lg border border-green-200">
+                <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-600">
                     {status}
                 </div>
             )}
@@ -42,7 +42,10 @@ export default function Login({
                     <>
                         <div className="grid gap-5">
                             <div className="grid gap-2">
-                                <Label htmlFor="email" className="text-terra-700 font-medium">
+                                <Label
+                                    htmlFor="email"
+                                    className="font-medium text-neutral-700"
+                                >
                                     Alamat Email
                                 </Label>
                                 <input
@@ -54,20 +57,23 @@ export default function Login({
                                     tabIndex={1}
                                     autoComplete="email"
                                     placeholder="Masukkan alamat email"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 placeholder:text-terra-400 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="password" className="text-terra-700 font-medium">
+                                    <Label
+                                        htmlFor="password"
+                                        className="font-medium text-neutral-700"
+                                    >
                                         Kata Sandi
                                     </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="text-sm text-wood hover:text-wood-dark transition-colors"
+                                            className="text-sm text-teal-600 transition-colors hover:text-teal-700"
                                             tabIndex={5}
                                         >
                                             Lupa kata sandi?
@@ -82,7 +88,7 @@ export default function Login({
                                     tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="Masukkan kata sandi"
-                                    className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 placeholder:text-terra-400 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
+                                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -92,9 +98,12 @@ export default function Login({
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
-                                    className="border-terra-300 data-[state=checked]:bg-terra-900 data-[state=checked]:border-terra-900"
+                                    className="border-neutral-300 data-[state=checked]:border-teal-600 data-[state=checked]:bg-teal-600"
                                 />
-                                <Label htmlFor="remember" className="text-terra-600 text-sm cursor-pointer">
+                                <Label
+                                    htmlFor="remember"
+                                    className="cursor-pointer text-sm text-neutral-600"
+                                >
                                     Ingat saya
                                 </Label>
                             </div>
@@ -104,20 +113,22 @@ export default function Login({
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
-                                className="mt-2 w-full bg-terra-900 hover:bg-wood-dark text-white font-medium py-3.5 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3.5 font-medium text-white shadow-sm transition-all duration-300 hover:bg-teal-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                {processing && <Spinner className="text-white" />}
+                                {processing && (
+                                    <Spinner className="text-white" />
+                                )}
                                 Masuk
                             </button>
                         </div>
 
                         {canRegister && (
-                            <div className="text-center text-sm text-terra-500 pt-2">
+                            <div className="pt-2 text-center text-sm text-neutral-500">
                                 Belum punya akun?{' '}
                                 <TextLink
                                     href={register()}
                                     tabIndex={5}
-                                    className="text-wood font-medium hover:text-wood-dark transition-colors"
+                                    className="font-medium text-teal-600 transition-colors hover:text-teal-700"
                                 >
                                     Daftar sekarang
                                 </TextLink>
