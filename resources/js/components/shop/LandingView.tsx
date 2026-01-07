@@ -6,6 +6,7 @@ import {
     HomeValue,
 } from '@/types/shop';
 import { motion } from 'framer-motion';
+import { CatalogSection } from './sections/CatalogSection';
 import { CategoriesSection } from './sections/CategoriesSection';
 import { HeroSection } from './sections/HeroSection';
 import { NewsletterSection } from './sections/NewsletterSection';
@@ -41,6 +42,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <HeroSection settings={heroSettings} />
             <TrustSection logos={trustLogos} />
             <CategoriesSection categories={featuredCategories} />
+            <CatalogSection />
             <ValuesSection values={values} />
             <ProductsSection products={featuredProducts} />
             <TestimonialsSection testimonials={testimonials} />
