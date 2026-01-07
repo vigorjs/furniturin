@@ -150,25 +150,24 @@ const CatalogCard = ({
     return (
         <motion.div
             variants={itemVariants}
-            className="group relative cursor-pointer overflow-hidden rounded-lg bg-neutral-100 shadow-lg transition-all duration-300 hover:shadow-xl"
+            className="group relative cursor-pointer overflow-hidden bg-neutral-100 shadow-lg transition-all duration-300 hover:shadow-xl"
             onClick={onClick}
         >
             {/* PDF Cover Preview */}
-            <div className="relative aspect-[3/4] overflow-hidden">
+            <div className="relative overflow-hidden">
                 <Document
                     file={catalog.file}
                     loading={
-                        <div className="flex h-full w-full items-center justify-center bg-neutral-200">
+                        <div className="flex aspect-[3/4] w-full items-center justify-center bg-neutral-200">
                             <BookOpen className="h-12 w-12 text-neutral-400" />
                         </div>
                     }
                 >
                     <Page
                         pageNumber={1}
-                        width={280}
                         renderTextLayer={false}
                         renderAnnotationLayer={false}
-                        className="transition-transform duration-500 group-hover:scale-105"
+                        className="w-full transition-transform duration-500 group-hover:scale-105 [&>canvas]:!h-auto [&>canvas]:!w-full"
                     />
                 </Document>
 
@@ -181,13 +180,6 @@ const CatalogCard = ({
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Catalog Name */}
-            <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                <h3 className="font-display text-lg font-medium text-white">
-                    {catalog.name}
-                </h3>
             </div>
         </motion.div>
     );
@@ -204,6 +196,7 @@ const FlipbookModal = ({
     const flipBookRef = useRef<any>(null);
     const [numPages, setNumPages] = useState<number>(0);
     const [currentPage, setCurrentPage] = useState(0);
+    const [targetPage, setTargetPage] = useState(0); // Track target page for immediate layout change
     const [isLoading, setIsLoading] = useState(true);
     const [pageWidth, setPageWidth] = useState(350);
     const [zoomLevel, setZoomLevel] = useState(1);
@@ -250,16 +243,48 @@ const FlipbookModal = ({
     );
 
     const goToPrev = () => {
+        // Set target page immediately for instant layout change
+        const prevPage = Math.max(0, currentPage - 2);
+        setTargetPage(prevPage);
         flipBookRef.current?.pageFlip()?.flipPrev();
     };
 
     const goToNext = () => {
+        // Set target page immediately for instant layout change
+        const nextPage = Math.min(numPages - 1, currentPage + 2);
+        setTargetPage(nextPage);
         flipBookRef.current?.pageFlip()?.flipNext();
     };
 
     const onFlip = useCallback((e: { data: number }) => {
         setCurrentPage(e.data);
+        setTargetPage(e.data); // Sync target with actual page after flip completes
     }, []);
+
+    // Handle flip state change - fires when flip starts (for clicks on PDF pages)
+    const onChangeState = useCallback(
+        (e: { data: string }) => {
+            // When flip animation starts, predict the target page
+            if (e.data === 'flipping') {
+                const flipBook = flipBookRef.current?.pageFlip();
+                if (flipBook) {
+                    // Get current orientation to predict target
+                    const current = flipBook.getCurrentPageIndex();
+                    const orientation = flipBook.getOrientation();
+
+                    // If we're on cover (page 0), going to spread
+                    if (current === 0) {
+                        setTargetPage(1);
+                    }
+                    // If we're on last page going back
+                    else if (current >= numPages - 1) {
+                        setTargetPage(numPages - 2);
+                    }
+                }
+            }
+        },
+        [numPages],
+    );
 
     const zoomIn = () => {
         setZoomLevel((prev) => Math.min(prev + 0.25, 2));
@@ -339,7 +364,19 @@ const FlipbookModal = ({
                     </button>
 
                     {/* Flipbook */}
-                    <div className="relative overflow-hidden rounded-lg shadow-2xl">
+                    <div
+                        className="relative shadow-2xl transition-transform duration-400"
+                        style={{
+                            // Shift to center when on cover (first page) or last page
+                            // Use targetPage for immediate layout change when button clicked
+                            transform:
+                                targetPage === 0
+                                    ? `translateX(-${pageWidth / 2}px)`
+                                    : targetPage >= numPages - 1
+                                      ? `translateX(${pageWidth / 2}px)`
+                                      : 'translateX(0)',
+                        }}
+                    >
                         <div
                             style={{
                                 transform: `scale(${zoomLevel})`,
@@ -392,6 +429,7 @@ const FlipbookModal = ({
                                     maxShadowOpacity={0.5}
                                     mobileScrollSupport={true}
                                     onFlip={onFlip}
+                                    onChangeState={onChangeState}
                                     className=""
                                     style={{}}
                                     startZIndex={0}
