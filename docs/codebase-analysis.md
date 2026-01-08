@@ -124,6 +124,30 @@ Dokumen ini berisi analisa lengkap fitur, komponen, dan paket yang ada di proyek
 
 ---
 
+### 6. **Image Upload** 🔴 NOT WORKING
+
+**Status**: Storage link BELUM dibuat, menyebabkan upload gambar tidak berfungsi
+
+**Masalah**:
+
+- `public/storage` symlink tidak ada
+- Upload images di Product/Category tidak tersimpan dengan benar
+- Gambar yang diupload tidak bisa diakses dari browser
+
+**Solusi**:
+
+```bash
+php artisan storage:link
+```
+
+**Files terkait**:
+
+- `app/Http/Controllers/Admin/ProductController.php` (lines 95-103)
+- `app/Http/Controllers/Admin/CategoryController.php` (lines 98, 128)
+- `storage/app/public/` → should be linked to → `public/storage/`
+
+**Catatan**: Setelah menjalankan `storage:link`, folder `public/storage` akan menjadi symlink ke `storage/app/public`
+
 ## 📦 Unused Node Packages (Bisa Dihapus)
 
 | Package          | Ukuran  | Alasan                                 |
