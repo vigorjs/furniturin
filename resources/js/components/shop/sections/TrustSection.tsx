@@ -6,17 +6,39 @@ interface TrustSectionProps {
 
 export const TrustSection: React.FC<TrustSectionProps> = ({ logos }) => (
     <>
-        {/* Trust / Press Logos Section */}
-        <section className="border-y border-neutral-100 bg-white py-16">
-            <div className="mx-auto max-w-[1400px] px-6 md:px-12">
-                <p className="mb-10 text-center text-xs font-medium tracking-[0.2em] text-neutral-400 uppercase">
-                    Trusted by Modern Homes & Featured In
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-8 opacity-40 grayscale transition-all duration-500 hover:opacity-70 hover:grayscale-0 md:justify-between md:gap-12">
-                    {logos.map((name) => (
+        {/* Trust / Press Logos Section - Marquee Style */}
+        <section className="relative overflow-hidden border-y border-neutral-100 bg-white py-12">
+            {/* Left Gradient Overlay */}
+            <div className="pointer-events-none absolute top-0 left-0 z-10 h-full w-24 bg-gradient-to-r from-white to-transparent md:w-32" />
+            {/* Right Gradient Overlay */}
+            <div className="pointer-events-none absolute top-0 right-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent md:w-32" />
+
+            <p className="relative z-20 mb-8 text-center text-xs font-medium tracking-[0.2em] text-neutral-400 uppercase">
+                Trusted by Modern Homes & Featured In
+            </p>
+
+            {/* Mobile: Animated Marquee */}
+            <div className="relative overflow-hidden whitespace-nowrap md:hidden">
+                <div className="animate-marquee inline-flex gap-8">
+                    {/* Duplicate logos twice for seamless loop */}
+                    {[...logos, ...logos].map((name, i) => (
                         <span
-                            key={name}
-                            className="cursor-default font-display text-xl font-semibold text-neutral-800 md:text-2xl"
+                            key={`mobile-${name}-${i}`}
+                            className="inline-block cursor-default font-display text-xl font-semibold text-neutral-400"
+                        >
+                            {name}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            {/* Desktop: Static */}
+            <div className="relative hidden overflow-hidden md:block">
+                <div className="flex items-center justify-center gap-12">
+                    {logos.map((name, i) => (
+                        <span
+                            key={`desktop-${name}-${i}`}
+                            className="inline-block cursor-default font-display text-2xl font-semibold text-neutral-400 transition-colors hover:text-neutral-700"
                         >
                             {name}
                         </span>
@@ -46,6 +68,17 @@ export const TrustSection: React.FC<TrustSectionProps> = ({ logos }) => (
                     ))}
             </motion.div>
         </div>
+
+        {/* CSS Keyframes for Marquee */}
+        <style>{`
+            @keyframes marquee {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+                animation: marquee 20s linear infinite;
+            }
+        `}</style>
     </>
 );
 

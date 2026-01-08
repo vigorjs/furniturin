@@ -50,6 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,9 +104,9 @@ export const Header: React.FC<HeaderProps> = ({
     };
 
     return (
-        <header className="relative z-40 w-full bg-white">
+        <header className="relative sticky top-0 z-40 w-full bg-white shadow-sm">
             {/* Main Navigation */}
-            <nav className="border-b border-neutral-100 py-3">
+            <nav className="py-3">
                 <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-12">
                     {/* Logo */}
                     <div
@@ -268,7 +269,10 @@ export const Header: React.FC<HeaderProps> = ({
                         )}
 
                         {/* Mobile Menu */}
-                        <button className="p-2.5 text-neutral-700 lg:hidden">
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="p-2.5 text-neutral-700 lg:hidden"
+                        >
                             <Menu size={22} />
                         </button>
                     </div>
@@ -277,7 +281,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Featured Categories Bar - Pottery Barn Style */}
             {featuredCategories.length > 0 && (
-                <div className="border-b border-neutral-100 bg-white">
+                <div className="hidden border-b border-neutral-100 bg-white sm:block">
                     <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-6 overflow-x-auto px-6 py-2.5 md:gap-10 md:px-12">
                         {featuredCategories.map((category) => (
                             <Link
@@ -350,6 +354,201 @@ export const Header: React.FC<HeaderProps> = ({
                             </div>
                         </motion.div>
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Mobile Sidebar Drawer */}
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
+                        />
+                        {/* Sidebar */}
+                        <motion.div
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{
+                                type: 'spring',
+                                damping: 25,
+                                stiffness: 200,
+                            }}
+                            className="fixed top-0 left-0 z-50 flex h-full w-full max-w-xs flex-col bg-white shadow-2xl lg:hidden"
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between border-b border-neutral-100 p-5">
+                                <img
+                                    src="/assets/images/logo.webp"
+                                    alt={siteName}
+                                    className="h-7 w-auto"
+                                />
+                                <button
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="rounded-sm p-2 text-neutral-500 hover:bg-neutral-100"
+                                >
+                                    <X size={22} />
+                                </button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto p-5">
+                                {/* Navigation Links */}
+                                <div className="mb-6">
+                                    <h3 className="mb-3 text-xs font-semibold tracking-wide text-neutral-400 uppercase">
+                                        Menu
+                                    </h3>
+                                    <div className="space-y-1">
+                                        {NAV_ITEMS.map((item) => (
+                                            <Link
+                                                key={item.label}
+                                                href={item.href}
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                                className="block rounded-sm px-3 py-2.5 font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-teal-500"
+                                            >
+                                                {item.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Categories */}
+                                {featuredCategories.length > 0 && (
+                                    <div className="mb-6">
+                                        <h3 className="mb-3 text-xs font-semibold tracking-wide text-neutral-400 uppercase">
+                                            Kategori
+                                        </h3>
+                                        <div className="space-y-1">
+                                            {featuredCategories.map(
+                                                (category) => (
+                                                    <Link
+                                                        key={category.id}
+                                                        href={`/shop/products?filter[category_id]=${category.id}`}
+                                                        onClick={() =>
+                                                            setMobileMenuOpen(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block rounded-sm px-3 py-2.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-teal-500"
+                                                    >
+                                                        {category.name}
+                                                    </Link>
+                                                ),
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* User Section */}
+                                {user ? (
+                                    <div className="border-t border-neutral-100 pt-6">
+                                        <div className="mb-4 flex items-center gap-3 px-3">
+                                            {user.avatar_url ? (
+                                                <img
+                                                    src={user.avatar_url}
+                                                    alt={user.name}
+                                                    className="h-10 w-10 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-500/20">
+                                                    <User
+                                                        size={20}
+                                                        className="text-teal-500"
+                                                    />
+                                                </div>
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate font-medium text-neutral-800">
+                                                    {user.name}
+                                                </p>
+                                                <p className="truncate text-sm text-neutral-500">
+                                                    {user.email}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Link
+                                                href="/shop/orders"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                                className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-neutral-600 hover:bg-neutral-50 hover:text-teal-500"
+                                            >
+                                                <Package size={18} />
+                                                <span>Pesanan Saya</span>
+                                            </Link>
+                                            <Link
+                                                href="/shop/wishlist"
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                                className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-neutral-600 hover:bg-neutral-50 hover:text-teal-500"
+                                            >
+                                                <Heart size={18} />
+                                                <span>Wishlist</span>
+                                                {(wishlistCount ?? 0) > 0 && (
+                                                    <span className="ml-auto rounded-full bg-teal-500 px-2 py-0.5 text-xs font-medium text-white">
+                                                        {wishlistCount}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                            <Link
+                                                href={
+                                                    (
+                                                        user as any
+                                                    ).roles?.includes(
+                                                        'super-admin',
+                                                    ) ||
+                                                    (
+                                                        user as any
+                                                    ).roles?.includes('admin')
+                                                        ? '/admin/settings'
+                                                        : '/settings/profile'
+                                                }
+                                                onClick={() =>
+                                                    setMobileMenuOpen(false)
+                                                }
+                                                className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-neutral-600 hover:bg-neutral-50 hover:text-teal-500"
+                                            >
+                                                <Settings size={18} />
+                                                <span>Pengaturan</span>
+                                            </Link>
+                                            <button
+                                                onClick={() => {
+                                                    setMobileMenuOpen(false);
+                                                    handleLogout();
+                                                }}
+                                                className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-red-600 hover:bg-red-50"
+                                            >
+                                                <LogOut size={18} />
+                                                <span>Logout</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="border-t border-neutral-100 pt-6">
+                                        <Link
+                                            href="/login"
+                                            onClick={() =>
+                                                setMobileMenuOpen(false)
+                                            }
+                                            className="flex w-full items-center justify-center gap-2 rounded-sm bg-teal-500 px-5 py-3 font-medium text-white transition-colors hover:bg-teal-600"
+                                        >
+                                            <User size={18} />
+                                            <span>Masuk / Daftar</span>
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </header>
