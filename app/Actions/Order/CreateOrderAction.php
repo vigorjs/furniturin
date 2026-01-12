@@ -69,6 +69,13 @@ class CreateOrderAction
             // Clear the cart
             $cart->items()->delete();
 
+            // Notify all admin users
+            $order->load('items');
+            $admins = User::role('Administrator')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new \App\Notifications\NewOrderNotification($order));
+            }
+
             return $order->fresh()->load('items');
         });
     }

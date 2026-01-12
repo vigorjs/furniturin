@@ -1,5 +1,13 @@
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -11,6 +19,7 @@ import {
     ShoppingCart,
     Trash2,
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface Notification {
     id: string;
@@ -30,14 +39,21 @@ interface Props {
 }
 
 export default function NotificationsIndex({ notifications }: Props) {
+    const [showClearDialog, setShowClearDialog] = useState(false);
+    const [isClearing, setIsClearing] = useState(false);
+
     const markAllRead = () => {
         router.post('/admin/notifications/mark-all-read');
     };
 
-    const clearAll = () => {
-        if (confirm('Apakah Anda yakin ingin menghapus semua notifikasi?')) {
-            router.delete('/admin/notifications/clear-all');
-        }
+    const handleClearAll = () => {
+        setIsClearing(true);
+        router.delete('/admin/notifications/clear-all', {
+            onFinish: () => {
+                setIsClearing(false);
+                setShowClearDialog(false);
+            },
+        });
     };
 
     const markAsRead = (id: string) => {
@@ -81,22 +97,20 @@ export default function NotificationsIndex({ notifications }: Props) {
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={clearAll}
-                            className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        <button
+                            onClick={() => setShowClearDialog(true)}
+                            className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 font-medium text-red-600 transition-colors hover:bg-red-50"
                         >
                             <Trash2 className="h-4 w-4" />
                             Hapus Semua
-                        </Button>
-                        <Button
-                            variant="outline"
+                        </button>
+                        <button
                             onClick={markAllRead}
-                            className="gap-2"
+                            className="inline-flex items-center gap-2 rounded-xl border border-terra-200 px-4 py-2.5 font-medium text-terra-700 transition-colors hover:bg-terra-50"
                         >
                             <Check className="h-4 w-4" />
                             Tandai Semua Dibaca
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -179,6 +193,42 @@ export default function NotificationsIndex({ notifications }: Props) {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Clear All Dialog */}
+            <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                            <AlertTriangle className="h-6 w-6 text-red-600" />
+                        </div>
+                        <DialogTitle className="text-center">
+                            Hapus Semua Notifikasi
+                        </DialogTitle>
+                        <DialogDescription className="text-center">
+                            Apakah Anda yakin ingin menghapus semua notifikasi?
+                            Tindakan ini tidak dapat dibatalkan.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-4 gap-2">
+                        <DialogClose asChild>
+                            <button
+                                type="button"
+                                className="flex-1 rounded-xl border border-terra-200 px-4 py-2.5 font-medium text-terra-700 transition-colors hover:bg-terra-50 sm:flex-none"
+                            >
+                                Batal
+                            </button>
+                        </DialogClose>
+                        <button
+                            type="button"
+                            onClick={handleClearAll}
+                            disabled={isClearing}
+                            className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50 sm:flex-none"
+                        >
+                            {isClearing ? 'Menghapus...' : 'Ya, Hapus Semua'}
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AdminLayout>
     );
 }

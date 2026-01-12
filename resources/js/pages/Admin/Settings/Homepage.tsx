@@ -19,7 +19,6 @@ interface HomepageSettingsProps {
         hero_title_highlight: string;
         hero_description: string;
         hero_image_main: string;
-        hero_image_secondary: string;
         hero_product_name: string;
         trust_logos: string;
         home_values: string;
@@ -47,7 +46,6 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
         hero_title_highlight: settings.hero_title_highlight,
         hero_description: settings.hero_description,
         hero_image_main: settings.hero_image_main,
-        hero_image_secondary: settings.hero_image_secondary,
         hero_product_name: settings.hero_product_name,
         trust_logos: settings.trust_logos,
         home_values: settings.home_values,
@@ -235,55 +233,26 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
                                 Gambar Hero
                             </h2>
                         </div>
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Gambar Utama (URL)
-                                </label>
-                                <input
-                                    type="url"
-                                    value={data.hero_image_main}
-                                    onChange={(e) =>
-                                        setData(
-                                            'hero_image_main',
-                                            e.target.value,
-                                        )
-                                    }
-                                    placeholder="https://..."
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-terra-700">
+                                Gambar Utama (URL)
+                            </label>
+                            <input
+                                type="url"
+                                value={data.hero_image_main}
+                                onChange={(e) =>
+                                    setData('hero_image_main', e.target.value)
+                                }
+                                placeholder="https://..."
+                                className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                            />
+                            {data.hero_image_main && (
+                                <img
+                                    src={data.hero_image_main}
+                                    alt="Preview"
+                                    className="mt-3 h-40 w-full rounded-lg object-cover"
                                 />
-                                {data.hero_image_main && (
-                                    <img
-                                        src={data.hero_image_main}
-                                        alt="Preview"
-                                        className="mt-3 h-40 w-full rounded-lg object-cover"
-                                    />
-                                )}
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Gambar Sekunder (URL)
-                                </label>
-                                <input
-                                    type="url"
-                                    value={data.hero_image_secondary}
-                                    onChange={(e) =>
-                                        setData(
-                                            'hero_image_secondary',
-                                            e.target.value,
-                                        )
-                                    }
-                                    placeholder="https://..."
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                />
-                                {data.hero_image_secondary && (
-                                    <img
-                                        src={data.hero_image_secondary}
-                                        alt="Preview"
-                                        className="mt-3 h-40 w-full rounded-lg object-cover"
-                                    />
-                                )}
-                            </div>
+                            )}
                         </div>
                     </div>
 
@@ -332,7 +301,7 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
                                 <button
                                     type="button"
                                     onClick={addTrustLogo}
-                                    className="rounded-xl bg-terra-900 px-4 py-2 text-white transition-colors hover:bg-wood"
+                                    className="rounded-xl bg-teal-600 px-4 py-2 text-white transition-colors hover:bg-teal-700"
                                 >
                                     <Plus size={20} />
                                 </button>
@@ -452,7 +421,7 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="inline-flex items-center gap-2 rounded-xl bg-terra-900 px-6 py-3 font-medium text-white transition-colors hover:bg-wood-dark disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-3 font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
                         >
                             <Save className="h-5 w-5" />
                             {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}

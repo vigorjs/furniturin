@@ -46,7 +46,7 @@ export default function Profile({
                                         <Label htmlFor="name">Nama</Label>
                                         <Input
                                             id="name"
-                                            className="mt-1 block w-full rounded-lg border-terra-200 focus:border-teal-500 focus:ring-teal-500"
+                                            className="mt-1 block w-full rounded-sm border-terra-200 focus:border-teal-500 focus:ring-teal-500"
                                             defaultValue={auth.user.name}
                                             name="name"
                                             required
@@ -66,7 +66,7 @@ export default function Profile({
                                         <Input
                                             id="email"
                                             type="email"
-                                            className="mt-1 block w-full rounded-lg border-terra-200 focus:border-teal-500 focus:ring-teal-500"
+                                            className="mt-1 block w-full rounded-sm border-terra-200 focus:border-teal-500 focus:ring-teal-500"
                                             defaultValue={auth.user.email}
                                             name="email"
                                             required
@@ -82,7 +82,7 @@ export default function Profile({
                                     {mustVerifyEmail &&
                                         auth.user.email_verified_at ===
                                             null && (
-                                            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                                            <div className="rounded-sm border border-yellow-200 bg-yellow-50 p-4">
                                                 <p className="text-sm text-yellow-700">
                                                     Email Anda belum
                                                     terverifikasi.{' '}
@@ -112,7 +112,7 @@ export default function Profile({
                                         <Button
                                             disabled={processing}
                                             data-test="update-profile-button"
-                                            className="rounded-lg bg-teal-500 text-white hover:bg-teal-600"
+                                            className="rounded-sm bg-teal-500 text-white hover:bg-teal-600"
                                         >
                                             Simpan
                                         </Button>

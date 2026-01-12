@@ -8,11 +8,27 @@ interface Category {
     name: string;
 }
 
-interface CreateProductProps {
-    categories: Category[];
+interface StatusOption {
+    value: string;
+    name: string;
 }
 
-export default function CreateProduct({ categories }: CreateProductProps) {
+interface SaleTypeOption {
+    value: string;
+    name: string;
+}
+
+interface CreateProductProps {
+    categories: Category[];
+    statuses: StatusOption[];
+    saleTypes: SaleTypeOption[];
+}
+
+export default function CreateProduct({
+    categories,
+    statuses,
+    saleTypes,
+}: CreateProductProps) {
     const [previewImages, setPreviewImages] = useState<
         { file: File; preview: string }[]
     >([]);
@@ -27,6 +43,7 @@ export default function CreateProduct({ categories }: CreateProductProps) {
         discount_percentage: '',
         stock_quantity: '',
         status: 'active',
+        sale_type: 'regular',
         is_featured: false,
     });
 
@@ -63,6 +80,7 @@ export default function CreateProduct({ categories }: CreateProductProps) {
         formData.append('discount_percentage', data.discount_percentage);
         formData.append('stock_quantity', data.stock_quantity);
         formData.append('status', data.status);
+        formData.append('sale_type', data.sale_type);
         formData.append('is_featured', data.is_featured ? '1' : '0');
 
         previewImages.forEach((img) => {
@@ -310,12 +328,12 @@ export default function CreateProduct({ categories }: CreateProductProps) {
                         </div>
                     </div>
 
-                    {/* Status */}
+                    {/* Status & Tipe Penjualan */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
-                            Status
+                            Status & Tipe Penjualan
                         </h2>
-                        <div className="flex flex-wrap gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-terra-700">
                                     Status Produk
@@ -327,9 +345,29 @@ export default function CreateProduct({ categories }: CreateProductProps) {
                                     }
                                     className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 >
-                                    <option value="active">Aktif</option>
-                                    <option value="inactive">Nonaktif</option>
-                                    <option value="draft">Draft</option>
+                                    {statuses.map((s) => (
+                                        <option key={s.value} value={s.value}>
+                                            {s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Tipe Penjualan
+                                </label>
+                                <select
+                                    value={data.sale_type}
+                                    onChange={(e) =>
+                                        setData('sale_type', e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                >
+                                    {saleTypes.map((t) => (
+                                        <option key={t.value} value={t.value}>
+                                            {t.name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <label className="flex cursor-pointer items-center gap-3 self-end pb-3">

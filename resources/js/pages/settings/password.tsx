@@ -58,7 +58,7 @@ export default function Password() {
                                         ref={currentPasswordInput}
                                         name="current_password"
                                         type="password"
-                                        className="mt-1 block w-full rounded-lg border-terra-200 focus:border-teal-500 focus:ring-teal-500"
+                                        className="mt-1 block w-full rounded-sm border-terra-200 focus:border-teal-500 focus:ring-teal-500"
                                         autoComplete="current-password"
                                         placeholder="Masukkan kata sandi saat ini"
                                     />
@@ -76,7 +76,7 @@ export default function Password() {
                                         ref={passwordInput}
                                         name="password"
                                         type="password"
-                                        className="mt-1 block w-full rounded-lg border-terra-200 focus:border-teal-500 focus:ring-teal-500"
+                                        className="mt-1 block w-full rounded-sm border-terra-200 focus:border-teal-500 focus:ring-teal-500"
                                         autoComplete="new-password"
                                         placeholder="Masukkan kata sandi baru"
                                     />
@@ -91,7 +91,7 @@ export default function Password() {
                                         id="password_confirmation"
                                         name="password_confirmation"
                                         type="password"
-                                        className="mt-1 block w-full rounded-lg border-terra-200 focus:border-teal-500 focus:ring-teal-500"
+                                        className="mt-1 block w-full rounded-sm border-terra-200 focus:border-teal-500 focus:ring-teal-500"
                                         autoComplete="new-password"
                                         placeholder="Ulangi kata sandi baru"
                                     />
@@ -104,7 +104,7 @@ export default function Password() {
                                     <Button
                                         disabled={processing}
                                         data-test="update-password-button"
-                                        className="rounded-lg bg-teal-500 text-white hover:bg-teal-600"
+                                        className="rounded-sm bg-teal-500 text-white hover:bg-teal-600"
                                     >
                                         Simpan Kata Sandi
                                     </Button>

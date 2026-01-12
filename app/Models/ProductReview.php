@@ -30,6 +30,17 @@ class ProductReview extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::created(function (ProductReview $review) {
+            // Notify all admin users about new review
+            $admins = User::role('Administrator')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new \App\Notifications\NewReviewNotification($review));
+            }
+        });
+    }
+
     protected $fillable = [
         'product_id',
         'user_id',

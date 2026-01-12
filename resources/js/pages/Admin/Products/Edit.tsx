@@ -14,6 +14,16 @@ interface ProductImage {
     is_primary: boolean;
 }
 
+interface StatusOption {
+    value: string;
+    name: string;
+}
+
+interface SaleTypeOption {
+    value: string;
+    name: string;
+}
+
 interface Product {
     id: number;
     name: string;
@@ -25,6 +35,7 @@ interface Product {
     stock_quantity: number;
     category_id: number | null;
     status: { value: string; label: string };
+    sale_type: { value: string; label: string };
     is_featured: boolean;
     images: ProductImage[];
 }
@@ -32,9 +43,16 @@ interface Product {
 interface EditProductProps {
     product: Product;
     categories: Category[];
+    statuses: StatusOption[];
+    saleTypes: SaleTypeOption[];
 }
 
-export default function EditProduct({ product, categories }: EditProductProps) {
+export default function EditProduct({
+    product,
+    categories,
+    statuses,
+    saleTypes,
+}: EditProductProps) {
     const [existingImages, setExistingImages] = useState<ProductImage[]>(
         product.images || [],
     );
@@ -55,6 +73,7 @@ export default function EditProduct({ product, categories }: EditProductProps) {
             : '',
         stock_quantity: String(product.stock_quantity),
         status: product.status.value,
+        sale_type: product.sale_type?.value || 'regular',
         is_featured: product.is_featured,
     });
 
@@ -368,12 +387,12 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                         </div>
                     </div>
 
-                    {/* Status */}
+                    {/* Status & Tipe Penjualan */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
-                            Status
+                            Status & Tipe Penjualan
                         </h2>
-                        <div className="flex flex-wrap gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-terra-700">
                                     Status Produk
@@ -385,9 +404,29 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                     }
                                     className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 >
-                                    <option value="active">Aktif</option>
-                                    <option value="inactive">Nonaktif</option>
-                                    <option value="draft">Draft</option>
+                                    {statuses.map((s) => (
+                                        <option key={s.value} value={s.value}>
+                                            {s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Tipe Penjualan
+                                </label>
+                                <select
+                                    value={data.sale_type}
+                                    onChange={(e) =>
+                                        setData('sale_type', e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                >
+                                    {saleTypes.map((t) => (
+                                        <option key={t.value} value={t.value}>
+                                            {t.name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <label className="flex cursor-pointer items-center gap-3 self-end pb-3">
