@@ -1,6 +1,7 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
+import { compressImage } from '@/utils/image-compress';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Star, Upload, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Star, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface Category {
@@ -60,6 +61,7 @@ export default function EditProduct({
         { file: File; preview: string }[]
     >([]);
     const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
+    const [isCompressing, setIsCompressing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, processing, errors } = useForm({
@@ -77,16 +79,32 @@ export default function EditProduct({
         is_featured: product.is_featured,
     });
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const files = e.target.files;
         if (!files) return;
 
-        const images = Array.from(files).map((file) => ({
-            file,
-            preview: URL.createObjectURL(file),
-        }));
-
-        setNewImages((prev) => [...prev, ...images]);
+        setIsCompressing(true);
+        try {
+            const fileArray = Array.from(files);
+            const compressedImages = await Promise.all(
+                fileArray.map(async (file) => {
+                    const compressedFile = await compressImage(file, {
+                        maxSizeMB: 2,
+                    });
+                    return {
+                        file: compressedFile,
+                        preview: URL.createObjectURL(compressedFile),
+                    };
+                }),
+            );
+            setNewImages((prev) => [...prev, ...compressedImages]);
+        } catch (error) {
+            console.error('Error compressing images:', error);
+        } finally {
+            setIsCompressing(false);
+        }
     };
 
     const removeExistingImage = (imageId: number) => {
@@ -109,9 +127,17 @@ export default function EditProduct({
         const formData = new FormData();
         formData.append('_method', 'PUT');
 
-        Object.entries(data).forEach(([key, value]) => {
-            formData.append(key, String(value));
-        });
+        // Append form data with proper type handling
+        formData.append('name', data.name);
+        formData.append('sku', data.sku);
+        formData.append('category_id', data.category_id);
+        formData.append('description', data.description);
+        formData.append('price', data.price);
+        formData.append('discount_percentage', data.discount_percentage);
+        formData.append('stock_quantity', data.stock_quantity);
+        formData.append('status', data.status);
+        formData.append('sale_type', data.sale_type);
+        formData.append('is_featured', data.is_featured ? '1' : '0');
 
         newImages.forEach((img) => {
             formData.append('images[]', img.file);
@@ -123,6 +149,9 @@ export default function EditProduct({
 
         router.post(`/admin/products/${product.id}`, formData, {
             forceFormData: true,
+            onError: (errors) => {
+                console.error('Form errors:', errors);
+            },
         });
     };
 
@@ -276,7 +305,7 @@ export default function EditProduct({
 
                             {/* Upload Area */}
                             <div
-                                className="cursor-pointer rounded-xl border-2 border-dashed border-terra-200 p-8 text-center transition-colors hover:border-wood"
+                                className={`cursor-pointer rounded-xl border-2 border-dashed border-terra-200 p-8 text-center transition-colors hover:border-wood ${isCompressing ? 'pointer-events-none opacity-50' : ''}`}
                                 onClick={() => fileInputRef.current?.click()}
                             >
                                 <input
@@ -286,14 +315,30 @@ export default function EditProduct({
                                     accept="image/*"
                                     onChange={handleImageChange}
                                     className="hidden"
+                                    disabled={isCompressing}
                                 />
-                                <Upload className="mx-auto mb-4 h-12 w-12 text-terra-400" />
-                                <p className="font-medium text-terra-700">
-                                    Klik untuk upload gambar baru
-                                </p>
-                                <p className="mt-1 text-sm text-terra-400">
-                                    PNG, JPG, WEBP hingga 2MB
-                                </p>
+                                {isCompressing ? (
+                                    <>
+                                        <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-terra-400" />
+                                        <p className="font-medium text-terra-700">
+                                            Mengompres gambar...
+                                        </p>
+                                        <p className="mt-1 text-sm text-terra-400">
+                                            Mohon tunggu sebentar
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="mx-auto mb-4 h-12 w-12 text-terra-400" />
+                                        <p className="font-medium text-terra-700">
+                                            Klik untuk upload gambar baru
+                                        </p>
+                                        <p className="mt-1 text-sm text-terra-400">
+                                            PNG, JPG, WEBP (otomatis dikompres
+                                            ke 2MB)
+                                        </p>
+                                    </>
+                                )}
                             </div>
 
                             {/* New Images Preview */}

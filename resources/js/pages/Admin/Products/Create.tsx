@@ -1,6 +1,7 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
+import { compressImage } from '@/utils/image-compress';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface Category {
@@ -32,6 +33,7 @@ export default function CreateProduct({
     const [previewImages, setPreviewImages] = useState<
         { file: File; preview: string }[]
     >([]);
+    const [isCompressing, setIsCompressing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, processing, errors } = useForm({
@@ -47,16 +49,32 @@ export default function CreateProduct({
         is_featured: false,
     });
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const files = e.target.files;
         if (!files) return;
 
-        const newImages = Array.from(files).map((file) => ({
-            file,
-            preview: URL.createObjectURL(file),
-        }));
-
-        setPreviewImages((prev) => [...prev, ...newImages]);
+        setIsCompressing(true);
+        try {
+            const fileArray = Array.from(files);
+            const compressedImages = await Promise.all(
+                fileArray.map(async (file) => {
+                    const compressedFile = await compressImage(file, {
+                        maxSizeMB: 2,
+                    });
+                    return {
+                        file: compressedFile,
+                        preview: URL.createObjectURL(compressedFile),
+                    };
+                }),
+            );
+            setPreviewImages((prev) => [...prev, ...compressedImages]);
+        } catch (error) {
+            console.error('Error compressing images:', error);
+        } finally {
+            setIsCompressing(false);
+        }
     };
 
     const removeImage = (index: number) => {
@@ -89,6 +107,9 @@ export default function CreateProduct({
 
         router.post('/admin/products', formData, {
             forceFormData: true,
+            onError: (errors) => {
+                console.error('Form errors:', errors);
+            },
         });
     };
 
@@ -214,7 +235,7 @@ export default function CreateProduct({
                         <div className="space-y-4">
                             {/* Upload Area */}
                             <div
-                                className="cursor-pointer rounded-xl border-2 border-dashed border-terra-200 p-8 text-center transition-colors hover:border-wood"
+                                className={`cursor-pointer rounded-xl border-2 border-dashed border-terra-200 p-8 text-center transition-colors hover:border-wood ${isCompressing ? 'pointer-events-none opacity-50' : ''}`}
                                 onClick={() => fileInputRef.current?.click()}
                             >
                                 <input
@@ -224,15 +245,30 @@ export default function CreateProduct({
                                     accept="image/*"
                                     onChange={handleImageChange}
                                     className="hidden"
+                                    disabled={isCompressing}
                                 />
-                                <Upload className="mx-auto mb-4 h-12 w-12 text-terra-400" />
-                                <p className="font-medium text-terra-700">
-                                    Klik untuk upload gambar
-                                </p>
-                                <p className="mt-1 text-sm text-terra-400">
-                                    PNG, JPG, WEBP hingga 2MB (Gambar pertama =
-                                    utama)
-                                </p>
+                                {isCompressing ? (
+                                    <>
+                                        <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-terra-400" />
+                                        <p className="font-medium text-terra-700">
+                                            Mengompres gambar...
+                                        </p>
+                                        <p className="mt-1 text-sm text-terra-400">
+                                            Mohon tunggu sebentar
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="mx-auto mb-4 h-12 w-12 text-terra-400" />
+                                        <p className="font-medium text-terra-700">
+                                            Klik untuk upload gambar
+                                        </p>
+                                        <p className="mt-1 text-sm text-terra-400">
+                                            PNG, JPG, WEBP (otomatis dikompres
+                                            ke 2MB)
+                                        </p>
+                                    </>
+                                )}
                             </div>
 
                             {/* Preview */}

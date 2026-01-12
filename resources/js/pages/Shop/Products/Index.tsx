@@ -128,14 +128,35 @@ export default function ProductsIndex({
         router.get('/shop/products', {}, { preserveState: true });
     };
 
+    // Debounced search - only trigger when user stops typing
     useEffect(() => {
+        // Skip if searchQuery matches current filter (avoid loop on page load)
+        const currentFilterName = safeFilters.filter?.name || '';
+        if (searchQuery === currentFilterName) {
+            return;
+        }
+
         const timer = setTimeout(() => {
-            if (searchQuery !== (safeFilters.filter?.name || '')) {
-                applyFilters();
-            }
+            const params: Record<string, string> = {};
+
+            if (searchQuery) params['filter[name]'] = searchQuery;
+            if (selectedCategory)
+                params['filter[category_id]'] = String(selectedCategory);
+            if (priceRange.min)
+                params['filter[price_min]'] = String(priceRange.min);
+            if (priceRange.max)
+                params['filter[price_max]'] = String(priceRange.max);
+            if (selectedSort) params['sort'] = selectedSort;
+
+            router.get('/shop/products', params, {
+                preserveState: true,
+                preserveScroll: true,
+            });
         }, 500);
+
         return () => clearTimeout(timer);
-    }, [searchQuery, applyFilters, safeFilters.filter?.name]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery]);
 
     const hasActiveFilters =
         searchQuery || selectedCategory || priceRange.min || priceRange.max;
