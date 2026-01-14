@@ -1,7 +1,7 @@
 import { BreadcrumbStructuredData, SEOHead } from '@/components/seo';
 import { QuickViewModal } from '@/components/shop';
 import { ShopLayout } from '@/layouts/ShopLayout';
-import { SharedData, SiteSettings } from '@/types';
+import { SharedData } from '@/types';
 import {
     ApiCategory,
     ApiProduct,
@@ -62,7 +62,8 @@ export default function ProductsIndex({
         'Current Category:',
         currentCategory,
     );
-    const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
+    const { siteSettings, featuredCategories: sharedCategories } =
+        usePage<SharedData>().props;
     const siteName = siteSettings?.site_name || 'Latif Living';
     const safeFilters = Array.isArray(filters) ? {} : filters;
 
@@ -363,6 +364,7 @@ export default function ProductsIndex({
                     isOpen={showFilters}
                     onClose={() => setShowFilters(false)}
                     categories={normalizedCategories}
+                    featuredCategories={sharedCategories}
                     selectedCategory={selectedCategory}
                     setSelectedCategory={setSelectedCategory}
                     priceRange={priceRange}
@@ -392,6 +394,7 @@ interface FilterDrawerProps {
     isOpen: boolean;
     onClose: () => void;
     categories: ApiCategory[];
+    featuredCategories?: ApiCategory[];
     selectedCategory: number | null;
     setSelectedCategory: (id: number | null) => void;
     priceRange: { min?: number; max?: number };
@@ -423,6 +426,7 @@ function FilterDrawer({
     isOpen,
     onClose,
     categories,
+    featuredCategories,
     selectedCategory,
     setSelectedCategory,
     priceRange,
@@ -473,6 +477,9 @@ function FilterDrawer({
 
     // Safety check for categories
     const safeCategories = Array.isArray(categories) ? categories : [];
+    const safeFeaturedCategories = Array.isArray(featuredCategories)
+        ? featuredCategories
+        : [];
 
     return createPortal(
         <>
@@ -529,34 +536,60 @@ function FilterDrawer({
                     </div>
 
                     {/* Categories */}
+                    {/* Categories */}
                     <div>
-                        <h3 className="mb-4 font-medium text-neutral-900">
-                            Kategori
-                        </h3>
-                        <div className="space-y-2">
-                            <button
-                                onClick={() => setSelectedCategory(null)}
-                                className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${!selectedCategory ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
-                            >
-                                Semua Kategori
-                            </button>
-                            {safeCategories.length > 0 ? (
-                                safeCategories.map((cat) => (
+                        {safeFeaturedCategories?.length > 0 && (
+                            <div className="mb-6">
+                                <h3 className="mb-4 font-medium text-neutral-900">
+                                    Kategori Unggulan
+                                </h3>
+                                <div className="space-y-2">
                                     <button
-                                        key={cat.id}
                                         onClick={() =>
-                                            setSelectedCategory(cat.id)
+                                            setSelectedCategory(null)
                                         }
-                                        className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                        className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${!selectedCategory ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
                                     >
-                                        {cat.name}
+                                        Semua Kategori
                                     </button>
-                                ))
-                            ) : (
-                                <p className="px-4 py-2 text-sm text-neutral-400">
-                                    Tidak ada kategori tersedia
-                                </p>
-                            )}
+                                    {safeFeaturedCategories.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() =>
+                                                setSelectedCategory(cat.id)
+                                            }
+                                            className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                        >
+                                            {cat.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <h3 className="mb-4 font-medium text-neutral-900">
+                                Semua Kategori
+                            </h3>
+                            <div className="space-y-2">
+                                {safeCategories.length > 0 ? (
+                                    safeCategories.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() =>
+                                                setSelectedCategory(cat.id)
+                                            }
+                                            className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                        >
+                                            {cat.name}
+                                        </button>
+                                    ))
+                                ) : (
+                                    <p className="px-4 py-2 text-sm text-neutral-400">
+                                        Tidak ada kategori tersedia
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
 

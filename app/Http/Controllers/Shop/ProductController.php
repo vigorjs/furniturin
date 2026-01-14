@@ -39,9 +39,7 @@ class ProductController extends Controller
             ->withQueryString();
 
         $categories = Category::where('is_active', true)
-            ->whereNull('parent_id')
-            ->with('children')
-            ->orderBy('sort_order')
+            ->orderBy('name')
             ->get();
 
         $currentCategory = null;

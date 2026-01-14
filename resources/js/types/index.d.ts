@@ -40,6 +40,7 @@ export interface SharedData {
     auth: Auth;
     sidebarOpen: boolean;
     siteSettings: SiteSettings;
+    featuredCategories: any[]; // Using any[] to avoid circular dependency or import issues for now, or import ApiCategory if easy
     [key: string]: unknown;
 }
 
