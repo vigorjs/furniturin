@@ -751,12 +751,13 @@ function RelatedProducts({ products }: { products: ApiProduct[] }) {
 
 // ==================== Customer Reviews ====================
 import { ProductReview } from '@/types/shop';
+import { useMemo } from 'react';
 
 interface CustomerReviewsProps {
     reviews: ProductReview[];
     averageRating: number;
     reviewCount: number;
-    ratingCountData?: Record<number, number>;
+    ratingCountData?: { star: number; count: number }[];
     productId: number;
     userReview?: ProductReview;
 }
@@ -771,11 +772,24 @@ function CustomerReviews({
 }: CustomerReviewsProps) {
     const totalReviews = reviewCount || reviews.length || 1;
 
-    // Use backend data if available, otherwise fallback to frontend calc (which might be incomplete due to pagination)
+    // Convert array of objects to map for easier lookup
+    const ratingMap = useMemo(() => {
+        if (!ratingCountData || !Array.isArray(ratingCountData)) return {};
+        return ratingCountData.reduce(
+            (acc, item) => {
+                acc[item.star] = item.count;
+                return acc;
+            },
+            {} as Record<number, number>,
+        );
+    }, [ratingCountData]);
+
     const ratingCounts = [5, 4, 3, 2, 1].map((rating) => {
-        const count = ratingCountData
-            ? ratingCountData[rating] || 0
-            : reviews.filter((r) => Math.round(r.rating) === rating).length;
+        const count = ratingMap[rating] || 0;
+        // Fallback checks internal reviews if map is empty (though backend should handle it)
+        // const count = ratingMap[rating] !== undefined
+        //     ? ratingMap[rating]
+        //     : reviews.filter((r) => Math.round(r.rating) === rating).length;
         return {
             rating,
             count,
@@ -878,15 +892,22 @@ function CustomerReviews({
                                         </div>
                                     </div>
                                 </div>
-                                <span className="text-sm text-neutral-400">
-                                    {new Date(
-                                        review.created_at,
-                                    ).toLocaleDateString('id-ID', {
-                                        day: 'numeric',
-                                        month: 'short',
-                                        year: 'numeric',
-                                    })}
-                                </span>
+                                <div className="flex flex-col items-end gap-1">
+                                    <span className="text-sm text-neutral-400">
+                                        {new Date(
+                                            review.created_at,
+                                        ).toLocaleDateString('id-ID', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            year: 'numeric',
+                                        })}
+                                    </span>
+                                    {!review.is_approved && (
+                                        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+                                            Menunggu Persetujuan
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             {review.title && (
                                 <p className="mb-1 font-medium text-neutral-900">

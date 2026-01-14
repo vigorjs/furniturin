@@ -39,6 +39,18 @@ class ProductReview extends Model
                 $admin->notify(new \App\Notifications\NewReviewNotification($review));
             }
         });
+
+        static::saved(function (ProductReview $review) {
+            $review->product->updateRatingStats();
+        });
+
+        static::deleted(function (ProductReview $review) {
+            $review->product->updateRatingStats();
+        });
+
+        static::restored(function (ProductReview $review) {
+            $review->product->updateRatingStats();
+        });
     }
 
     protected $fillable = [

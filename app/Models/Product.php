@@ -132,6 +132,10 @@ class Product extends Model implements HasMedia
         'discount_ends_at',
         'meta_title',
         'meta_description',
+        'view_count',
+        'sold_count',
+        'average_rating',
+        'review_count',
     ];
 
     protected function casts(): array
