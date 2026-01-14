@@ -45,19 +45,24 @@ const useDFlip = (
 ) => {
     const flipbookRef = useRef<any>(null);
 
-    // Load script with existence check
-    const loadScript = (src: string): Promise<void> => {
-        if (document.querySelector(`script[src="${src}"]`)) {
-            return Promise.resolve();
-        }
-
+    // Helper to wait for a global variable to be defined
+    const waitForGlobal = (key: string, timeout = 5000): Promise<void> => {
         return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = src;
-            script.async = true;
-            script.onload = () => resolve();
-            script.onerror = reject;
-            document.body.appendChild(script);
+            if (window[key as any]) {
+                resolve();
+                return;
+            }
+
+            const startTime = Date.now();
+            const interval = setInterval(() => {
+                if (window[key as any]) {
+                    clearInterval(interval);
+                    resolve();
+                } else if (Date.now() - startTime > timeout) {
+                    clearInterval(interval);
+                    reject(new Error(`Timeout waiting for ${key}`));
+                }
+            }, 50);
         });
     };
 
@@ -74,6 +79,46 @@ const useDFlip = (
         document.head.appendChild(link);
     };
 
+    // Load script and wait for specific global variable
+    const loadScript = (src: string, globalKey?: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            // If global key is provided and exists, we're good
+            if (globalKey && window[globalKey as any]) {
+                resolve();
+                return;
+            }
+
+            // Check if script is already in DOM
+            const existingScript = document.querySelector(
+                `script[src="${src}"]`,
+            );
+            if (existingScript) {
+                if (globalKey) {
+                    waitForGlobal(globalKey).then(resolve).catch(reject);
+                } else {
+                    resolve(); // Fallback if no global key tracked (unlikely for libs)
+                }
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+
+            script.onload = () => {
+                if (globalKey) {
+                    waitForGlobal(globalKey).then(resolve).catch(reject);
+                } else {
+                    resolve();
+                }
+            };
+
+            script.onerror = () =>
+                reject(new Error(`Failed to load script ${src}`));
+            document.body.appendChild(script);
+        });
+    };
+
     useEffect(() => {
         // Skip initialization if we've already done it for this container
         if (
@@ -86,6 +131,7 @@ const useDFlip = (
         const initFlipbook = async () => {
             try {
                 // First load the styles
+                // First load the styles
                 loadStyle('/dflip/css/dflip.min.css');
 
                 // Configure DFLIP to use its own PDF.js
@@ -96,21 +142,56 @@ const useDFlip = (
                     '/dflip/js/libs/pdf.min.js';
                 window.DFLIP.defaults.threejsSrc =
                     '/dflip/js/libs/three.min.js';
-                window.DFLIP.defaults.mockupjsSrc = '';
+                // Removed mockupjsSrc to prevent indexOf error
                 window.DFLIP.defaults.soundFile = '/dflip/sound/turn2.mp3';
                 window.DFLIP.defaults.imagesLocation = '/dflip/images/';
                 window.DFLIP.defaults.cMapUrl = '/dflip/js/libs/cmaps/';
 
-                // Then load the scripts in sequence
-                await loadScript('/dflip/js/libs/jquery.min.js');
-                if (!window.jQuery) {
-                    await new Promise((resolve) => setTimeout(resolve, 100));
+                // 1. Load jQuery
+                await loadScript('/dflip/js/libs/jquery.min.js', 'jQuery');
+
+                // 2. Load Three.js and wait strictly for it
+                await loadScript('/dflip/js/libs/three.min.js', 'THREE');
+                if (!window.THREE) {
+                    await new Promise<void>((resolve) => {
+                        const checkInterval = setInterval(() => {
+                            if (window.THREE) {
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 50);
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            resolve(); // Proceed anyway after timeout
+                        }, 2000);
+                    });
                 }
+
+                // 3. Load DFlip script
                 await loadScript('/dflip/js/dflip.min.js');
-                await new Promise((resolve) => setTimeout(resolve, 50));
+
+                // 4. Wait for the flipBook plugin to be properly registered on jQuery fn
+                if (window.jQuery && !window.jQuery.fn.flipBook) {
+                    await new Promise<void>((resolve) => {
+                        const checkInterval = setInterval(() => {
+                            if (window.jQuery.fn.flipBook) {
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 50);
+                        setTimeout(() => clearInterval(checkInterval), 5000);
+                    });
+                }
+
+                // 5. Artificial delay for internal state stabilization
+                await new Promise((resolve) => setTimeout(resolve, 500));
 
                 // Initialize dFlip with the container
-                if (containerRef.current && window.jQuery) {
+                if (
+                    containerRef.current &&
+                    window.jQuery &&
+                    window.jQuery.fn.flipBook
+                ) {
                     // Check again to make sure it wasn't initialized during the async operations
                     if (
                         containerRef.current.dataset.dflipInitialized === 'true'

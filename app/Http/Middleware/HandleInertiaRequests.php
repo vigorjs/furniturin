@@ -42,6 +42,25 @@ class HandleInertiaRequests extends Middleware
 
         $user = $request->user();
 
+        // Fetch featured categories for global navbar
+        // Cache to avoid query on every page load
+        $featuredCategories = Cache::remember('featured_categories_navbar', 3600, function () {
+            return \App\Models\Category::query()
+                ->active()
+                ->root() // Only top level
+                ->with(['children' => function ($query) {
+                    $query->active()->orderBy('sort_order');
+                }])
+                ->orderBy('sort_order')
+                ->limit(11) // Limit logic updated to match shop page
+                ->get()
+                ->map(function ($category) {
+                     // Ensure image_url is appended or available
+                     $category->image_url = $category->image_url;
+                     return $category;
+                });
+        });
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -55,6 +74,7 @@ class HandleInertiaRequests extends Middleware
             'wishlistCount' => $user ? $user->wishlists()->count() : 0,
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'siteSettings' => fn() => $this->getSiteSettings(),
+            'featuredCategories' => $featuredCategories,
         ];
     }
 

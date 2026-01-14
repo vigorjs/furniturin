@@ -78,7 +78,7 @@ class HomeController extends Controller
 
         return Inertia::render('Shop/Home', [
             'featuredProducts' => ProductResource::collection($featuredProducts),
-            'featuredCategories' => CategoryResource::collection($featuredCategories),
+            'landingCategories' => CategoryResource::collection($featuredCategories),
             'testimonials' => $testimonials,
             'heroSettings' => $heroSettings,
             'trustLogos' => $trustLogos,

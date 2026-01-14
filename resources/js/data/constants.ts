@@ -120,6 +120,8 @@ export const TESTIMONIALS = [
 
 // Navigation menu items
 export const NAV_ITEMS = [
+    { label: 'Home', href: '/shop' },
+    { label: 'Katalog', href: '/shop/catalogs' },
     { label: 'Koleksi', href: '/shop/products' },
     { label: 'Kategori', href: '/shop/categories' },
     { label: 'Hot Sale', href: '/shop/hot-sale' },

@@ -217,7 +217,7 @@ export default function ProductsIndex({
             />
             <BreadcrumbStructuredData items={breadcrumbItems} />
             <div className="bg-noise" />
-            <ShopLayout featuredCategories={normalizedCategories}>
+            <ShopLayout>
                 <main className="min-h-screen bg-white pt-8 pb-20">
                     <div className="mx-auto max-w-[1400px] px-6 md:px-12">
                         {/* Breadcrumb */}

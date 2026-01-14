@@ -353,7 +353,7 @@ class Product extends Model implements HasMedia
             return false;
         }
 
-        return true;
+        return $this->sale_type->hasDiscount();
     }
 
     public function isInStock(): bool

@@ -51,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [hoveredCategory, setHoveredCategory] = useState<number | null>(null);
     const userMenuRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -281,18 +282,206 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Featured Categories Bar - Pottery Barn Style */}
             {featuredCategories.length > 0 && (
-                <div className="hidden border-b border-neutral-100 bg-white sm:block">
-                    <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-6 overflow-x-auto px-6 py-2.5 md:gap-10 md:px-12">
+                <div
+                    className="relative hidden border-b border-neutral-100 bg-white sm:block"
+                    onMouseLeave={() => setHoveredCategory(null)}
+                >
+                    <div className="relative z-40 mx-auto flex max-w-[1400px] items-center justify-center gap-6 px-6 md:gap-10 md:px-12">
                         {featuredCategories.map((category) => (
-                            <Link
+                            <div
                                 key={category.id}
-                                href={`/shop/products?filter[category_id]=${category.id}`}
-                                className="text-xs font-medium tracking-wide whitespace-nowrap text-neutral-600 uppercase transition-colors hover:text-teal-500"
+                                onMouseEnter={() =>
+                                    setHoveredCategory(category.id)
+                                }
+                                className="py-2.5"
                             >
-                                {category.name}
-                            </Link>
+                                <Link
+                                    href={`/shop/products?filter[category_id]=${category.id}`}
+                                    className={`text-xs font-medium tracking-wide whitespace-nowrap uppercase transition-colors ${
+                                        hoveredCategory === category.id
+                                            ? 'text-teal-600'
+                                            : 'text-neutral-600 hover:text-teal-500'
+                                    }`}
+                                >
+                                    {category.name}
+                                </Link>
+                            </div>
                         ))}
                     </div>
+
+                    {/* Mega Menu Dropdown */}
+                    <AnimatePresence>
+                        {hoveredCategory && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -5 }}
+                                transition={{ duration: 0.2 }}
+                                className="absolute top-full left-0 z-30 w-full border-b border-neutral-100 bg-white shadow-lg"
+                            >
+                                <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-8 px-6 py-8 md:px-12">
+                                    {/* Columns of subcategories */}
+                                    {(() => {
+                                        const activeCategory =
+                                            featuredCategories.find(
+                                                (c) => c.id === hoveredCategory,
+                                            );
+                                        const children =
+                                            activeCategory?.children || [];
+
+                                        // Split children into 2 columns max for the middle section (leaving space for Featured & Image)
+                                        // If many children, we can go up to 3, but let's stick to 2 for balance if we add "Featured" column.
+                                        const itemsPerCol = Math.ceil(
+                                            Math.max(children.length, 1) / 2,
+                                        );
+                                        const columns = [];
+                                        if (children.length > 0) {
+                                            for (
+                                                let i = 0;
+                                                i < children.length;
+                                                i += itemsPerCol
+                                            ) {
+                                                columns.push(
+                                                    children.slice(
+                                                        i,
+                                                        i + itemsPerCol,
+                                                    ),
+                                                );
+                                            }
+                                        } else {
+                                            // Empty state placeholder if no children
+                                            columns.push([]);
+                                        }
+
+                                        return (
+                                            <>
+                                                {/* Column 1: Static Featured Links (To make it less "sepi") */}
+                                                <div className="col-span-1 space-y-4 border-r border-neutral-100 pr-6">
+                                                    <h4 className="font-serif text-sm font-bold text-neutral-900">
+                                                        Featured
+                                                    </h4>
+                                                    <div className="space-y-3">
+                                                        <Link
+                                                            href="/shop/products?sort=-created_at"
+                                                            className="block text-sm text-neutral-600 transition-all hover:translate-x-1 hover:text-teal-600"
+                                                        >
+                                                            New Arrivals
+                                                        </Link>
+                                                        <Link
+                                                            href="/shop/hot-sale"
+                                                            className="block text-sm text-neutral-600 transition-all hover:translate-x-1 hover:text-teal-600"
+                                                        >
+                                                            Best Sellers
+                                                        </Link>
+                                                        <Link
+                                                            href="/shop/clearance"
+                                                            className="block text-sm text-red-600 transition-all hover:translate-x-1 hover:text-red-700"
+                                                        >
+                                                            Sale & Clearance
+                                                        </Link>
+                                                    </div>
+                                                </div>
+
+                                                {/* Columns: Dynamic Subcategories */}
+                                                {children.length > 0 ? (
+                                                    columns.map((col, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            className="col-span-1 space-y-4"
+                                                        >
+                                                            {idx === 0 && (
+                                                                <h4 className="font-serif text-sm font-bold text-neutral-900">
+                                                                    Shop
+                                                                    Category
+                                                                </h4>
+                                                            )}
+                                                            {/* Spacer for second column alignment if needed, or just list */}
+                                                            <div
+                                                                className={
+                                                                    idx === 0
+                                                                        ? 'space-y-3'
+                                                                        : 'space-y-3 pt-9'
+                                                                }
+                                                            >
+                                                                {col.map(
+                                                                    (child) => (
+                                                                        <Link
+                                                                            key={
+                                                                                child.id
+                                                                            }
+                                                                            href={`/shop/products?filter[category_id]=${child.id}`}
+                                                                            className="block text-sm text-neutral-600 transition-all hover:translate-x-1 hover:text-teal-600"
+                                                                        >
+                                                                            {
+                                                                                child.name
+                                                                            }
+                                                                        </Link>
+                                                                    ),
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    // Empty children fallback
+                                                    <div className="col-span-2 flex items-center justify-center text-sm text-neutral-400 italic">
+                                                        No subcategories found.
+                                                    </div>
+                                                )}
+
+                                                {/* Column 4: Image / Promotion */}
+                                                <div className="col-span-1 border-l border-neutral-100 pl-6">
+                                                    {activeCategory?.image_url ? (
+                                                        <Link
+                                                            href={`/shop/products?filter[category_id]=${activeCategory.id}`}
+                                                            className="group block h-full w-full overflow-hidden rounded-sm"
+                                                        >
+                                                            <img
+                                                                src={
+                                                                    activeCategory.image_url
+                                                                }
+                                                                alt={
+                                                                    activeCategory.name
+                                                                }
+                                                                className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                            />
+                                                            <div className="mt-3">
+                                                                <p className="font-medium text-neutral-900">
+                                                                    Shop{' '}
+                                                                    {
+                                                                        activeCategory.name
+                                                                    }
+                                                                </p>
+                                                                <p className="text-xs text-neutral-500">
+                                                                    Lihat
+                                                                    Koleksi
+                                                                    Lengkap
+                                                                </p>
+                                                            </div>
+                                                        </Link>
+                                                    ) : (
+                                                        <div className="flex h-full flex-col justify-end rounded-sm bg-neutral-50 p-6">
+                                                            <h4 className="font-serif text-lg text-neutral-900">
+                                                                {
+                                                                    activeCategory?.name
+                                                                }
+                                                            </h4>
+                                                            <Link
+                                                                href={`/shop/products?filter[category_id]=${activeCategory?.id}`}
+                                                                className="mt-2 text-sm font-medium text-teal-600 hover:text-teal-700"
+                                                            >
+                                                                Belanja Sekarang{' '}
+                                                                &rarr;
+                                                            </Link>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             )}
 

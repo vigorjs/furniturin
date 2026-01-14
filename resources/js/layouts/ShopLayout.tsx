@@ -57,9 +57,14 @@ export function ShopLayout({
     bannerVisible = false,
     featuredCategories = [],
 }: ShopLayoutProps) {
-    const { cart, siteSettings } = usePage<{
+    const {
+        cart,
+        siteSettings,
+        featuredCategories: sharedCategories,
+    } = usePage<{
         cart: SharedCart;
         siteSettings: SiteSettings;
+        featuredCategories: ApiCategory[];
     }>().props;
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [updatingItem, setUpdatingItem] = useState<number | null>(null);
@@ -126,7 +131,11 @@ export function ShopLayout({
                 onCartClick={() => setIsCartOpen(true)}
                 onLogoClick={() => router.visit('/shop')}
                 bannerVisible={bannerVisible}
-                featuredCategories={featuredCategories}
+                featuredCategories={
+                    featuredCategories.length > 0
+                        ? featuredCategories
+                        : sharedCategories
+                }
             />
 
             {children}

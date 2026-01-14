@@ -68,17 +68,39 @@ class ProductController extends Controller
             'reviews' => fn ($query) => $query->approved()->with('user')->latest()->limit(10),
         ]);
 
-        // Get related products
+        // Get related products logic:
+        // 1. Same category
+        // 2. Siblings (same parent)
+        // 3. Children (if current category is a parent)
+        $relatedCategoryIds = Category::where('id', $product->category_id)
+            ->orWhere('parent_id', $product->category_id) // Children
+            ->orWhere(function ($query) use ($product) {
+                // Siblings: Same parent_id (if parent_id is not null)
+                if ($product->category->parent_id) {
+                    $query->where('parent_id', $product->category->parent_id);
+                }
+            })
+            ->pluck('id');
+
         $relatedProducts = Product::active()
-            ->where('category_id', $product->category_id)
+            ->whereIn('category_id', $relatedCategoryIds)
             ->where('id', '!=', $product->id)
             ->with(['images', 'category'])
             ->limit(4)
             ->get();
 
+        // Check if user has reviewed
+        $userReview = null;
+        if (auth()->check()) {
+            $userReview = $product->reviews()
+                ->where('user_id', auth()->id())
+                ->first();
+        }
+
         return Inertia::render('Shop/Products/Show', [
             'product' => (new ProductResource($product))->resolve(),
             'relatedProducts' => ProductResource::collection($relatedProducts)->resolve(),
+            'userReview' => $userReview,
         ]);
     }
 

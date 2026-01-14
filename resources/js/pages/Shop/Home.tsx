@@ -14,13 +14,13 @@ import { useState } from 'react';
 
 export default function Home({
     featuredProducts,
-    featuredCategories,
+    landingCategories,
     testimonials,
     heroSettings,
     trustLogos,
     values,
     pageSiteSettings,
-}: HomePageProps) {
+}: HomePageProps & { landingCategories: any }) {
     const [bannerVisible, setBannerVisible] = useState(false);
     // Get shared siteSettings with contact info
     const { siteSettings } = usePage<{ siteSettings: SiteSettings }>().props;
@@ -117,12 +117,11 @@ export default function Home({
                 showWhatsApp={true}
                 whatsAppMessage={`Halo, saya tertarik dengan produk di ${siteSettings?.site_name || pageSiteSettings.name}`}
                 bannerVisible={bannerVisible}
-                featuredCategories={featuredCategories.data}
             >
                 <main className="min-h-screen bg-white">
                     <LandingView
                         featuredProducts={featuredProducts.data}
-                        featuredCategories={featuredCategories.data}
+                        featuredCategories={landingCategories.data}
                         testimonials={testimonials}
                         heroSettings={heroSettings}
                         trustLogos={trustLogos}

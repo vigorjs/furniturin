@@ -342,6 +342,22 @@ export default function CreateProduct({
                                     placeholder="0"
                                     min="0"
                                     max="100"
+                                    disabled={
+                                        ![
+                                            'clearance',
+                                            'stock_sale',
+                                            'hot_sale',
+                                        ].includes(data.sale_type)
+                                    }
+                                    title={
+                                        ![
+                                            'clearance',
+                                            'stock_sale',
+                                            'hot_sale',
+                                        ].includes(data.sale_type)
+                                            ? 'Aktifkan diskon di bagian Status & Tipe Penjualan'
+                                            : ''
+                                    }
                                 />
                             </div>
                             <div>
@@ -417,6 +433,38 @@ export default function CreateProduct({
                                 />
                                 <span className="text-terra-700">
                                     Produk Unggulan
+                                </span>
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-3 self-end pb-3">
+                                <input
+                                    type="checkbox"
+                                    checked={[
+                                        'clearance',
+                                        'stock_sale',
+                                        'hot_sale',
+                                    ].includes(data.sale_type)}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            if (
+                                                ![
+                                                    'clearance',
+                                                    'stock_sale',
+                                                    'hot_sale',
+                                                ].includes(data.sale_type)
+                                            ) {
+                                                setData(
+                                                    'sale_type',
+                                                    'stock_sale',
+                                                );
+                                            }
+                                        } else {
+                                            setData('sale_type', 'regular');
+                                        }
+                                    }}
+                                    className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
+                                />
+                                <span className="text-terra-700">
+                                    Aktifkan Diskon
                                 </span>
                             </label>
                         </div>

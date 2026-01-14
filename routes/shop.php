@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('shop')->name('shop.')->middleware('share.cart')->group(function () {
     // Homepage - Landing page with products
     Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/catalogs', fn() => \Inertia\Inertia::render('Shop/Catalog'))->name('catalogs');
 
     // Products
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -63,7 +64,12 @@ Route::prefix('shop')->name('shop.')->middleware('share.cart')->group(function (
     Route::get('/return-policy', fn() => \Inertia\Inertia::render('Shop/ReturnPolicy'))->name('returns');
 
     // Compare Products
+    // Compare Products
     Route::get('/compare', [ProductController::class, 'compare'])->name('products.compare');
+
+    // Reviews
+    Route::post('/products/{product}/reviews', [\App\Http\Controllers\Shop\ReviewController::class, 'store'])->name('products.reviews.store');
+    Route::put('/products/{product}/reviews', [\App\Http\Controllers\Shop\ReviewController::class, 'update'])->name('products.reviews.update');
 
     // Newsletter
     Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');

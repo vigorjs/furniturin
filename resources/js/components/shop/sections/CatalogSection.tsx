@@ -65,6 +65,24 @@ const CATALOGS = [
         file: '/assets/pdf/SOFA & BENCH.pdf',
         thumbnail: '/assets/pdf/thumbnails/SOFA & BENCH.png',
     },
+    {
+        id: 'accessories',
+        name: 'Accessories',
+        file: '/assets/pdf/ACCESSORIES.pdf',
+        thumbnail: '/assets/pdf/thumbnails/ACCESSORIES.png',
+    },
+    {
+        id: 'bookshelf',
+        name: 'Bookshelf',
+        file: '/assets/pdf/BOOKSHELF.pdf',
+        thumbnail: '/assets/pdf/thumbnails/BOOKSHELF.png',
+    },
+    {
+        id: 'dresser-wardrobe',
+        name: 'Dresser & Wardrobe',
+        file: '/assets/pdf/DRESSER & WARDROBE.pdf',
+        thumbnail: '/assets/pdf/thumbnails/DRESSER & WARDROBE.png',
+    },
 ];
 
 // Animation variants
@@ -89,9 +107,11 @@ const itemVariants = {
 const CatalogCard = ({
     catalog,
     onClick,
+    className,
 }: {
     catalog: (typeof CATALOGS)[0];
     onClick: () => void;
+    className?: string;
 }) => {
     const [isLoading, setIsLoading] = useState(true);
 
@@ -99,7 +119,7 @@ const CatalogCard = ({
         <motion.div
             variants={itemVariants}
             onClick={onClick}
-            className="group cursor-pointer"
+            className={`group cursor-pointer ${className || ''}`}
         >
             <div
                 className="relative overflow-hidden border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl"
@@ -186,14 +206,16 @@ const FlipbookModal = ({
     );
 };
 
-export const CatalogSection: React.FC = () => {
+export const CatalogSection: React.FC<{ className?: string }> = ({
+    className = 'py-20 md:py-28',
+}) => {
     const [selectedCatalog, setSelectedCatalog] = useState<
         (typeof CATALOGS)[0] | null
     >(null);
 
     return (
         <>
-            <section className="bg-neutral-50 py-20 md:py-28">
+            <section className={`bg-neutral-50 ${className}`}>
                 <div className="mx-auto max-w-[1400px] px-6 md:px-12">
                     {/* Section Header */}
                     <motion.div
@@ -221,13 +243,14 @@ export const CatalogSection: React.FC = () => {
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: '-50px' }}
-                        className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-5"
+                        className="grid grid-cols-2 items-center gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-5"
                     >
-                        {CATALOGS.map((catalog) => (
+                        {CATALOGS.map((catalog, index) => (
                             <CatalogCard
                                 key={catalog.id}
                                 catalog={catalog}
                                 onClick={() => setSelectedCatalog(catalog)}
+                                className={` ${index === 10 ? 'lg:col-start-2' : ''} ${index === 12 ? 'md:col-start-2 lg:col-start-auto' : ''} `}
                             />
                         ))}
                     </motion.div>

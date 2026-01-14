@@ -34,7 +34,7 @@ class ProductReview extends Model
     {
         static::created(function (ProductReview $review) {
             // Notify all admin users about new review
-            $admins = User::role('Administrator')->get();
+            $admins = User::role('admin')->get();
             foreach ($admins as $admin) {
                 $admin->notify(new \App\Notifications\NewReviewNotification($review));
             }
