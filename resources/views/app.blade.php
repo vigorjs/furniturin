@@ -6,18 +6,18 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         {{-- Default SEO Meta Tags --}}
-        <meta name="author" content="Latif Living">
-        <meta name="theme-color" content="#5D4A3B">
-        <meta name="msapplication-TileColor" content="#5D4A3B">
+        <meta name="author" content="Furniturin">
+        <meta name="theme-color" content="#0d9488">
+        <meta name="msapplication-TileColor" content="#0d9488">
 
         {{-- Default Open Graph --}}
         <meta property="og:type" content="website">
-        <meta property="og:site_name" content="Latif Living">
+        <meta property="og:site_name" content="Furniturin">
         <meta property="og:locale" content="id_ID">
 
         {{-- Default Twitter Card --}}
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:site" content="@latifliving">
+        <meta name="twitter:site" content="@furniturin">
 
         {{-- Geo Tags for Local SEO --}}
         <meta name="geo.region" content="ID">
@@ -53,10 +53,9 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Latif Living') }}</title>
+        <title inertia>{{ config('app.name', 'Furniturin') }}</title>
 
         {{-- Favicon --}}
-        <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
         <link rel="manifest" href="/site.webmanifest">
