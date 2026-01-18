@@ -36,6 +36,7 @@ import { useEffect, useState } from 'react';
 
 interface AdminHeaderProps {
     breadcrumbs?: BreadcrumbItem[];
+    onMobileMenuClick?: () => void;
 }
 
 interface SearchResults {
@@ -44,10 +45,12 @@ interface SearchResults {
     orders: Array<{ id: number; order_number: string; status: string }>;
 }
 
-export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
+export default function AdminHeader({
+    breadcrumbs = [],
+    onMobileMenuClick,
+}: AdminHeaderProps) {
     const { auth } = usePage<SharedData>().props;
     const [showUserMenu, setShowUserMenu] = useState(false);
-    const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [openSearch, setOpenSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
@@ -155,12 +158,12 @@ export default function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
 
     return (
         <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">
-            <div className="flex h-16 items-center justify-between px-6">
+            <div className="flex h-16 items-center justify-between px-4 sm:px-6">
                 {/* Left side - Mobile menu + Breadcrumbs */}
                 <div className="flex items-center gap-4">
                     {/* Mobile menu button */}
                     <button
-                        onClick={() => setShowMobileMenu(!showMobileMenu)}
+                        onClick={onMobileMenuClick}
                         className="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-50 lg:hidden"
                     >
                         <Menu className="h-5 w-5" />

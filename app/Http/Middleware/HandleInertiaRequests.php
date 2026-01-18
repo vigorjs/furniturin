@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\PromoBanner;
 use App\Models\Setting;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -61,6 +62,25 @@ class HandleInertiaRequests extends Middleware
                 });
         });
 
+        // Fetch active promo banners for shop frontend
+        $activePromoBanners = Cache::remember('active_promo_banners', 300, function () {
+            return PromoBanner::active()
+                ->ordered()
+                ->get()
+                ->map(function ($banner) {
+                    return [
+                        'id' => $banner->id,
+                        'title' => $banner->title,
+                        'description' => $banner->description,
+                        'cta_text' => $banner->cta_text,
+                        'cta_link' => $banner->cta_link,
+                        'icon' => $banner->icon,
+                        'bg_gradient' => $banner->bg_gradient,
+                        'display_type' => $banner->display_type,
+                    ];
+                });
+        });
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -75,6 +95,7 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'siteSettings' => fn() => $this->getSiteSettings(),
             'featuredCategories' => $featuredCategories,
+            'activePromoBanners' => $activePromoBanners,
         ];
     }
 

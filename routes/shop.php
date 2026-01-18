@@ -44,7 +44,9 @@ Route::prefix('shop')->name('shop.')->middleware('share.cart')->group(function (
             'categories' => \App\Http\Resources\CategoryResource::collection($categories),
         ]);
     })->name('categories.index');
-    Route::get('/category/{category:slug}', [ProductController::class, 'byCategory'])->name('products.category');
+    Route::get('/category/{category:slug}', function (\App\Models\Category $category) {
+        return redirect()->to('/shop/products?filter[category]=' . $category->slug);
+    })->name('products.category');
 
     // Sale Pages
     Route::get('/hot-sale', [ProductController::class, 'hotSale'])->name('products.hot-sale');

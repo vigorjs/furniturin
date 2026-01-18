@@ -188,8 +188,8 @@ export default function ProductShow({
                       name: product.category.name,
                       url:
                           typeof window !== 'undefined'
-                              ? `${window.location.origin}/shop/category/${product.category.slug}`
-                              : `/shop/category/${product.category.slug}`,
+                              ? `${window.location.origin}/shop/products?filter[category]=${product.category.slug}`
+                              : `/shop/products?filter[category]=${product.category.slug}`,
                   },
               ]
             : []),
@@ -344,7 +344,7 @@ function Breadcrumb({ product }: { product: ApiProduct }) {
             {product.category && (
                 <>
                     <Link
-                        href={`/shop/category/${product.category.slug}`}
+                        href={`/shop/products?filter[category]=${product.category.slug}`}
                         className="hover:text-neutral-900"
                     >
                         {product.category.name}
@@ -496,7 +496,7 @@ function ProductInfo({
                     <>
                         <span className="text-neutral-300">|</span>
                         <Link
-                            href={`/shop/category/${product.category.slug}`}
+                            href={`/shop/products?filter[category]=${product.category.slug}`}
                             className="hover:text-neutral-900"
                         >
                             {product.category.name}

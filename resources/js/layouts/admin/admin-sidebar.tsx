@@ -4,6 +4,7 @@ import {
     ChevronLeft,
     FolderTree,
     LayoutDashboard,
+    Megaphone,
     Package,
     Settings,
     ShoppingCart,
@@ -11,6 +12,7 @@ import {
     Store,
     UserCog,
     Users,
+    X,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -71,6 +73,12 @@ const settingsNavItems: NavItem[] = [
         permission: 'manage roles',
     },
     {
+        title: 'Promo Banner',
+        href: '/admin/promo-banners',
+        icon: Megaphone,
+        permission: 'manage settings',
+    },
+    {
         title: 'Profil Saya',
         href: '/admin/profile',
         icon: Users,
@@ -87,11 +95,15 @@ const settingsNavItems: NavItem[] = [
 interface AdminSidebarProps {
     collapsed: boolean;
     setCollapsed: (collapsed: boolean) => void;
+    mobileOpen: boolean;
+    setMobileOpen: (open: boolean) => void;
 }
 
 export default function AdminSidebar({
     collapsed,
     setCollapsed,
+    mobileOpen,
+    setMobileOpen,
 }: AdminSidebarProps) {
     // Get current URL path
     const currentPath =
@@ -115,41 +127,42 @@ export default function AdminSidebar({
         return currentPath.startsWith(href);
     };
 
-    return (
-        <>
-            {/* Mobile overlay */}
-            <div className="fixed inset-0 z-40 hidden bg-black/50 lg:hidden" />
+    const handleNavClick = () => {
+        // Close mobile sidebar when navigating
+        setMobileOpen(false);
+    };
 
-            {/* Sidebar */}
-            <aside
-                className={cn(
-                    'fixed inset-y-0 left-0 z-50 flex flex-col bg-gradient-to-b from-teal-900 via-teal-800 to-teal-950 transition-all duration-300',
-                    collapsed ? 'w-20' : 'w-72',
-                    'hidden lg:flex',
-                )}
-            >
-                {/* Logo */}
-                <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-                    <Link href="/admin" className="flex items-center gap-3">
-                        <img
-                            src="/assets/images/logo.webp"
-                            alt={siteName}
-                            className={cn(
-                                'h-8 w-auto object-contain brightness-0 invert transition-all',
-                                collapsed && 'hidden h-10',
-                            )}
-                        />
-                        {!collapsed && (
-                            <span
-                                className={cn(
-                                    'text-lg font-semibold text-white',
-                                    collapsed && 'hidden',
-                                )}
-                            >
-                                Admin
-                            </span>
+    const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => (
+        <>
+            {/* Logo */}
+            <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+                <Link
+                    href="/admin"
+                    className="flex items-center gap-3"
+                    onClick={handleNavClick}
+                >
+                    <img
+                        src="/assets/images/logo.webp"
+                        alt={siteName}
+                        className={cn(
+                            'h-8 w-auto object-contain brightness-0 invert transition-all',
+                            !isMobile && collapsed && 'hidden h-10',
                         )}
-                    </Link>
+                    />
+                    {(isMobile || !collapsed) && (
+                        <span className="text-lg font-semibold text-white">
+                            Admin
+                        </span>
+                    )}
+                </Link>
+                {isMobile ? (
+                    <button
+                        onClick={() => setMobileOpen(false)}
+                        className="rounded-lg p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+                ) : (
                     <button
                         onClick={() => setCollapsed(!collapsed)}
                         className={cn(
@@ -164,92 +177,127 @@ export default function AdminSidebar({
                             )}
                         />
                     </button>
+                )}
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-4">
+                {/* Main Menu */}
+                <div className="space-y-1">
+                    {(isMobile || !collapsed) && (
+                        <p className="mb-2 px-3 text-xs font-medium tracking-wider text-white/40 uppercase">
+                            Menu Utama
+                        </p>
+                    )}
+                    {mainNavItems
+                        .filter((item) => hasPermission(item.permission))
+                        .map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={handleNavClick}
+                                className={cn(
+                                    'flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all',
+                                    !isMobile && collapsed
+                                        ? 'justify-center px-2'
+                                        : 'px-3',
+                                    isActive(item.href)
+                                        ? 'bg-white/15 text-white shadow-lg'
+                                        : 'text-white/70 hover:bg-white/10 hover:text-white',
+                                )}
+                            >
+                                <item.icon className="h-5 w-5 flex-shrink-0" />
+                                {(isMobile || !collapsed) && (
+                                    <span className="truncate">
+                                        {item.title}
+                                    </span>
+                                )}
+                            </Link>
+                        ))}
                 </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-4">
-                    {/* Main Menu */}
-                    <div className="space-y-1">
-                        {!collapsed && (
-                            <p className="mb-2 px-3 text-xs font-medium tracking-wider text-white/40 uppercase">
-                                Menu Utama
-                            </p>
-                        )}
-                        {mainNavItems
-                            .filter((item) => hasPermission(item.permission))
-                            .map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className={cn(
-                                        'flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all',
-                                        collapsed
-                                            ? 'justify-center px-2'
-                                            : 'px-3',
-                                        isActive(item.href)
-                                            ? 'bg-white/15 text-white shadow-lg'
-                                            : 'text-white/70 hover:bg-white/10 hover:text-white',
-                                    )}
-                                >
-                                    <item.icon className="h-5 w-5 flex-shrink-0" />
-                                    {!collapsed && (
-                                        <span className="truncate">
-                                            {item.title}
-                                        </span>
-                                    )}
-                                </Link>
-                            ))}
-                    </div>
-
-                    {/* Settings Menu */}
-                    <div className="mt-8 space-y-1">
-                        {!collapsed && (
-                            <p className="mb-2 px-3 text-xs font-medium tracking-wider text-white/40 uppercase">
-                                Pengaturan
-                            </p>
-                        )}
-                        {settingsNavItems
-                            .filter((item) => hasPermission(item.permission))
-                            .map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className={cn(
-                                        'flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all',
-                                        collapsed
-                                            ? 'justify-center px-2'
-                                            : 'px-3',
-                                        isActive(item.href)
-                                            ? 'bg-white/15 text-white shadow-lg'
-                                            : 'text-white/70 hover:bg-white/10 hover:text-white',
-                                    )}
-                                >
-                                    <item.icon className="h-5 w-5 flex-shrink-0" />
-                                    {!collapsed && (
-                                        <span className="truncate">
-                                            {item.title}
-                                        </span>
-                                    )}
-                                </Link>
-                            ))}
-                    </div>
-                </nav>
-
-                {/* Footer */}
-                <div className="border-t border-white/10 p-4">
-                    <Link
-                        href="/"
-                        className={cn(
-                            'flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white',
-                            collapsed ? 'justify-center px-2' : 'px-3',
-                        )}
-                    >
-                        <Store className="h-5 w-5 flex-shrink-0" />
-                        {!collapsed && (
-                            <span className="truncate">Lihat Toko</span>
-                        )}
-                    </Link>
+                {/* Settings Menu */}
+                <div className="mt-8 space-y-1">
+                    {(isMobile || !collapsed) && (
+                        <p className="mb-2 px-3 text-xs font-medium tracking-wider text-white/40 uppercase">
+                            Pengaturan
+                        </p>
+                    )}
+                    {settingsNavItems
+                        .filter((item) => hasPermission(item.permission))
+                        .map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={handleNavClick}
+                                className={cn(
+                                    'flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all',
+                                    !isMobile && collapsed
+                                        ? 'justify-center px-2'
+                                        : 'px-3',
+                                    isActive(item.href)
+                                        ? 'bg-white/15 text-white shadow-lg'
+                                        : 'text-white/70 hover:bg-white/10 hover:text-white',
+                                )}
+                            >
+                                <item.icon className="h-5 w-5 flex-shrink-0" />
+                                {(isMobile || !collapsed) && (
+                                    <span className="truncate">
+                                        {item.title}
+                                    </span>
+                                )}
+                            </Link>
+                        ))}
                 </div>
+            </nav>
+
+            {/* Footer */}
+            <div className="border-t border-white/10 p-4">
+                <Link
+                    href="/"
+                    onClick={handleNavClick}
+                    className={cn(
+                        'flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white',
+                        !isMobile && collapsed ? 'justify-center px-2' : 'px-3',
+                    )}
+                >
+                    <Store className="h-5 w-5 flex-shrink-0" />
+                    {(isMobile || !collapsed) && (
+                        <span className="truncate">Lihat Toko</span>
+                    )}
+                </Link>
+            </div>
+        </>
+    );
+
+    return (
+        <>
+            {/* Mobile overlay */}
+            {mobileOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+                    onClick={() => setMobileOpen(false)}
+                />
+            )}
+
+            {/* Mobile Sidebar */}
+            <aside
+                className={cn(
+                    'fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-gradient-to-b from-teal-900 via-teal-800 to-teal-950 transition-transform duration-300 lg:hidden',
+                    mobileOpen ? 'translate-x-0' : '-translate-x-full',
+                )}
+            >
+                <SidebarContent isMobile />
+            </aside>
+
+            {/* Desktop Sidebar */}
+            <aside
+                className={cn(
+                    'fixed inset-y-0 left-0 z-50 hidden flex-col bg-gradient-to-b from-teal-900 via-teal-800 to-teal-950 transition-all duration-300 lg:flex',
+                    collapsed ? 'w-20' : 'w-72',
+                )}
+            >
+                <SidebarContent />
             </aside>
         </>
     );

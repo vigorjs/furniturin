@@ -123,11 +123,10 @@ export default function CheckoutIndex({
                 <main className="min-h-screen bg-sand-50 pt-8 pb-20">
                     <div className="mx-auto max-w-7xl px-6 md:px-12">
                         <Link
-                            href="/shop/cart"
+                            href="/shop/products"
                             className="mb-6 inline-flex items-center gap-2 text-terra-600 hover:text-terra-900"
                         >
-                            <ArrowLeft className="h-4 w-4" /> Kembali ke
-                            Keranjang
+                            <ArrowLeft className="h-4 w-4" /> Lanjutkan Belanja
                         </Link>
 
                         <h1 className="mb-8 font-serif text-3xl text-terra-900">

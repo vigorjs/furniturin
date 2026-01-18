@@ -28,6 +28,16 @@ class ProductController extends Controller
                         ->pluck('id');
                     $query->whereIn('category_id', $categoryIds);
                 }),
+                // Filter by category slug for SEO-friendly URLs
+                AllowedFilter::callback('category', function ($query, $value) {
+                    $category = Category::where('slug', $value)->first();
+                    if ($category) {
+                        $categoryIds = Category::where('id', $category->id)
+                            ->orWhere('parent_id', $category->id)
+                            ->pluck('id');
+                        $query->whereIn('category_id', $categoryIds);
+                    }
+                }),
                 AllowedFilter::exact('sale_type'),
                 AllowedFilter::scope('price_min', 'priceMin'),
                 AllowedFilter::scope('price_max', 'priceMax'),
@@ -45,6 +55,8 @@ class ProductController extends Controller
         $currentCategory = null;
         if ($request->filled('filter.category_id')) {
             $currentCategory = Category::find($request->input('filter.category_id'));
+        } elseif ($request->filled('filter.category')) {
+            $currentCategory = Category::where('slug', $request->input('filter.category'))->first();
         }
 
         return Inertia::render('Shop/Products/Index', [

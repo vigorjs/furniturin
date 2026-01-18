@@ -79,37 +79,46 @@ export default function NotificationsIndex({ notifications }: Props) {
             <Head title="Notifikasi" />
 
             <div className="mb-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                {/* Header - Responsive */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex items-start gap-3">
                         <Link
                             href="/admin"
-                            className="rounded-lg p-2 text-terra-600 transition-colors hover:bg-terra-100"
+                            className="mt-1 rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100"
                         >
                             <ArrowLeft className="h-5 w-5" />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold text-terra-900">
+                            <h1 className="text-xl font-bold text-neutral-900 sm:text-2xl">
                                 Notifikasi
                             </h1>
-                            <p className="mt-1 text-terra-500">
+                            <p className="mt-1 text-sm text-neutral-500">
                                 Lihat dan kelola semua aktivitas toko Anda.
                             </p>
                         </div>
                     </div>
-                    <div className="flex gap-2">
+
+                    {/* Action Buttons - Stack on mobile */}
+                    <div className="flex gap-2 sm:flex-shrink-0">
                         <button
                             onClick={() => setShowClearDialog(true)}
-                            className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 font-medium text-red-600 transition-colors hover:bg-red-50"
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 sm:flex-none sm:px-4 sm:py-2.5"
                         >
                             <Trash2 className="h-4 w-4" />
-                            Hapus Semua
+                            <span className="hidden sm:inline">
+                                Hapus Semua
+                            </span>
+                            <span className="sm:hidden">Hapus</span>
                         </button>
                         <button
                             onClick={markAllRead}
-                            className="inline-flex items-center gap-2 rounded-xl border border-terra-200 px-4 py-2.5 font-medium text-terra-700 transition-colors hover:bg-terra-50"
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 sm:flex-none sm:px-4 sm:py-2.5"
                         >
                             <Check className="h-4 w-4" />
-                            Tandai Semua Dibaca
+                            <span className="hidden sm:inline">
+                                Tandai Semua Dibaca
+                            </span>
+                            <span className="sm:hidden">Dibaca</span>
                         </button>
                     </div>
                 </div>
@@ -125,28 +134,28 @@ export default function NotificationsIndex({ notifications }: Props) {
                             notifications.data.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`flex gap-4 p-4 transition-colors hover:bg-sand-50 ${!notification.read_at ? 'bg-blue-50/50' : ''}`}
+                                    className={`flex gap-3 p-3 transition-colors hover:bg-sand-50 sm:gap-4 sm:p-4 ${!notification.read_at ? 'bg-blue-50/50' : ''}`}
                                 >
                                     <div
-                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${!notification.read_at ? 'bg-white shadow-sm' : 'bg-sand-100'}`}
+                                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-10 sm:w-10 ${!notification.read_at ? 'bg-white shadow-sm' : 'bg-sand-100'}`}
                                     >
                                         {getIcon(notification.type)}
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between">
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                             <p
-                                                className={`text-sm font-medium ${!notification.read_at ? 'text-terra-900' : 'text-terra-600'}`}
+                                                className={`text-sm font-medium ${!notification.read_at ? 'text-neutral-900' : 'text-neutral-600'}`}
                                             >
                                                 {notification.data.title ||
                                                     'Notifikasi Baru'}
                                             </p>
-                                            <span className="text-xs text-terra-400">
+                                            <span className="text-xs text-neutral-400">
                                                 {new Date(
                                                     notification.created_at,
                                                 ).toLocaleString('id-ID')}
                                             </span>
                                         </div>
-                                        <p className="mt-1 text-sm text-muted-foreground text-terra-500">
+                                        <p className="mt-1 line-clamp-2 text-sm text-neutral-500">
                                             {notification.data.message ||
                                                 'Anda memiliki notifikasi baru.'}
                                         </p>
@@ -164,7 +173,7 @@ export default function NotificationsIndex({ notifications }: Props) {
                                 </div>
                             ))
                         ) : (
-                            <div className="p-8 text-center text-terra-400">
+                            <div className="p-8 text-center text-neutral-400">
                                 Tidak ada notifikasi saat ini.
                             </div>
                         )}
@@ -179,10 +188,10 @@ export default function NotificationsIndex({ notifications }: Props) {
                                     href={link.url || '#'}
                                     className={`rounded-md px-3 py-1 text-sm transition-colors ${
                                         link.active
-                                            ? 'bg-terra-600 text-white'
+                                            ? 'bg-teal-600 text-white'
                                             : !link.url
-                                              ? 'pointer-events-none text-terra-300'
-                                              : 'text-terra-600 hover:bg-sand-100'
+                                              ? 'pointer-events-none text-neutral-300'
+                                              : 'text-neutral-600 hover:bg-neutral-100'
                                     }`}
                                     dangerouslySetInnerHTML={{
                                         __html: link.label,
@@ -213,7 +222,7 @@ export default function NotificationsIndex({ notifications }: Props) {
                         <DialogClose asChild>
                             <button
                                 type="button"
-                                className="flex-1 rounded-xl border border-terra-200 px-4 py-2.5 font-medium text-terra-700 transition-colors hover:bg-terra-50 sm:flex-none"
+                                className="flex-1 rounded-xl border border-neutral-200 px-4 py-2.5 font-medium text-neutral-700 transition-colors hover:bg-neutral-50 sm:flex-none"
                             >
                                 Batal
                             </button>

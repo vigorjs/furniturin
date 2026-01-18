@@ -81,7 +81,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
                     {displayCategories.map((category, index) => (
                         <motion.div key={category.id} variants={itemVariants}>
                             <Link
-                                href={`/shop/category/${category.slug}`}
+                                href={`/shop/products?filter[category]=${category.slug}`}
                                 className="group relative block cursor-pointer overflow-hidden rounded-sm"
                             >
                                 {/* Image */}

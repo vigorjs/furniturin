@@ -1,7 +1,7 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Gift, Percent, Truck, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface PromoBannerProps {
     type?: 'banner' | 'popup';
@@ -11,45 +11,15 @@ interface PromoBannerProps {
 }
 
 interface PromoData {
-    id: string;
+    id: number;
     title: string;
-    description: string;
-    ctaText: string;
-    ctaLink: string;
+    description: string | null;
+    cta_text: string;
+    cta_link: string;
     icon: 'gift' | 'percent' | 'truck';
-    bgColor: string;
+    bg_gradient: string;
+    display_type: 'banner' | 'popup' | 'both';
 }
-
-// Sample promo data - in production this would come from API/CMS
-const PROMOS: PromoData[] = [
-    {
-        id: 'flash-sale',
-        title: 'Flash Sale! 🔥',
-        description: 'Diskon hingga 70% untuk produk pilihan',
-        ctaText: 'Lihat Sekarang',
-        ctaLink: '/shop/hot-sale',
-        icon: 'percent',
-        bgColor: 'from-terra-800 to-wood-dark',
-    },
-    {
-        id: 'free-shipping',
-        title: 'Gratis Ongkir! 🚚',
-        description: 'Untuk pembelian minimal Rp 500.000',
-        ctaText: 'Belanja Sekarang',
-        ctaLink: '/shop/products',
-        icon: 'truck',
-        bgColor: 'from-terra-700 to-terra-900',
-    },
-    {
-        id: 'new-member',
-        title: 'Member Baru! 🎁',
-        description: 'Dapatkan voucher Rp 100.000 untuk pembelian pertama',
-        ctaText: 'Daftar Sekarang',
-        ctaLink: '/register',
-        icon: 'gift',
-        bgColor: 'from-wood to-wood-dark',
-    },
-];
 
 const IconMap = {
     gift: Gift,
@@ -57,11 +27,9 @@ const IconMap = {
     truck: Truck,
 };
 
-function getRandomPromo(): PromoData {
-    return PROMOS[Math.floor(Math.random() * PROMOS.length)];
-}
-
 function shouldShowPromo(storageKey: string): boolean {
+    if (typeof window === 'undefined') return true;
+
     const dismissed = localStorage.getItem(storageKey);
     if (dismissed) {
         const dismissedTime = parseInt(dismissed, 10);
@@ -79,33 +47,74 @@ export function PromoBanner({
     delayPopup = 3000,
     onVisibilityChange,
 }: PromoBannerProps) {
-    const [currentPromo] = useState<PromoData>(() => getRandomPromo());
-    const [isVisible, setIsVisible] = useState(
-        () => type === 'banner' && shouldShowPromo(storageKey),
-    );
+    // Get active promo banners from shared Inertia data
+    const { activePromoBanners } = usePage<{
+        activePromoBanners: PromoData[];
+    }>().props;
 
+    // Filter promos by display type
+    const currentPromo = useMemo(() => {
+        const promos = activePromoBanners || [];
+        const filtered = promos.filter((promo) => {
+            if (type === 'banner') {
+                return (
+                    promo.display_type === 'banner' ||
+                    promo.display_type === 'both'
+                );
+            }
+            if (type === 'popup') {
+                return (
+                    promo.display_type === 'popup' ||
+                    promo.display_type === 'both'
+                );
+            }
+            return true;
+        });
+        return filtered[0] || null;
+    }, [activePromoBanners, type]);
+
+    const [isVisible, setIsVisible] = useState(false);
+
+    // Initialize visibility on client side only
     useEffect(() => {
-        if (!shouldShowPromo(storageKey)) return;
+        if (!currentPromo) {
+            setIsVisible(false);
+            return;
+        }
 
-        if (type === 'popup') {
+        if (!shouldShowPromo(storageKey)) {
+            setIsVisible(false);
+            return;
+        }
+
+        if (type === 'banner') {
+            setIsVisible(true);
+        } else if (type === 'popup') {
             const timer = setTimeout(() => setIsVisible(true), delayPopup);
             return () => clearTimeout(timer);
         }
-    }, [type, storageKey, delayPopup]);
+    }, [type, storageKey, delayPopup, currentPromo]);
 
     // Notify parent about visibility changes (for banner type only)
     useEffect(() => {
         if (type === 'banner' && onVisibilityChange) {
-            onVisibilityChange(isVisible);
+            onVisibilityChange(isVisible && !!currentPromo);
         }
-    }, [isVisible, type, onVisibilityChange]);
+    }, [isVisible, type, onVisibilityChange, currentPromo]);
 
     const handleDismiss = () => {
         setIsVisible(false);
-        localStorage.setItem(storageKey, Date.now().toString());
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(storageKey, Date.now().toString());
+        }
     };
 
-    const Icon = IconMap[currentPromo.icon];
+    // Don't render if no promo available
+    if (!currentPromo) {
+        return null;
+    }
+
+    const Icon = IconMap[currentPromo.icon] || Percent;
 
     if (type === 'banner') {
         return (
@@ -115,7 +124,7 @@ export function PromoBanner({
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className={`bg-gradient-to-r ${currentPromo.bgColor} overflow-hidden text-white`}
+                        className={`bg-gradient-to-r ${currentPromo.bg_gradient} overflow-hidden text-white`}
                     >
                         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-2">
                             <div className="flex flex-1 items-center justify-center gap-3">
@@ -123,14 +132,16 @@ export function PromoBanner({
                                 <span className="font-medium">
                                     {currentPromo.title}
                                 </span>
-                                <span className="hidden opacity-90 sm:inline">
-                                    - {currentPromo.description}
-                                </span>
+                                {currentPromo.description && (
+                                    <span className="hidden opacity-90 sm:inline">
+                                        - {currentPromo.description}
+                                    </span>
+                                )}
                                 <Link
-                                    href={currentPromo.ctaLink}
+                                    href={currentPromo.cta_link}
                                     className="hidden items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-sm transition-colors hover:bg-white/30 md:flex"
                                 >
-                                    {currentPromo.ctaText}{' '}
+                                    {currentPromo.cta_text}{' '}
                                     <ArrowRight size={14} />
                                 </Link>
                             </div>
@@ -166,7 +177,7 @@ export function PromoBanner({
                         className="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2"
                     >
                         <div
-                            className={`bg-gradient-to-br ${currentPromo.bgColor} rounded-sm p-8 text-center text-white shadow-2xl`}
+                            className={`bg-gradient-to-br ${currentPromo.bg_gradient} rounded-sm p-8 text-center text-white shadow-2xl`}
                         >
                             <button
                                 onClick={handleDismiss}
@@ -180,15 +191,17 @@ export function PromoBanner({
                             <h2 className="mb-2 text-2xl font-bold">
                                 {currentPromo.title}
                             </h2>
-                            <p className="mb-6 opacity-90">
-                                {currentPromo.description}
-                            </p>
+                            {currentPromo.description && (
+                                <p className="mb-6 opacity-90">
+                                    {currentPromo.description}
+                                </p>
+                            )}
                             <Link
-                                href={currentPromo.ctaLink}
+                                href={currentPromo.cta_link}
                                 onClick={handleDismiss}
-                                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-medium text-terra-900 transition-colors hover:bg-terra-50"
+                                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-medium text-neutral-900 transition-colors hover:bg-neutral-100"
                             >
-                                {currentPromo.ctaText} <ArrowRight size={18} />
+                                {currentPromo.cta_text} <ArrowRight size={18} />
                             </Link>
                         </div>
                     </motion.div>

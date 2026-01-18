@@ -183,8 +183,8 @@ export default function ProductsIndex({
                       name: normalizedCurrentCategory.name,
                       url:
                           typeof window !== 'undefined'
-                              ? `${window.location.origin}/shop/category/${normalizedCurrentCategory.slug}`
-                              : `/shop/category/${normalizedCurrentCategory.slug}`,
+                              ? `${window.location.origin}/shop/products?filter[category]=${normalizedCurrentCategory.slug}`
+                              : `/shop/products?filter[category]=${normalizedCurrentCategory.slug}`,
                   },
               ]
             : [

@@ -97,7 +97,7 @@ function CategoryCard({ category, index }: CategoryCardProps) {
             className={`${isLarge ? 'lg:col-span-1 lg:row-span-2' : ''} h-full`}
         >
             <Link
-                href={`/shop/category/${category.slug}`}
+                href={`/shop/products?filter[category]=${category.slug}`}
                 className="group relative block h-full overflow-hidden rounded-sm bg-sand-100 shadow-sm"
             >
                 <div

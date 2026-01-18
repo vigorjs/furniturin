@@ -34,6 +34,17 @@ export interface SiteSettings {
     tiktok_url: string;
 }
 
+export interface PromoBannerData {
+    id: number;
+    title: string;
+    description: string | null;
+    cta_text: string;
+    cta_link: string;
+    icon: 'gift' | 'percent' | 'truck';
+    bg_gradient: string;
+    display_type: 'banner' | 'popup' | 'both';
+}
+
 export interface SharedData {
     name: string;
     quote: { message: string; author: string };
@@ -41,6 +52,7 @@ export interface SharedData {
     sidebarOpen: boolean;
     siteSettings: SiteSettings;
     featuredCategories: any[]; // Using any[] to avoid circular dependency or import issues for now, or import ApiCategory if easy
+    activePromoBanners: PromoBannerData[];
     [key: string]: unknown;
 }
 
