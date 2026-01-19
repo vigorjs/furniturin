@@ -109,7 +109,7 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                                             e.target.value,
                                         )
                                     }
-                                    placeholder="Latif Living"
+                                    placeholder="Furniturin"
                                     className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>

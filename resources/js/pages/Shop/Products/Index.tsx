@@ -56,15 +56,9 @@ export default function ProductsIndex({
     currentCategory,
     filters,
 }: Props) {
-    console.log(
-        'Categories in Index:',
-        categories,
-        'Current Category:',
-        currentCategory,
-    );
     const { siteSettings, featuredCategories: sharedCategories } =
         usePage<SharedData>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const safeFilters = Array.isArray(filters) ? {} : filters;
 
     // Handle CategoryResource wrapping (data property)
@@ -443,8 +437,6 @@ function FilterDrawer({
     // 2. isVisible: controls the CSS opacity/transform classes
     const [shouldRender, setShouldRender] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-
-    console.log('FilterDrawer Categories Prop:', categories);
 
     useEffect(() => {
         setMounted(true);

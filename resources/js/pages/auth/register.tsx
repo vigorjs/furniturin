@@ -11,7 +11,7 @@ import { SiteSettings } from '@/types';
 
 export default function Register() {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
 
     return (
         <AuthLayout

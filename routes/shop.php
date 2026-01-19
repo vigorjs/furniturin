@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('shop')->name('shop.')->middleware('share.cart')->group(function () {
     // Homepage - Landing page with products
     Route::get('/', [HomeController::class, 'index'])->name('home');
-    Route::get('/catalogs', fn() => \Inertia\Inertia::render('Shop/Catalog'))->name('catalogs');
+    Route::get('/catalogs', fn () => \Inertia\Inertia::render('Shop/Catalog'))->name('catalogs');
 
     // Products
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -44,9 +44,7 @@ Route::prefix('shop')->name('shop.')->middleware('share.cart')->group(function (
             'categories' => \App\Http\Resources\CategoryResource::collection($categories),
         ]);
     })->name('categories.index');
-    Route::get('/category/{category:slug}', function (\App\Models\Category $category) {
-        return redirect()->to('/shop/products?filter[category]=' . $category->slug);
-    })->name('products.category');
+    Route::get('/category/{category:slug}', [ProductController::class, 'byCategory'])->name('products.category');
 
     // Sale Pages
     Route::get('/hot-sale', [ProductController::class, 'hotSale'])->name('products.hot-sale');
@@ -54,16 +52,16 @@ Route::prefix('shop')->name('shop.')->middleware('share.cart')->group(function (
     Route::get('/stock-sale', [ProductController::class, 'stockSale'])->name('products.stock-sale');
 
     // Custom Order
-    Route::get('/custom-order', fn() => \Inertia\Inertia::render('Shop/CustomOrder'))->name('custom-order');
+    Route::get('/custom-order', fn () => \Inertia\Inertia::render('Shop/CustomOrder'))->name('custom-order');
 
     // Static Pages
-    Route::get('/about', fn() => \Inertia\Inertia::render('Shop/About'))->name('about');
-    Route::get('/contact', fn() => \Inertia\Inertia::render('Shop/Contact'))->name('contact');
-    Route::get('/faq', fn() => \Inertia\Inertia::render('Shop/FAQ'))->name('faq');
-    Route::get('/privacy-policy', fn() => \Inertia\Inertia::render('Shop/PrivacyPolicy'))->name('privacy');
-    Route::get('/terms', fn() => \Inertia\Inertia::render('Shop/Terms'))->name('terms');
-    Route::get('/shipping-policy', fn() => \Inertia\Inertia::render('Shop/ShippingPolicy'))->name('shipping');
-    Route::get('/return-policy', fn() => \Inertia\Inertia::render('Shop/ReturnPolicy'))->name('returns');
+    Route::get('/about', fn () => \Inertia\Inertia::render('Shop/About'))->name('about');
+    Route::get('/contact', fn () => \Inertia\Inertia::render('Shop/Contact'))->name('contact');
+    Route::get('/faq', fn () => \Inertia\Inertia::render('Shop/FAQ'))->name('faq');
+    Route::get('/privacy-policy', fn () => \Inertia\Inertia::render('Shop/PrivacyPolicy'))->name('privacy');
+    Route::get('/terms', fn () => \Inertia\Inertia::render('Shop/Terms'))->name('terms');
+    Route::get('/shipping-policy', fn () => \Inertia\Inertia::render('Shop/ShippingPolicy'))->name('shipping');
+    Route::get('/return-policy', fn () => \Inertia\Inertia::render('Shop/ReturnPolicy'))->name('returns');
 
     // Compare Products
     // Compare Products
@@ -110,4 +108,3 @@ Route::prefix('shop')->name('shop.')->middleware('share.cart')->group(function (
         Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
     });
 });
-

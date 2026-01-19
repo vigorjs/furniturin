@@ -81,10 +81,6 @@ export async function compressImage(
                             lastModified: Date.now(),
                         });
 
-                        console.log(
-                            `Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`,
-                        );
-
                         resolve(compressedFile);
                     },
                     'image/jpeg',

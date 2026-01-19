@@ -13,7 +13,7 @@ interface Props {
 
 export default function WishlistIndex({ products }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const [removingId, setRemovingId] = useState<number | null>(null);
 
     const handleRemove = (productId: number) => {

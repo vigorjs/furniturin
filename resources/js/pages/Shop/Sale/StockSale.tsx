@@ -20,7 +20,7 @@ export default function StockSale({
     filters,
 }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const safeFilters = Array.isArray(filters) ? {} : filters;
 
     // Normalize categories

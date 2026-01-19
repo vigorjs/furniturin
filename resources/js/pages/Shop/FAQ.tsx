@@ -101,7 +101,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 
 export default function FAQ() {
     const { siteSettings } = usePage<{ siteSettings: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
 
     return (
         <>

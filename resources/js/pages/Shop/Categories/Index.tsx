@@ -15,7 +15,7 @@ const PLACEHOLDER_CATEGORY = '/images/placeholder-category.svg';
 
 export default function CategoriesIndex({ categories }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const categoriesList = Array.isArray(categories)
         ? categories
         : categories.data;

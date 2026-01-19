@@ -89,7 +89,7 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 
 export default function OrderShow({ order, paymentSettings }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const [cancelling, setCancelling] = useState(false);
     const [copied, setCopied] = useState(false);
 

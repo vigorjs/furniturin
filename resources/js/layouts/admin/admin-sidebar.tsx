@@ -111,7 +111,7 @@ export default function AdminSidebar({
 
     // Get site settings
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
 
     // Check if user has permission (simplified - will be enhanced later)
     const hasPermission = (permission?: string) => {

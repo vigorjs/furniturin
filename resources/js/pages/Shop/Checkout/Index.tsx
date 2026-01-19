@@ -76,7 +76,7 @@ export default function CheckoutIndex({
     const paymentList = Array.isArray(paymentMethods) ? paymentMethods : [];
 
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
 
     // Ensure cart has items array
     const safeCart: Cart = {

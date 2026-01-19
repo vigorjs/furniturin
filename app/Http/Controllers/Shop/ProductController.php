@@ -4,52 +4,27 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shop;
 
+use App\Actions\Product\GetRelatedProductsAction;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\Query\ProductQuery;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
 {
     public function index(Request $request): Response
     {
-        $products = QueryBuilder::for(Product::class)
-            ->allowedFilters([
-                AllowedFilter::partial('name'),
-                AllowedFilter::callback('category_id', function ($query, $value) {
-                    $categoryIds = Category::where('id', $value)
-                        ->orWhere('parent_id', $value)
-                        ->pluck('id');
-                    $query->whereIn('category_id', $categoryIds);
-                }),
-                // Filter by category slug for SEO-friendly URLs
-                AllowedFilter::callback('category', function ($query, $value) {
-                    $category = Category::where('slug', $value)->first();
-                    if ($category) {
-                        $categoryIds = Category::where('id', $category->id)
-                            ->orWhere('parent_id', $category->id)
-                            ->pluck('id');
-                        $query->whereIn('category_id', $categoryIds);
-                    }
-                }),
-                AllowedFilter::exact('sale_type'),
-                AllowedFilter::scope('price_min', 'priceMin'),
-                AllowedFilter::scope('price_max', 'priceMax'),
-            ])
-            ->allowedSorts(['name', 'price', 'created_at', 'sold_count', 'average_rating'])
-            ->active()
-            ->with(['category', 'images'])
+        $products = ProductQuery::shop($request)
             ->paginate(12)
             ->withQueryString();
 
-        $categories = Category::where('is_active', true)
-            ->orderBy('name')
+        $categories = Category::active()
+            ->ordered()
             ->get();
 
         $currentCategory = null;
@@ -67,10 +42,10 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show(Product $product): Response
+    public function show(Product $product, GetRelatedProductsAction $getRelatedProducts): Response
     {
         // Increment view count
-        $product->increment('view_count');
+        $product->incrementViewCount();
 
         $product->load([
             'category',
@@ -78,26 +53,7 @@ class ProductController extends Controller
             'reviews' => fn ($query) => $query->approved()->with('user')->latest()->limit(10),
         ]);
 
-        // Get related products logic:
-        // 1. Same category
-        // 2. Siblings (same parent)
-        // 3. Children (if current category is a parent)
-        $relatedCategoryIds = Category::where('id', $product->category_id)
-            ->orWhere('parent_id', $product->category_id) // Children
-            ->orWhere(function ($query) use ($product) {
-                // Siblings: Same parent_id (if parent_id is not null)
-                if ($product->category->parent_id) {
-                    $query->where('parent_id', $product->category->parent_id);
-                }
-            })
-            ->pluck('id');
-
-        $relatedProducts = Product::active()
-            ->whereIn('category_id', $relatedCategoryIds)
-            ->where('id', '!=', $product->id)
-            ->with(['images', 'category'])
-            ->limit(4)
-            ->get();
+        $relatedProducts = $getRelatedProducts->execute($product);
 
         // Check if user has reviewed
         $userReview = null;
@@ -116,29 +72,15 @@ class ProductController extends Controller
 
     public function byCategory(Category $category, Request $request): Response
     {
-        // Get all descendant category IDs including self
-        $categoryIds = Category::where('id', $category->id)
-            ->orWhere('parent_id', $category->id)
-            ->pluck('id');
-
-        $products = QueryBuilder::for(Product::class)
-            ->allowedFilters([
-                AllowedFilter::partial('name'),
-                AllowedFilter::exact('sale_type'),
-                AllowedFilter::scope('price_min', 'priceMin'),
-                AllowedFilter::scope('price_max', 'priceMax'),
-            ])
-            ->allowedSorts(['name', 'price', 'created_at', 'sold_count', 'average_rating'])
-            ->active()
-            ->whereIn('category_id', $categoryIds)
-            ->with(['category', 'images'])
+        $products = ProductQuery::shop($request)
+            ->whereIn('category_id', $category->getDescendantIds())
             ->paginate(12)
             ->withQueryString();
 
-        $categories = Category::where('is_active', true)
-            ->whereNull('parent_id')
+        $categories = Category::active()
+            ->root()
             ->with('children')
-            ->orderBy('sort_order')
+            ->ordered()
             ->get();
 
         return Inertia::render('Shop/Products/Index', [
@@ -151,29 +93,15 @@ class ProductController extends Controller
 
     public function hotSale(Request $request): Response
     {
-        $products = QueryBuilder::for(Product::class)
-            ->allowedFilters([
-                AllowedFilter::partial('name'),
-                AllowedFilter::callback('category_id', function ($query, $value) {
-                     $categoryIds = Category::where('id', $value)
-                        ->orWhere('parent_id', $value)
-                        ->pluck('id');
-                    $query->whereIn('category_id', $categoryIds);
-                }),
-                AllowedFilter::scope('price_min', 'priceMin'),
-                AllowedFilter::scope('price_max', 'priceMax'),
-            ])
-            ->allowedSorts(['name', 'price', 'created_at', 'sold_count', 'average_rating', 'discount_percentage'])
-            ->active()
+        $products = ProductQuery::shop($request)
             ->where('sale_type', 'hot_sale')
-            ->with(['category', 'images'])
             ->paginate(12)
             ->withQueryString();
 
-        $categories = Category::where('is_active', true)
-            ->whereNull('parent_id')
+        $categories = Category::active()
+            ->root()
             ->with('children')
-            ->orderBy('sort_order')
+            ->ordered()
             ->get();
 
         $currentCategory = null;
@@ -191,29 +119,15 @@ class ProductController extends Controller
 
     public function clearance(Request $request): Response
     {
-        $products = QueryBuilder::for(Product::class)
-            ->allowedFilters([
-                AllowedFilter::partial('name'),
-                AllowedFilter::callback('category_id', function ($query, $value) {
-                     $categoryIds = Category::where('id', $value)
-                        ->orWhere('parent_id', $value)
-                        ->pluck('id');
-                    $query->whereIn('category_id', $categoryIds);
-                }),
-                AllowedFilter::scope('price_min', 'priceMin'),
-                AllowedFilter::scope('price_max', 'priceMax'),
-            ])
-            ->allowedSorts(['name', 'price', 'created_at', 'sold_count', 'average_rating', 'discount_percentage'])
-            ->active()
+        $products = ProductQuery::shop($request)
             ->where('sale_type', 'clearance')
-            ->with(['category', 'images'])
             ->paginate(12)
             ->withQueryString();
 
-        $categories = Category::where('is_active', true)
-            ->whereNull('parent_id')
+        $categories = Category::active()
+            ->root()
             ->with('children')
-            ->orderBy('sort_order')
+            ->ordered()
             ->get();
 
         $currentCategory = null;
@@ -231,29 +145,15 @@ class ProductController extends Controller
 
     public function stockSale(Request $request): Response
     {
-        $products = QueryBuilder::for(Product::class)
-            ->allowedFilters([
-                AllowedFilter::partial('name'),
-                AllowedFilter::callback('category_id', function ($query, $value) {
-                     $categoryIds = Category::where('id', $value)
-                        ->orWhere('parent_id', $value)
-                        ->pluck('id');
-                    $query->whereIn('category_id', $categoryIds);
-                }),
-                AllowedFilter::scope('price_min', 'priceMin'),
-                AllowedFilter::scope('price_max', 'priceMax'),
-            ])
-            ->allowedSorts(['name', 'price', 'created_at', 'sold_count', 'average_rating', 'discount_percentage'])
-            ->active()
+        $products = ProductQuery::shop($request)
             ->where('sale_type', 'stock_sale')
-            ->with(['category', 'images'])
             ->paginate(12)
             ->withQueryString();
 
-        $categories = Category::where('is_active', true)
-            ->whereNull('parent_id')
+        $categories = Category::active()
+            ->root()
             ->with('children')
-            ->orderBy('sort_order')
+            ->ordered()
             ->get();
 
         $currentCategory = null;

@@ -43,7 +43,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
     }
 
     return (
-        <section className="bg-neutral-50 px-6 py-24 md:px-12">
+        <section className="bg-neutral-50 px-6 pt-24 md:px-12">
             <div className="mx-auto max-w-[1400px]">
                 {/* Section Header */}
                 <motion.div

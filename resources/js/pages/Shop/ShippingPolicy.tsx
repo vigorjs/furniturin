@@ -32,7 +32,7 @@ const SHIPPING_INFO = [
 
 export default function ShippingPolicy() {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
 
     return (
         <>

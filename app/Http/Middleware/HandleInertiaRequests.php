@@ -110,7 +110,7 @@ class HandleInertiaRequests extends Middleware
             $settings = Setting::all()->pluck('value', 'key')->toArray();
 
             return [
-                'site_name' => $settings['site_name'] ?? 'Latif Living',
+                'site_name' => $settings['site_name'] ?? 'Furniturin',
                 'site_description' => $settings['site_description'] ?? 'Toko furnitur premium Indonesia',
                 'contact_email' => $settings['contact_email'] ?? '',
                 'contact_phone' => $settings['contact_phone'] ?? '',

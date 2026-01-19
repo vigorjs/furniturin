@@ -21,12 +21,13 @@ class CartItemResource extends JsonResource
             'product_id' => $this->product_id,
             'quantity' => $this->quantity,
             'unit_price' => $this->unit_price,
+            'price' => $this->unit_price, // Alias for sidebar compatibility
             'unit_price_formatted' => $this->formatted_unit_price,
             'subtotal' => $this->subtotal,
             'subtotal_formatted' => $this->formatted_subtotal,
             'options' => $this->options,
             'is_saved_for_later' => $this->is_saved_for_later,
-            'product' => new ProductResource($this->whenLoaded('product')),
+            'product' => $this->relationLoaded('product') ? (new ProductResource($this->product))->resolve() : null,
         ];
     }
 }
