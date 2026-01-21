@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\Shipping\RajaOngkirService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ShippingController extends Controller
 {
@@ -15,37 +16,53 @@ class ShippingController extends Controller
         $this->rajaOngkir = $rajaOngkir;
     }
 
-    public function provinces()
+    public function provinces(): JsonResponse
     {
         $provinces = $this->rajaOngkir->getProvinces();
         return response()->json($provinces);
     }
 
-    public function search(Request $request)
+    public function search(Request $request): JsonResponse
     {
         $query = $request->query('search');
         if (!$query) {
             return response()->json([]);
         }
         
-        $destinations = $this->rajaongkir->searchDestination($query);
+        $destinations = $this->rajaOngkir->searchDestination($query);
         return response()->json($destinations);
     }
 
-    public function cost(Request $request)
+    /**
+     * Calculate shipping cost for multiple couriers
+     * 
+     * @param Request $request
+     * @return JsonResponse Returns array of shipping options with cost, ETD, etc.
+     */
+    public function cost(Request $request): JsonResponse
     {
         $request->validate([
-            'destination' => 'required',
-            'weight' => 'required|integer',
-            'courier' => 'required|string',
+            'destination' => 'required|string',
+            'weight' => 'required|integer|min:1',
+            'courier' => 'nullable|string', // Optional, defaults to popular couriers
         ]);
 
         $costs = $this->rajaOngkir->getCost(
             $request->destination,
             $request->weight,
-            $request->courier
+            $request->courier // Will use default if null
         );
 
-        return response()->json($costs);
+        if ($costs === null) {
+            return response()->json([
+                'error' => 'Failed to fetch shipping costs',
+                'message' => 'Gagal mengambil data ongkos kirim. Silakan coba lagi.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'options' => $costs,
+        ]);
     }
 }

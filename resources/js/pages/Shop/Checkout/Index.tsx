@@ -22,7 +22,8 @@ interface Address {
   phone: string;
   address: string;
   city: string;
-  city_id: string; // Added for RajaOngkir
+  city_id: string | null;
+  district: string | null;
   province: string;
   postal_code: string;
   is_default: boolean;
@@ -37,6 +38,7 @@ interface CartItem {
   product: {
     id: number;
     name: string;
+    weight: number | null;
     images: { url: string; is_primary: boolean }[];
   };
 }
@@ -60,11 +62,42 @@ interface PaymentSettings {
   payment_deadline_hours: number;
 }
 
+interface ShippingOption {
+  key: string;
+  courier_code: string;
+  courier_name: string;
+  service: string;
+  description: string;
+  cost: number;
+  etd: string;
+}
+
 interface Props {
   cart: Cart;
   addresses: Address[];
   paymentMethods: PaymentMethod[];
   paymentSettings: PaymentSettings;
+}
+
+// Helper function to search destination by city/district name
+async function searchDestinationId(
+  searchQuery: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `/api/shipping/search?search=${encodeURIComponent(searchQuery)}`,
+    );
+    const data = await response.json();
+
+    if (data && data.length > 0) {
+      // Return the first match's ID
+      return String(data[0].id);
+    }
+    return null;
+  } catch (e) {
+    console.error('Failed to search destination:', e);
+    return null;
+  }
 }
 
 export default function CheckoutIndex({
@@ -73,14 +106,12 @@ export default function CheckoutIndex({
   paymentMethods,
   paymentSettings,
 }: Props) {
-  // Ensure addresses is always an array
   const addressList = Array.isArray(addresses) ? addresses : [];
   const paymentList = Array.isArray(paymentMethods) ? paymentMethods : [];
 
   const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
   const siteName = siteSettings?.site_name || 'Furniturin';
 
-  // Ensure cart has items array
   const safeCart: Cart = {
     items_count: cart?.items_count || 0,
     subtotal: cart?.subtotal || 0,
@@ -95,47 +126,118 @@ export default function CheckoutIndex({
   const { data, setData, post, processing, errors } = useForm({
     address_id: defaultAddress,
     payment_method: defaultPayment,
-    shipping_method: 'jne', // Default to 'jne' or similar
+    shipping_method: '',
+    shipping_cost: 0,
     customer_notes: '',
   });
 
-  // Shipping Cost State Lifted
-  const [shippingCost, setShippingCost] = React.useState(0);
+  // Shipping State
+  const [shippingOptions, setShippingOptions] = React.useState<
+    ShippingOption[]
+  >([]);
+  const [selectedShipping, setSelectedShipping] =
+    React.useState<ShippingOption | null>(null);
   const [loadingShipping, setLoadingShipping] = React.useState(false);
+  const [shippingError, setShippingError] = React.useState<string | null>(null);
 
+  // Calculate total weight from cart items (in grams)
+  const calculateTotalWeight = React.useCallback(() => {
+    return safeCart.items.reduce((acc, item) => {
+      const weightInGrams = (item.product.weight || 1) * 1000;
+      return acc + item.quantity * weightInGrams;
+    }, 0);
+  }, [safeCart.items]);
+
+  // Fetch shipping options when address changes
   React.useEffect(() => {
-    const fetchShipping = async () => {
+    const fetchShippingOptions = async () => {
       if (!data.address_id) {
-        setShippingCost(0);
+        setShippingOptions([]);
+        setSelectedShipping(null);
         return;
       }
 
       const address = addressList.find((a) => a.id === data.address_id);
-      if (!address || !address.city_id) {
-        setShippingCost(0);
+      if (!address) {
+        setShippingOptions([]);
+        setSelectedShipping(null);
         return;
       }
 
       setLoadingShipping(true);
-      // Calculate total weight (assuming 1kg per item for now)
-      const weight = safeCart.items.reduce(
-        (acc, item) => acc + item.quantity * 1000,
-        0,
-      );
+      setShippingError(null);
 
-      const courier = 'jne';
+      try {
+        let destinationId = address.city_id;
 
-      const cost = await getShippingCost(address.city_id, weight, courier);
-      setShippingCost(cost);
-      setLoadingShipping(false);
+        // If city_id is missing, try to auto-search using district or city name
+        if (!destinationId) {
+          // Try district first, then city
+          const searchQuery = address.district || address.city;
+          if (searchQuery) {
+            destinationId = await searchDestinationId(searchQuery);
+          }
+        }
+
+        if (!destinationId) {
+          setShippingError(
+            `Tidak dapat menemukan lokasi "${address.district || address.city}" di database RajaOngkir. Silakan update alamat dengan lokasi yang valid.`,
+          );
+          setShippingOptions([]);
+          setLoadingShipping(false);
+          return;
+        }
+
+        const weight = calculateTotalWeight();
+
+        const response = await fetch('/api/shipping/cost', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            destination: destinationId,
+            weight: weight,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.options) {
+          setShippingOptions(result.options);
+          // Auto-select cheapest option
+          if (result.options.length > 0) {
+            const cheapest = result.options[0];
+            setSelectedShipping(cheapest);
+            setData('shipping_method', cheapest.key);
+            setData('shipping_cost', cheapest.cost);
+          }
+        } else {
+          setShippingError(result.message || 'Gagal mengambil opsi pengiriman');
+          setShippingOptions([]);
+        }
+      } catch (e) {
+        console.error('Failed to fetch shipping options', e);
+        setShippingError('Terjadi kesalahan saat mengambil opsi pengiriman');
+        setShippingOptions([]);
+      } finally {
+        setLoadingShipping(false);
+      }
     };
 
-    fetchShipping();
+    fetchShippingOptions();
   }, [data.address_id, safeCart.items]);
+
+  const handleShippingSelect = (option: ShippingOption) => {
+    setSelectedShipping(option);
+    setData('shipping_method', option.key);
+    setData('shipping_cost', option.cost);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!data.address_id || !data.payment_method) return;
+    if (!data.address_id || !data.payment_method || !selectedShipping) return;
 
     post('/shop/checkout', {
       preserveScroll: true,
@@ -150,6 +252,8 @@ export default function CheckoutIndex({
       '/images/placeholder-product.svg'
     );
   };
+
+  const shippingCost = selectedShipping?.cost || 0;
 
   return (
     <>
@@ -253,8 +357,11 @@ export default function CheckoutIndex({
 
                   {/* Shipping Method */}
                   <ShippingSection
-                    shippingCost={shippingCost}
+                    options={shippingOptions}
+                    selectedOption={selectedShipping}
+                    onSelect={handleShippingSelect}
                     loading={loadingShipping}
+                    error={shippingError}
                   />
 
                   {/* Payment Method */}
@@ -269,12 +376,11 @@ export default function CheckoutIndex({
                 {/* Order Summary */}
                 <OrderSummary
                   cart={safeCart}
-                  addresses={addressList}
                   getProductImage={getProductImage}
                   processing={processing}
                   selectedAddress={data.address_id}
                   selectedPayment={data.payment_method}
-                  selectedShipping={data.shipping_method}
+                  selectedShipping={selectedShipping}
                   paymentSettings={paymentSettings}
                   errors={errors}
                   shippingCost={shippingCost}
@@ -289,40 +395,6 @@ export default function CheckoutIndex({
   );
 }
 
-// Shipping methods data removed
-
-const getShippingCost = async (
-  destinationId: string,
-  weight: number,
-  courier: string,
-): Promise<number> => {
-  try {
-    const response = await fetch('/api/shipping/cost', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        destination: destinationId,
-        weight: weight,
-        courier: courier,
-      }),
-    });
-    const data = await response.json();
-    const costs = data[0]?.costs;
-    // Default to first service cost (usually OKE/REG/YES, we might want to let user pick sub-service)
-    // For now, let's assume we map 'regular' to 'jne' REG service logic in backend but here we just take the first one or specific
-    if (costs && costs.length > 0) {
-      return costs[0].cost[0].value;
-    }
-    return 0;
-  } catch (e) {
-    console.error('Failed to calc shipping', e);
-    return 0;
-  }
-};
-
 const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -332,45 +404,120 @@ const formatCurrency = (value: number): string => {
 };
 
 interface ShippingSectionProps {
-  shippingCost: number;
+  options: ShippingOption[];
+  selectedOption: ShippingOption | null;
+  onSelect: (option: ShippingOption) => void;
   loading: boolean;
+  error: string | null;
 }
 
-function ShippingSection({ shippingCost, loading }: ShippingSectionProps) {
+function ShippingSection({
+  options,
+  selectedOption,
+  onSelect,
+  loading,
+  error,
+}: ShippingSectionProps) {
+  const [showAll, setShowAll] = React.useState(false);
+  const INITIAL_SHOW_COUNT = 3;
+
+  const selectedIndex = selectedOption
+    ? options.findIndex((o) => o.key === selectedOption.key)
+    : -1;
+  const shouldShowAll = showAll || selectedIndex >= INITIAL_SHOW_COUNT;
+  const visibleOptions = shouldShowAll
+    ? options
+    : options.slice(0, INITIAL_SHOW_COUNT);
+  const hasMore = options.length > INITIAL_SHOW_COUNT;
+
   return (
     <div className="rounded-sm bg-white p-6">
       <h2 className="mb-4 flex items-center gap-2 font-serif text-xl text-terra-900">
         <Package className="h-5 w-5" /> Metode Pengiriman
       </h2>
-      <div className="space-y-3">
-        <div
-          className={`flex items-center justify-between rounded-sm border-2 border-wood bg-wood/5 p-4 transition-colors`}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 border-wood bg-wood`}
-            >
-              <Check className="h-3 w-3 text-white" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Truck className="h-5 w-5" />
-              <span className="text-terra-900">JNE Reguler</span>
-            </div>
-          </div>
-          <span className="font-medium text-wood">
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : shippingCost > 0 ? (
-              formatCurrency(shippingCost)
-            ) : (
-              'Menghitung...'
-            )}
-          </span>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-terra-400" />
+          <span className="ml-3 text-terra-500">Mencari ongkos kirim...</span>
         </div>
-        <p className="text-xs text-terra-500">
-          *Biaya ongkir dihitung otomatis berdasarkan alamat pengiriman.
-        </p>
-      </div>
+      ) : error ? (
+        <div className="rounded-lg bg-red-50 p-4 text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      ) : options.length === 0 ? (
+        <div className="py-8 text-center">
+          <Truck className="mx-auto mb-3 h-12 w-12 text-terra-200" />
+          <p className="text-terra-500">
+            Pilih alamat pengiriman untuk melihat opsi kurir
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {visibleOptions.map((option) => (
+            <label
+              key={option.key}
+              className={`flex cursor-pointer items-center justify-between rounded-sm border-2 p-4 transition-colors ${
+                selectedOption?.key === option.key
+                  ? 'border-wood bg-wood/5'
+                  : 'border-terra-100 hover:border-terra-200'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+                    selectedOption?.key === option.key
+                      ? 'border-wood bg-wood'
+                      : 'border-terra-300'
+                  }`}
+                >
+                  {selectedOption?.key === option.key && (
+                    <Check className="h-3 w-3 text-white" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-5 w-5" />
+                    <span className="font-medium text-terra-900">
+                      {option.courier_name} {option.service}
+                    </span>
+                  </div>
+                  <p className="text-sm text-terra-500">
+                    {option.description} • Estimasi {option.etd}
+                  </p>
+                </div>
+              </div>
+              <span className="font-semibold text-wood">
+                {formatCurrency(option.cost)}
+              </span>
+              <input
+                type="radio"
+                name="shipping"
+                value={option.key}
+                checked={selectedOption?.key === option.key}
+                onChange={() => onSelect(option)}
+                className="hidden"
+              />
+            </label>
+          ))}
+
+          {hasMore && (
+            <button
+              type="button"
+              onClick={() => setShowAll(!showAll)}
+              className="w-full rounded-sm border-2 border-dashed border-terra-200 py-3 text-sm font-medium text-terra-600 transition-colors hover:border-terra-300 hover:bg-terra-50"
+            >
+              {shouldShowAll
+                ? 'Tampilkan Lebih Sedikit'
+                : `Lihat ${options.length - INITIAL_SHOW_COUNT} Opsi Lainnya`}
+            </button>
+          )}
+
+          <p className="text-xs text-terra-500">
+            *Estimasi waktu pengiriman dapat berbeda tergantung kondisi.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -444,12 +591,11 @@ function PaymentSection({
 
 interface OrderSummaryProps {
   cart: Cart;
-  addresses: Address[]; // Need full list to find selected address details
   getProductImage: (product: CartItem['product']) => string;
   processing: boolean;
   selectedAddress: number | null;
   selectedPayment: string;
-  selectedShipping: string;
+  selectedShipping: ShippingOption | null;
   paymentSettings: PaymentSettings;
   errors: Record<string, string>;
   shippingCost: number;
@@ -458,7 +604,6 @@ interface OrderSummaryProps {
 
 function OrderSummary({
   cart,
-  addresses,
   getProductImage,
   processing,
   selectedAddress,
@@ -470,8 +615,6 @@ function OrderSummary({
   loadingShipping,
 }: OrderSummaryProps) {
   const hasErrors = Object.keys(errors).length > 0;
-
-  // State for shipping cost removed (lifted up)
 
   const codFee = selectedPayment === 'cod' ? paymentSettings?.cod_fee || 0 : 0;
   const subtotal = cart.subtotal || 0;
@@ -525,10 +668,15 @@ function OrderSummary({
               ) : shippingCost > 0 ? (
                 formatCurrency(shippingCost)
               ) : (
-                'Gratis'
+                '-'
               )}
             </span>
           </div>
+          {selectedShipping && (
+            <div className="text-xs text-terra-500">
+              {selectedShipping.courier_name} {selectedShipping.service}
+            </div>
+          )}
           {codFee > 0 && (
             <div className="flex justify-between text-terra-600">
               <span>Biaya COD</span>
@@ -552,6 +700,7 @@ function OrderSummary({
             processing ||
             !selectedAddress ||
             !selectedPayment ||
+            !selectedShipping ||
             loadingShipping
           }
           className="flex w-full items-center justify-center gap-2 rounded-sm bg-teal-600 py-4 font-medium text-white transition-colors hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -565,11 +714,13 @@ function OrderSummary({
           )}
         </button>
 
-        {(!selectedAddress || !selectedPayment) && (
+        {(!selectedAddress || !selectedPayment || !selectedShipping) && (
           <p className="mt-3 text-center text-sm text-red-500">
             {!selectedAddress
               ? 'Pilih alamat pengiriman'
-              : 'Pilih metode pembayaran'}
+              : !selectedShipping
+                ? 'Pilih metode pengiriman'
+                : 'Pilih metode pembayaran'}
           </p>
         )}
 
