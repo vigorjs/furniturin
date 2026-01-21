@@ -1,159 +1,271 @@
-import { ShopLayout } from '@/layouts/ShopLayout';
-import { SiteSettings } from '@/types';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Order } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { ArrowRight, CheckCircle, Home, Package } from 'lucide-react';
-
-interface Order {
-    id: number;
-    order_number: string;
-    total_formatted: string;
-    payment_method: {
-        value: string;
-        label: string;
-    };
-    status: {
-        value: string;
-        label: string;
-    };
-}
+import {
+  CheckCircle2,
+  ChevronRight,
+  Copy,
+  CreditCard,
+  ShoppingBag,
+  Truck,
+} from 'lucide-react';
+import { useEffect } from 'react';
 
 interface Props {
-    order?: Order;
+  order: Order | null;
 }
 
-export default function CheckoutSuccess({ order }: Props) {
-    const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Furniturin';
+export default function Success({ order }: Props) {
+  const { flash } = usePage().props;
 
+  useEffect(() => {
+    // Auto-trigger Midtrans if applicable
+    if (
+      order?.payment_method.value === 'midtrans' &&
+      order.payment_status.value === 'pending' &&
+      order.snap_token
+    ) {
+      // @ts-ignore
+      if (window.snap) {
+        // @ts-ignore
+        window.snap.pay(order.snap_token, {
+          onSuccess: function (result: any) {
+            window.location.reload();
+          },
+          onPending: function (result: any) {
+            alert('Menunggu pembayaran...');
+            window.location.reload();
+          },
+          onError: function (result: any) {
+            alert('Pembayaran gagal!');
+          },
+          onClose: function () {
+            // User closed popup
+          },
+        });
+      }
+    }
+  }, [flash, order]);
+
+  if (!order) {
     return (
-        <>
-            <Head title={`Pesanan Berhasil - ${siteName}`} />
-            <div className="bg-noise" />
-            <ShopLayout>
-                <main className="min-h-screen bg-sand-50 pt-28 pb-20">
-                    <div className="mx-auto max-w-2xl px-6 md:px-12">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="rounded-sm bg-white p-8 text-center md:p-12"
-                        >
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{
-                                    delay: 0.2,
-                                    type: 'spring',
-                                    stiffness: 200,
-                                }}
-                                className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100"
-                            >
-                                <CheckCircle className="h-10 w-10 text-green-600" />
-                            </motion.div>
-
-                            <h1 className="mb-3 font-serif text-3xl text-terra-900">
-                                Pesanan Berhasil!
-                            </h1>
-                            <p className="mb-8 text-terra-500">
-                                Terima kasih telah berbelanja di {siteName}.
-                                Pesanan Anda sedang diproses.
-                            </p>
-
-                            {order && (
-                                <div className="mb-8 rounded-sm bg-sand-50 p-6 text-left">
-                                    <div className="mb-4 flex items-center gap-3">
-                                        <Package className="h-5 w-5 text-terra-600" />
-                                        <span className="font-medium text-terra-900">
-                                            Detail Pesanan
-                                        </span>
-                                    </div>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-terra-500">
-                                                Nomor Pesanan
-                                            </span>
-                                            <span className="font-medium text-terra-900">
-                                                {order.order_number}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-terra-500">
-                                                Total
-                                            </span>
-                                            <span className="font-medium text-terra-900">
-                                                {order.total_formatted}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-terra-500">
-                                                Metode Pembayaran
-                                            </span>
-                                            <span className="font-medium text-terra-900">
-                                                {order.payment_method.label}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-terra-500">
-                                                Status
-                                            </span>
-                                            <span className="font-medium text-terra-900">
-                                                {order.status.label}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex flex-col justify-center gap-4 sm:flex-row">
-                                <Link
-                                    href="/shop/orders"
-                                    className="inline-flex items-center justify-center gap-2 rounded-full bg-terra-900 px-6 py-3 text-white transition-colors hover:bg-terra-800"
-                                >
-                                    <Package className="h-4 w-4" /> Lihat
-                                    Pesanan
-                                </Link>
-                                <Link
-                                    href="/shop"
-                                    className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-terra-200 px-6 py-3 text-terra-700 transition-colors hover:bg-terra-50"
-                                >
-                                    <Home className="h-4 w-4" /> Kembali ke
-                                    Beranda
-                                </Link>
-                            </div>
-                        </motion.div>
-
-                        {/* Tips */}
-                        <div className="mt-8 rounded-sm bg-wood/10 p-6">
-                            <h3 className="mb-3 font-medium text-terra-900">
-                                Langkah Selanjutnya
-                            </h3>
-                            <ul className="space-y-2 text-sm text-terra-600">
-                                <li className="flex items-start gap-2">
-                                    <ArrowRight className="mt-0.5 h-4 w-4 text-wood" />
-                                    <span>
-                                        Kami akan mengirimkan konfirmasi pesanan
-                                        ke email Anda
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <ArrowRight className="mt-0.5 h-4 w-4 text-wood" />
-                                    <span>
-                                        Pesanan akan diproses setelah pembayaran
-                                        dikonfirmasi
-                                    </span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <ArrowRight className="mt-0.5 h-4 w-4 text-wood" />
-                                    <span>
-                                        Anda dapat melacak status pesanan di
-                                        halaman Pesanan Saya
-                                    </span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </main>
-            </ShopLayout>
-        </>
+      <div className="container mx-auto flex flex-col items-center justify-center px-4 py-16 text-center">
+        <div className="mb-4 rounded-full bg-red-100 p-4">
+          <ShoppingBag className="h-12 w-12 text-red-600" />
+        </div>
+        <h1 className="mb-2 text-2xl font-bold">Pesanan Tidak Ditemukan</h1>
+        <p className="mb-8 text-gray-600">
+          Maaf, kami tidak dapat menemukan informasi pesanan Anda.
+        </p>
+        <Link href={route('shop.home')}>
+          <Button>Kembali ke Beranda</Button>
+        </Link>
+      </div>
     );
+  }
+
+  const handlePay = () => {
+    if (order.snap_token) {
+      // @ts-ignore
+      window.snap.pay(order.snap_token, {
+        onSuccess: function (result: any) {
+          window.location.reload();
+        },
+        onPending: function (result: any) {
+          alert('Menunggu pembayaran...');
+          window.location.reload();
+        },
+        onError: function (result: any) {
+          alert('Pembayaran gagal!');
+        },
+        onClose: function () {
+          // Closed
+        },
+      });
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8 md:py-16">
+      <Head title="Pesanan Berhasil" />
+
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-8 text-center">
+          <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-teal-100">
+            <CheckCircle2 className="h-10 w-10 text-teal-600" />
+          </div>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">
+            Terima Kasih!
+          </h1>
+          <p className="text-lg text-gray-600">
+            Pesanan Anda telah berhasil dibuat.
+          </p>
+        </div>
+
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <CardTitle>Detail Pesanan</CardTitle>
+                <CardDescription>
+                  Order ID: {order.order_number}
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`rounded-full px-3 py-1 text-sm font-medium bg-${order.status.color}-100 text-${order.status.color}-800`}
+                >
+                  {order.status.label}
+                </span>
+                <span
+                  className={`rounded-full px-3 py-1 text-sm font-medium bg-${order.payment_status.color}-100 text-${order.payment_status.color}-800`}
+                >
+                  {order.payment_status.label}
+                </span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Payment Method Instructions */}
+            <div className="rounded-lg bg-gray-50 p-4">
+              <h3 className="mb-2 flex items-center gap-2 font-semibold">
+                <CreditCard className="h-4 w-4" />
+                Metode Pembayaran
+              </h3>
+              <p className="mb-2 text-sm text-gray-600">
+                {order.payment_method.label}
+              </p>
+
+              {order.payment_method.value === 'midtrans' &&
+                order.payment_status.value === 'pending' && (
+                  <div className="mt-4">
+                    <Button
+                      onClick={handlePay}
+                      className="w-full bg-teal-600 text-white hover:bg-teal-700"
+                    >
+                      Bayar Sekarang
+                    </Button>
+                    <p className="mt-2 text-center text-xs text-gray-500">
+                      Klik tombol di atas untuk menyelesaikan pembayaran
+                      otomatis via Midtrans.
+                    </p>
+                  </div>
+                )}
+
+              {order.payment_method.value === 'bank_transfer' &&
+                order.payment_status.value === 'unpaid' && (
+                  <div className="mt-4 rounded border border-gray-200 bg-white p-4">
+                    <p className="mb-2 text-sm font-medium">
+                      Silakan transfer ke rekening berikut:
+                    </p>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-sm text-gray-600">BCA</span>
+                      <div className="flex items-center gap-2">
+                        <code className="rounded bg-gray-100 px-2 py-1 font-mono text-sm">
+                          1234567890
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => {
+                            navigator.clipboard.writeText('1234567890');
+                            alert('Nomor rekening disalin');
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Atas Nama</span>
+                      <span className="text-sm font-medium">
+                        PT Furniturin Indonesia
+                      </span>
+                    </div>
+                    <div className="mt-4 border-t border-gray-100 pt-4">
+                      <p className="text-xs text-gray-500">
+                        Mohon konfirmasi pembayaran Anda melalui WhatsApp admin
+                        setelah transfer berhasil.
+                      </p>
+                    </div>
+                  </div>
+                )}
+            </div>
+
+            {/* Shipping Info */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="mb-2 flex items-center gap-2 font-semibold">
+                  <Truck className="h-4 w-4" />
+                  Alamat Pengiriman
+                </h3>
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium text-gray-900">
+                    {order.shipping_name}
+                  </p>
+                  <p>{order.shipping_phone}</p>
+                  <p className="mt-1">{order.shipping_address}</p>
+                  <p>
+                    {order.shipping_city}, {order.shipping_province}{' '}
+                    {order.shipping_postal_code}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <h3 className="mb-2 font-semibold">Ringkasan Biaya</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>{order.subtotal_formatted}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Pengiriman</span>
+                    <span>{order.shipping_cost_formatted}</span>
+                  </div>
+                  {order.discount_amount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Diskon</span>
+                      <span>-{order.discount_formatted}</span>
+                    </div>
+                  )}
+                  <div className="mt-2 flex justify-between border-t pt-2 font-bold text-gray-900">
+                    <span>Total</span>
+                    <span>{order.total_formatted}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col justify-center gap-3 border-t py-6 sm:flex-row">
+            <Link
+              href={route('shop.products.index')}
+              className="w-full sm:w-auto"
+            >
+              <Button variant="outline" className="w-full">
+                Lanjut Belanja
+              </Button>
+            </Link>
+            <Link
+              href={route('shop.orders.index')}
+              className="w-full sm:w-auto"
+            >
+              <Button className="w-full gap-2">
+                Lihat Pesanan Saya
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
 }

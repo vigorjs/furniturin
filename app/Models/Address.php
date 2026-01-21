@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $address
  * @property string $city
  * @property string $province
+ * @property string|null $city_id
+ * @property string|null $province_id
  * @property string $postal_code
  * @property string|null $district
  * @property string|null $notes
@@ -41,6 +43,8 @@ class Address extends Model
         'postal_code',
         'district',
         'notes',
+        'city_id',
+        'province_id',
         'is_default',
     ];
 

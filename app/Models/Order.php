@@ -83,6 +83,7 @@ class Order extends Model
         'delivered_at',
         'cancelled_at',
         'cancellation_reason',
+        'snap_token',
     ];
 
     protected function casts(): array

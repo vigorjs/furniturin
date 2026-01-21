@@ -53,7 +53,10 @@ class CheckoutController extends Controller implements HasMiddleware
         return Inertia::render('Shop/Checkout/Index', [
             'cart' => (new CartResource($cart))->resolve(),
             'addresses' => AddressResource::collection($addresses)->resolve(),
-            'paymentMethods' => collect(PaymentMethod::cases())->map(fn ($method) => [
+            'paymentMethods' => collect([
+                PaymentMethod::MIDTRANS,
+                PaymentMethod::WHATSAPP,
+            ])->map(fn ($method) => [
                 'value' => $method->value,
                 'name' => $method->label(),
                 'description' => $method->description(),
@@ -69,7 +72,9 @@ class CheckoutController extends Controller implements HasMiddleware
     public function store(
         CheckoutRequest $request,
         CreateOrderAction $createOrderAction,
-        ResolveShippingAddressAction $resolveAddressAction
+        ResolveShippingAddressAction $resolveAddressAction,
+        \App\Services\Payment\MidtransService $midtransService,
+        \App\Services\Shipping\RajaOngkirService $rajaOngkirService
     ): RedirectResponse {
         /** @var User $user */
         $user = $request->user();
@@ -86,7 +91,50 @@ class CheckoutController extends Controller implements HasMiddleware
         $validated = $request->validated();
 
         $shippingData = $resolveAddressAction->execute($user, $validated);
+
+        // Calculate Shipping Cost
+        $shippingCost = 0;
+        try {
+            $weight = $cart->items->reduce(fn ($carry, $item) => $carry + ($item->quantity * 1000), 0); // Default 1kg/item
+            
+            // Determine destination ID
+            if (isset($validated['address_id'])) {
+                $address = $user->addresses()->findOrFail($validated['address_id']);
+                $destinationId = $address->city_id ?? 0;
+            } else {
+                // If using one-time address, we might need 'city_id' or 'destination_id' from request
+                // For now, defaulting to 0 or handling if available in request
+                 $destinationId = $validated['destination_id'] ?? 0;
+            }
+
+            if ($destinationId) {
+                // Default courier to 'jne' or fetch from request if available
+                $courier = 'jne'; 
+                $shippingCost = $rajaOngkirService->getCost((string)$destinationId, $weight, $courier);
+            }
+        } catch (\Exception $e) {
+            // Log error or fallback
+             \Illuminate\Support\Facades\Log::error('Failed to calculate shipping cost in backend: ' . $e->getMessage());
+        }
+
+        $shippingData['shipping_cost'] = $shippingCost;
+
         $order = $createOrderAction->execute($user, $cart, $shippingData);
+
+        // Handle Midtrans Payment
+        if ($order->payment_method === PaymentMethod::MIDTRANS) {
+            try {
+                $snapToken = $midtransService->getSnapToken($order);
+                $order->update(['snap_token' => $snapToken]);
+            } catch (\Exception $e) {
+                // Log error but allow order creation (user can retry or changing payment method concept?)
+                // ideally we should probably fail or notify user.
+                // For now, let's flash error message but redirect to success (where they might see "Pay" button broken/retry)
+                return redirect()
+                    ->route('shop.orders.show', $order)
+                    ->with('error', 'Gagal memproses pembayaran Midtrans: ' . $e->getMessage());
+            }
+        }
 
         return redirect()
             ->route('shop.orders.show', $order)
