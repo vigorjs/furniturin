@@ -1,10 +1,12 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
+import { compressImage } from '@/utils/image-compress';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
     ChevronDown,
     FolderTree,
     Image as ImageIcon,
+    Loader2,
     X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -56,17 +58,26 @@ export default function EditCategory({
         category.image_url,
     );
     const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const file = e.target.files?.[0];
         if (file) {
-            setData('image', file);
-            setRemoveCurrentImage(false);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setIsCompressing(true);
+            try {
+                const compressedFile = await compressImage(file, {
+                    maxSizeMB: 2,
+                });
+                setData('image', compressedFile);
+                setRemoveCurrentImage(false);
+                setImagePreview(URL.createObjectURL(compressedFile));
+            } catch (error) {
+                console.error('Error compressing image:', error);
+            } finally {
+                setIsCompressing(false);
+            }
         }
     };
 
@@ -88,6 +99,9 @@ export default function EditCategory({
             },
             {
                 forceFormData: true,
+                onError: (errors) => {
+                    console.error('Form errors:', errors);
+                },
             },
         );
     };
@@ -230,6 +244,16 @@ export default function EditCategory({
                                             <X className="h-4 w-4" />
                                         </button>
                                     </div>
+                                ) : isCompressing ? (
+                                    <div className="flex h-48 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-terra-300 bg-terra-50/50">
+                                        <Loader2 className="mb-3 h-10 w-10 animate-spin text-terra-400" />
+                                        <p className="text-sm font-semibold text-terra-500">
+                                            Mengompres gambar...
+                                        </p>
+                                        <p className="text-xs text-terra-400">
+                                            Mohon tunggu sebentar
+                                        </p>
+                                    </div>
                                 ) : (
                                     <label className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-terra-300 transition-all hover:border-terra-400 hover:bg-terra-50/50">
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -241,7 +265,8 @@ export default function EditCategory({
                                                 atau drag and drop
                                             </p>
                                             <p className="text-xs text-terra-400">
-                                                PNG, JPG atau WEBP (Maks. 2MB)
+                                                PNG, JPG atau WEBP (otomatis
+                                                dikompres ke 2MB)
                                             </p>
                                         </div>
                                         <input
@@ -249,6 +274,7 @@ export default function EditCategory({
                                             className="hidden"
                                             accept="image/*"
                                             onChange={handleImageChange}
+                                            disabled={isCompressing}
                                         />
                                     </label>
                                 )}

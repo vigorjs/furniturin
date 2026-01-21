@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, MessageCircle } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
 import { SiteSettings } from '@/types';
+import { usePage } from '@inertiajs/react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { MessageCircle, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface WhatsAppButtonProps {
     phoneNumber: string; // Format: 628123456789 (without +)
@@ -29,8 +29,9 @@ export function WhatsAppButton({
     const [isTooltipVisible, setIsTooltipVisible] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const { siteSettings } = usePage<{ siteSettings: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
-    const defaultMessage = message || `Halo, saya tertarik dengan produk di ${siteName}`;
+    const siteName = siteSettings?.site_name || 'Furniturin';
+    const defaultMessage =
+        message || `Halo, saya tertarik dengan produk di ${siteName}`;
 
     const positionClasses = position === 'bottom-right' ? 'right-6' : 'left-6';
 
@@ -52,39 +53,50 @@ export function WhatsAppButton({
                         initial={{ opacity: 0, y: 20, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                        className="absolute bottom-20 right-0 w-80 bg-white rounded-sm shadow-2xl overflow-hidden mb-2"
+                        className="absolute right-0 bottom-20 mb-2 w-80 overflow-hidden rounded-sm bg-white shadow-2xl"
                     >
                         {/* Header */}
-                        <div className="bg-[#075E54] text-white p-4 flex items-center justify-between">
+                        <div className="flex items-center justify-between bg-[#075E54] p-4 text-white">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
                                     <WhatsAppIcon size={20} />
                                 </div>
                                 <div>
-                                    <div className="font-medium">{siteName}</div>
-                                    <div className="text-xs opacity-80">Biasanya membalas dalam 1 jam</div>
+                                    <div className="font-medium">
+                                        {siteName}
+                                    </div>
+                                    <div className="text-xs opacity-80">
+                                        Biasanya membalas dalam 1 jam
+                                    </div>
                                 </div>
                             </div>
-                            <button onClick={() => setShowChat(false)} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+                            <button
+                                onClick={() => setShowChat(false)}
+                                className="rounded-full p-1 transition-colors hover:bg-white/20"
+                            >
                                 <X size={20} />
                             </button>
                         </div>
 
                         {/* Chat Body */}
-                        <div className="p-4 bg-[#E5DDD5] min-h-[120px]">
-                            <div className="bg-white rounded-lg p-3 shadow-sm max-w-[85%]">
+                        <div className="min-h-[120px] bg-[#E5DDD5] p-4">
+                            <div className="max-w-[85%] rounded-lg bg-white p-3 shadow-sm">
                                 <p className="text-sm text-terra-700">
-                                    Halo! 👋 Ada yang bisa kami bantu? Silakan chat kami untuk pertanyaan seputar produk, pemesanan, atau lainnya.
+                                    Halo! 👋 Ada yang bisa kami bantu? Silakan
+                                    chat kami untuk pertanyaan seputar produk,
+                                    pemesanan, atau lainnya.
                                 </p>
-                                <p className="text-[10px] text-terra-400 mt-1 text-right">Customer Service</p>
+                                <p className="mt-1 text-right text-[10px] text-terra-400">
+                                    Customer Service
+                                </p>
                             </div>
                         </div>
 
                         {/* Footer */}
-                        <div className="p-3 bg-white border-t">
+                        <div className="border-t bg-white p-3">
                             <button
                                 onClick={handleClick}
-                                className="w-full bg-[#25D366] hover:bg-[#20BD5A] text-white py-3 px-4 rounded-full font-medium flex items-center justify-center gap-2 transition-colors"
+                                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-3 font-medium text-white transition-colors hover:bg-[#20BD5A]"
                             >
                                 <MessageCircle size={20} />
                                 Mulai Chat
@@ -101,10 +113,12 @@ export function WhatsAppButton({
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 10 }}
-                        className="absolute bottom-0 right-16 bg-white px-4 py-2 rounded-lg shadow-lg whitespace-nowrap"
+                        className="absolute right-16 bottom-0 rounded-lg bg-white px-4 py-2 whitespace-nowrap shadow-lg"
                     >
-                        <span className="text-sm text-terra-700">Butuh bantuan?</span>
-                        <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[6px] border-l-white" />
+                        <span className="text-sm text-terra-700">
+                            Butuh bantuan?
+                        </span>
+                        <div className="absolute top-1/2 right-[-6px] h-0 w-0 -translate-y-1/2 border-t-[6px] border-b-[6px] border-l-[6px] border-t-transparent border-b-transparent border-l-white" />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -116,11 +130,10 @@ export function WhatsAppButton({
                 onMouseLeave={() => setIsTooltipVisible(false)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-14 h-14 bg-[#25D366] hover:bg-[#20BD5A] rounded-full flex items-center justify-center text-white shadow-lg transition-colors"
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-colors hover:bg-[#20BD5A]"
             >
                 {showChat ? <X size={24} /> : <WhatsAppIcon size={28} />}
             </motion.button>
         </div>
     );
 }
-

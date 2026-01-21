@@ -70,7 +70,11 @@ describe('Shop ProductController', function () {
             'category_id' => $category->id,
             'status' => ProductStatus::ACTIVE,
         ]);
-        Product::factory()->create(['status' => ProductStatus::ACTIVE]); // Different category
+        $otherCategory = Category::factory()->create();
+        Product::factory()->create([
+            'status' => ProductStatus::ACTIVE,
+            'category_id' => $otherCategory->id,
+        ]); // Different category
 
         $response = $this->get(route('shop.products.category', $category));
 

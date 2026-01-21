@@ -109,7 +109,7 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                                             e.target.value,
                                         )
                                     }
-                                    placeholder="Latif Living"
+                                    placeholder="Furniturin"
                                     className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 />
                             </div>
@@ -197,7 +197,7 @@ export default function PaymentSettings({ settings }: PaymentSettingsProps) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="inline-flex items-center gap-2 rounded-xl bg-terra-900 px-6 py-3 font-medium text-white transition-colors hover:bg-wood-dark disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-3 font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
                         >
                             <Save className="h-5 w-5" />
                             {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}

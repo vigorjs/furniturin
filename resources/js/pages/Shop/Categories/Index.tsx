@@ -15,7 +15,7 @@ const PLACEHOLDER_CATEGORY = '/images/placeholder-category.svg';
 
 export default function CategoriesIndex({ categories }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const categoriesList = Array.isArray(categories)
         ? categories
         : categories.data;
@@ -94,14 +94,14 @@ function CategoryCard({ category, index }: CategoryCardProps) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className={isLarge ? 'lg:col-span-1 lg:row-span-2' : ''}
+            className={`${isLarge ? 'lg:col-span-1 lg:row-span-2' : ''} h-full`}
         >
             <Link
-                href={`/shop/category/${category.slug}`}
-                className="group relative block h-full overflow-hidden rounded-sm bg-sand-100"
+                href={`/shop/products?filter[category]=${category.slug}`}
+                className="group relative block h-full overflow-hidden rounded-sm bg-sand-100 shadow-sm"
             >
                 <div
-                    className={`relative ${isLarge ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}
+                    className={`relative w-full overflow-hidden ${isLarge ? 'h-full min-h-[400px]' : 'aspect-[4/3]'}`}
                 >
                     <img
                         src={imageUrl}

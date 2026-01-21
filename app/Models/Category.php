@@ -181,4 +181,16 @@ class Category extends Model
 
         return asset('storage/'.$this->image_path);
     }
+
+    /**
+     * Get all descendant IDs including self.
+     *
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    public function getDescendantIds()
+    {
+        return static::where('id', $this->id)
+            ->orWhere('parent_id', $this->id)
+            ->pluck('id');
+    }
 }

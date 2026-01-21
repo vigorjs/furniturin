@@ -22,8 +22,9 @@ interface CartItem {
         name: string;
         slug: string;
         price: number;
-        sale_price: number | null;
         final_price: number;
+        has_discount?: boolean;
+        discount_percentage?: number;
         primary_image: {
             image_url: string;
         } | null;
@@ -57,9 +58,14 @@ export function ShopLayout({
     bannerVisible = false,
     featuredCategories = [],
 }: ShopLayoutProps) {
-    const { cart, siteSettings } = usePage<{
+    const {
+        cart,
+        siteSettings,
+        featuredCategories: sharedCategories,
+    } = usePage<{
         cart: SharedCart;
         siteSettings: SiteSettings;
+        featuredCategories: ApiCategory[];
     }>().props;
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [updatingItem, setUpdatingItem] = useState<number | null>(null);
@@ -126,7 +132,11 @@ export function ShopLayout({
                 onCartClick={() => setIsCartOpen(true)}
                 onLogoClick={() => router.visit('/shop')}
                 bannerVisible={bannerVisible}
-                featuredCategories={featuredCategories}
+                featuredCategories={
+                    featuredCategories.length > 0
+                        ? featuredCategories
+                        : sharedCategories
+                }
             />
 
             {children}
@@ -232,11 +242,38 @@ export function ShopLayout({
                                                             }
                                                         </p>
                                                     )}
-                                                    <p className="mt-1 font-semibold text-teal-500">
-                                                        {formatPrice(
-                                                            item.price,
-                                                        )}
-                                                    </p>
+                                                    {/* Price with discount support */}
+                                                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                                                        <span className="font-semibold text-teal-600">
+                                                            {formatPrice(
+                                                                item.price,
+                                                            )}
+                                                        </span>
+                                                        {item.product
+                                                            ?.has_discount &&
+                                                            item.product
+                                                                ?.price >
+                                                                item.price && (
+                                                                <>
+                                                                    <span className="text-sm text-neutral-400 line-through">
+                                                                        {formatPrice(
+                                                                            item
+                                                                                .product
+                                                                                .price,
+                                                                        )}
+                                                                    </span>
+                                                                    <span className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-600">
+                                                                        -
+                                                                        {
+                                                                            item
+                                                                                .product
+                                                                                .discount_percentage
+                                                                        }
+                                                                        %
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                    </div>
                                                     <div className="mt-2 flex items-center gap-3">
                                                         <div className="flex items-center rounded-sm border border-neutral-200">
                                                             <button

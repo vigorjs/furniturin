@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class CreateOrderAction
 {
     /**
-     * @param array<string, mixed> $shippingData
+     * @param  array<string, mixed>  $shippingData
      */
     public function execute(User $user, Cart $cart, array $shippingData): Order
     {
@@ -69,8 +69,14 @@ class CreateOrderAction
             // Clear the cart
             $cart->items()->delete();
 
+            // Notify all admin users
+            $order->load('items');
+            $admins = User::role('admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new \App\Notifications\NewOrderNotification($order));
+            }
+
             return $order->fresh()->load('items');
         });
     }
 }
-

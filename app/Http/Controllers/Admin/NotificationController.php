@@ -39,4 +39,10 @@ class NotificationController extends Controller
         auth()->user()->unreadNotifications->markAsRead();
         return back();
     }
+
+    public function clearAll()
+    {
+        auth()->user()->notifications()->delete();
+        return back()->with('success', 'Semua notifikasi berhasil dihapus.');
+    }
 }

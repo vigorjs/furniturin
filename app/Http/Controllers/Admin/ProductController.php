@@ -16,14 +16,13 @@ use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\Query\ProductQuery;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller implements HasMiddleware
 {
@@ -40,17 +39,7 @@ class ProductController extends Controller implements HasMiddleware
 
     public function index(Request $request): Response
     {
-        $products = QueryBuilder::for(Product::class)
-            ->allowedFilters([
-                AllowedFilter::partial('name'),
-                AllowedFilter::exact('category_id'),
-                AllowedFilter::exact('status'),
-                AllowedFilter::exact('sale_type'),
-                AllowedFilter::exact('is_featured'),
-                AllowedFilter::scope('stock'),
-            ])
-            ->allowedSorts(['name', 'price', 'stock_quantity', 'created_at', 'sold_count'])
-            ->with(['category', 'images'])
+        $products = ProductQuery::admin($request)
             ->latest()
             ->paginate($request->input('per_page', 15))
             ->onEachSide(1)

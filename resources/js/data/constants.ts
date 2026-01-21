@@ -106,7 +106,7 @@ export const TESTIMONIALS = [
     },
     {
         id: '2',
-        text: 'Awalnya ragu beli furniture online, tapi Latif Living memberikan pelayanan terbaik. Sangat puas dengan sofa yang saya beli.',
+        text: 'Awalnya ragu beli furniture online, tapi Furniturin memberikan pelayanan terbaik. Sangat puas dengan sofa yang saya beli.',
         author: 'Budi Santoso',
         location: 'Surabaya',
     },
@@ -120,6 +120,8 @@ export const TESTIMONIALS = [
 
 // Navigation menu items
 export const NAV_ITEMS = [
+    { label: 'Home', href: '/shop' },
+    { label: 'Katalog', href: '/shop/catalogs' },
     { label: 'Koleksi', href: '/shop/products' },
     { label: 'Kategori', href: '/shop/categories' },
     { label: 'Hot Sale', href: '/shop/hot-sale' },

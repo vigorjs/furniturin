@@ -280,7 +280,7 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="inline-flex items-center gap-2 rounded-xl bg-terra-900 px-6 py-3 font-medium text-white transition-colors hover:bg-wood-dark disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-3 font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
                         >
                             <Save className="h-5 w-5" />
                             {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}

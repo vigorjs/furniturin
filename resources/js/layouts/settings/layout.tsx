@@ -5,7 +5,7 @@ import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { KeyRound, Shield, User } from 'lucide-react';
+import { KeyRound, MapPin, Shield, User } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
 const sidebarNavItems: NavItem[] = [
@@ -18,6 +18,11 @@ const sidebarNavItems: NavItem[] = [
         title: 'Kata Sandi',
         href: editPassword(),
         icon: KeyRound,
+    },
+    {
+        title: 'Alamat',
+        href: '/settings/addresses',
+        icon: MapPin,
     },
     {
         title: 'Keamanan',
@@ -65,9 +70,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                                 key={`${resolveUrl(item.href)}-${index}`}
                                                 href={item.href}
                                                 className={cn(
-                                                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200',
+                                                    'flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200',
                                                     isActive
-                                                        ? 'bg-terra-900 text-white shadow-sm'
+                                                        ? 'bg-teal-600 text-white shadow-sm'
                                                         : 'bg-sand-50 text-terra-600 hover:bg-sand-100 hover:text-terra-900',
                                                 )}
                                             >

@@ -148,7 +148,7 @@ export interface ApiProduct {
     primary_image?: ProductImage | null;
     reviews?: ProductReview[];
     is_wishlisted?: boolean;
-    rating_counts?: Record<number, number>;
+    rating_counts?: { star: number; count: number }[];
     created_at: string;
     updated_at: string;
 }

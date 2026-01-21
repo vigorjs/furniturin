@@ -30,6 +30,29 @@ class ProductReview extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::created(function (ProductReview $review) {
+            // Notify all admin users about new review
+            $admins = User::role('admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new \App\Notifications\NewReviewNotification($review));
+            }
+        });
+
+        static::saved(function (ProductReview $review) {
+            $review->product->updateRatingStats();
+        });
+
+        static::deleted(function (ProductReview $review) {
+            $review->product->updateRatingStats();
+        });
+
+        static::restored(function (ProductReview $review) {
+            $review->product->updateRatingStats();
+        });
+    }
+
     protected $fillable = [
         'product_id',
         'user_id',

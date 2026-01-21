@@ -63,7 +63,7 @@ class ReviewController extends Controller
 
     public function destroy(ProductReview $review): RedirectResponse
     {
-        $review->delete();
+        $review->forceDelete();
 
         return back()->with('success', 'Review berhasil dihapus.');
     }

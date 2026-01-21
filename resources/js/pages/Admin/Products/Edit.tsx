@@ -1,6 +1,7 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
+import { compressImage } from '@/utils/image-compress';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Star, Upload, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Star, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface Category {
@@ -14,6 +15,16 @@ interface ProductImage {
     is_primary: boolean;
 }
 
+interface StatusOption {
+    value: string;
+    name: string;
+}
+
+interface SaleTypeOption {
+    value: string;
+    name: string;
+}
+
 interface Product {
     id: number;
     name: string;
@@ -25,6 +36,7 @@ interface Product {
     stock_quantity: number;
     category_id: number | null;
     status: { value: string; label: string };
+    sale_type: { value: string; label: string };
     is_featured: boolean;
     images: ProductImage[];
 }
@@ -32,9 +44,16 @@ interface Product {
 interface EditProductProps {
     product: Product;
     categories: Category[];
+    statuses: StatusOption[];
+    saleTypes: SaleTypeOption[];
 }
 
-export default function EditProduct({ product, categories }: EditProductProps) {
+export default function EditProduct({
+    product,
+    categories,
+    statuses,
+    saleTypes,
+}: EditProductProps) {
     const [existingImages, setExistingImages] = useState<ProductImage[]>(
         product.images || [],
     );
@@ -42,6 +61,7 @@ export default function EditProduct({ product, categories }: EditProductProps) {
         { file: File; preview: string }[]
     >([]);
     const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
+    const [isCompressing, setIsCompressing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, processing, errors } = useForm({
@@ -55,19 +75,36 @@ export default function EditProduct({ product, categories }: EditProductProps) {
             : '',
         stock_quantity: String(product.stock_quantity),
         status: product.status.value,
+        sale_type: product.sale_type?.value || 'regular',
         is_featured: product.is_featured,
     });
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const files = e.target.files;
         if (!files) return;
 
-        const images = Array.from(files).map((file) => ({
-            file,
-            preview: URL.createObjectURL(file),
-        }));
-
-        setNewImages((prev) => [...prev, ...images]);
+        setIsCompressing(true);
+        try {
+            const fileArray = Array.from(files);
+            const compressedImages = await Promise.all(
+                fileArray.map(async (file) => {
+                    const compressedFile = await compressImage(file, {
+                        maxSizeMB: 2,
+                    });
+                    return {
+                        file: compressedFile,
+                        preview: URL.createObjectURL(compressedFile),
+                    };
+                }),
+            );
+            setNewImages((prev) => [...prev, ...compressedImages]);
+        } catch (error) {
+            console.error('Error compressing images:', error);
+        } finally {
+            setIsCompressing(false);
+        }
     };
 
     const removeExistingImage = (imageId: number) => {
@@ -90,9 +127,17 @@ export default function EditProduct({ product, categories }: EditProductProps) {
         const formData = new FormData();
         formData.append('_method', 'PUT');
 
-        Object.entries(data).forEach(([key, value]) => {
-            formData.append(key, String(value));
-        });
+        // Append form data with proper type handling
+        formData.append('name', data.name);
+        formData.append('sku', data.sku);
+        formData.append('category_id', data.category_id);
+        formData.append('description', data.description);
+        formData.append('price', data.price);
+        formData.append('discount_percentage', data.discount_percentage);
+        formData.append('stock_quantity', data.stock_quantity);
+        formData.append('status', data.status);
+        formData.append('sale_type', data.sale_type);
+        formData.append('is_featured', data.is_featured ? '1' : '0');
 
         newImages.forEach((img) => {
             formData.append('images[]', img.file);
@@ -104,6 +149,9 @@ export default function EditProduct({ product, categories }: EditProductProps) {
 
         router.post(`/admin/products/${product.id}`, formData, {
             forceFormData: true,
+            onError: (errors) => {
+                console.error('Form errors:', errors);
+            },
         });
     };
 
@@ -257,7 +305,7 @@ export default function EditProduct({ product, categories }: EditProductProps) {
 
                             {/* Upload Area */}
                             <div
-                                className="cursor-pointer rounded-xl border-2 border-dashed border-terra-200 p-8 text-center transition-colors hover:border-wood"
+                                className={`cursor-pointer rounded-xl border-2 border-dashed border-terra-200 p-8 text-center transition-colors hover:border-wood ${isCompressing ? 'pointer-events-none opacity-50' : ''}`}
                                 onClick={() => fileInputRef.current?.click()}
                             >
                                 <input
@@ -267,14 +315,30 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                     accept="image/*"
                                     onChange={handleImageChange}
                                     className="hidden"
+                                    disabled={isCompressing}
                                 />
-                                <Upload className="mx-auto mb-4 h-12 w-12 text-terra-400" />
-                                <p className="font-medium text-terra-700">
-                                    Klik untuk upload gambar baru
-                                </p>
-                                <p className="mt-1 text-sm text-terra-400">
-                                    PNG, JPG, WEBP hingga 2MB
-                                </p>
+                                {isCompressing ? (
+                                    <>
+                                        <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-terra-400" />
+                                        <p className="font-medium text-terra-700">
+                                            Mengompres gambar...
+                                        </p>
+                                        <p className="mt-1 text-sm text-terra-400">
+                                            Mohon tunggu sebentar
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="mx-auto mb-4 h-12 w-12 text-terra-400" />
+                                        <p className="font-medium text-terra-700">
+                                            Klik untuk upload gambar baru
+                                        </p>
+                                        <p className="mt-1 text-sm text-terra-400">
+                                            PNG, JPG, WEBP (otomatis dikompres
+                                            ke 2MB)
+                                        </p>
+                                    </>
+                                )}
                             </div>
 
                             {/* New Images Preview */}
@@ -347,6 +411,22 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                     placeholder="0"
                                     min="0"
                                     max="100"
+                                    disabled={
+                                        ![
+                                            'clearance',
+                                            'stock_sale',
+                                            'hot_sale',
+                                        ].includes(data.sale_type)
+                                    }
+                                    title={
+                                        ![
+                                            'clearance',
+                                            'stock_sale',
+                                            'hot_sale',
+                                        ].includes(data.sale_type)
+                                            ? 'Aktifkan diskon di bagian Status & Tipe Penjualan'
+                                            : ''
+                                    }
                                 />
                             </div>
                             <div>
@@ -368,12 +448,12 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                         </div>
                     </div>
 
-                    {/* Status */}
+                    {/* Status & Tipe Penjualan */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
-                            Status
+                            Status & Tipe Penjualan
                         </h2>
-                        <div className="flex flex-wrap gap-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-terra-700">
                                     Status Produk
@@ -385,9 +465,29 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                     }
                                     className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
                                 >
-                                    <option value="active">Aktif</option>
-                                    <option value="inactive">Nonaktif</option>
-                                    <option value="draft">Draft</option>
+                                    {statuses.map((s) => (
+                                        <option key={s.value} value={s.value}>
+                                            {s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                    Tipe Penjualan
+                                </label>
+                                <select
+                                    value={data.sale_type}
+                                    onChange={(e) =>
+                                        setData('sale_type', e.target.value)
+                                    }
+                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                >
+                                    {saleTypes.map((t) => (
+                                        <option key={t.value} value={t.value}>
+                                            {t.name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <label className="flex cursor-pointer items-center gap-3 self-end pb-3">
@@ -401,6 +501,38 @@ export default function EditProduct({ product, categories }: EditProductProps) {
                                 />
                                 <span className="text-terra-700">
                                     Produk Unggulan
+                                </span>
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-3 self-end pb-3">
+                                <input
+                                    type="checkbox"
+                                    checked={[
+                                        'clearance',
+                                        'stock_sale',
+                                        'hot_sale',
+                                    ].includes(data.sale_type)}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            if (
+                                                ![
+                                                    'clearance',
+                                                    'stock_sale',
+                                                    'hot_sale',
+                                                ].includes(data.sale_type)
+                                            ) {
+                                                setData(
+                                                    'sale_type',
+                                                    'stock_sale',
+                                                );
+                                            }
+                                        } else {
+                                            setData('sale_type', 'regular');
+                                        }
+                                    }}
+                                    className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
+                                />
+                                <span className="text-terra-700">
+                                    Aktifkan Diskon
                                 </span>
                             </label>
                         </div>

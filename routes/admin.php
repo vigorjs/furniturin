@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\PromoBannerController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -77,5 +78,10 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->prefix('admin
     // Payment Settings
     Route::get('/settings/payment', [SettingsController::class, 'payment'])->name('settings.payment');
     Route::post('/settings/payment', [SettingsController::class, 'updatePayment'])->name('settings.payment.update');
+
+    // Promo Banners
+    Route::resource('promo-banners', PromoBannerController::class)->except(['show']);
+    Route::patch('/promo-banners/{promo_banner}/toggle', [PromoBannerController::class, 'toggleActive'])
+        ->name('promo-banners.toggle');
 });
 

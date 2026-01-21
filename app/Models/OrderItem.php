@@ -20,8 +20,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $product_sku
  * @property int $quantity
  * @property int $unit_price
+ * @property int $original_price
+ * @property int $discount_amount
  * @property int $subtotal
  * @property array|null $options
+ * @property bool $is_reviewed
  */
 class OrderItem extends Model
 {
@@ -34,8 +37,11 @@ class OrderItem extends Model
         'product_sku',
         'quantity',
         'unit_price',
+        'original_price',
+        'discount_amount',
         'subtotal',
         'options',
+        'is_reviewed',
     ];
 
     protected function casts(): array
@@ -43,8 +49,11 @@ class OrderItem extends Model
         return [
             'quantity' => 'integer',
             'unit_price' => 'integer',
+            'original_price' => 'integer',
+            'discount_amount' => 'integer',
             'subtotal' => 'integer',
             'options' => 'array',
+            'is_reviewed' => 'boolean',
         ];
     }
 
@@ -65,9 +74,32 @@ class OrderItem extends Model
         return format_rupiah($this->unit_price);
     }
 
+    public function getFormattedOriginalPriceAttribute(): string
+    {
+        return format_rupiah($this->original_price ?? $this->unit_price);
+    }
+
+    public function getFormattedDiscountAmountAttribute(): string
+    {
+        return format_rupiah($this->discount_amount ?? 0);
+    }
+
     public function getFormattedSubtotalAttribute(): string
     {
         return format_rupiah($this->subtotal);
+    }
+
+    public function getHasDiscountAttribute(): bool
+    {
+        return ($this->discount_amount ?? 0) > 0;
+    }
+
+    public function getDiscountPercentageAttribute(): int
+    {
+        if (!$this->original_price || $this->original_price <= 0) {
+            return 0;
+        }
+        return (int) round((($this->original_price - $this->unit_price) / $this->original_price) * 100);
     }
 
     // ==================== Helper Methods ====================
@@ -80,6 +112,11 @@ class OrderItem extends Model
         /** @var Product $product */
         $product = $cartItem->product;
 
+        // Get original price (before discount) and final price (after discount)
+        $originalPrice = $product->price;
+        $finalPrice = $product->final_price;
+        $discountAmount = $originalPrice - $finalPrice;
+
         /** @var self $orderItem */
         $orderItem = self::create([
             'order_id' => $order->id,
@@ -87,8 +124,10 @@ class OrderItem extends Model
             'product_name' => $product->name,
             'product_sku' => $product->sku,
             'quantity' => $cartItem->quantity,
-            'unit_price' => $cartItem->unit_price,
-            'subtotal' => $cartItem->subtotal,
+            'unit_price' => $finalPrice,
+            'original_price' => $originalPrice,
+            'discount_amount' => $discountAmount > 0 ? $discountAmount : 0,
+            'subtotal' => $finalPrice * $cartItem->quantity,
             'options' => $cartItem->options,
         ]);
 

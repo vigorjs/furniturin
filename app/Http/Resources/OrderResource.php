@@ -76,6 +76,7 @@ class OrderResource extends JsonResource
             ),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
+            'snap_token' => $this->snap_token,
         ];
     }
 }

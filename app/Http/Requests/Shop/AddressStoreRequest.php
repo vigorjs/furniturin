@@ -27,6 +27,8 @@ class AddressStoreRequest extends FormRequest
             'district' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:255'],
             'is_default' => ['boolean'],
+            // RajaOngkir destination ID (district ID)
+            'city_id' => ['nullable', 'string', 'max:20'],
         ];
     }
 

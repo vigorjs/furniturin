@@ -20,7 +20,7 @@ class SettingsController extends Controller
 
         return Inertia::render('Admin/Settings/Index', [
             'settings' => [
-                'site_name' => $settings['site_name'] ?? 'Latif Living',
+                'site_name' => $settings['site_name'] ?? 'Furniturin',
                 'site_description' => $settings['site_description'] ?? '',
                 'contact_email' => $settings['contact_email'] ?? '',
                 'contact_phone' => $settings['contact_phone'] ?? '',

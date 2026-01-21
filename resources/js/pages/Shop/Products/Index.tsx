@@ -1,7 +1,7 @@
 import { BreadcrumbStructuredData, SEOHead } from '@/components/seo';
 import { QuickViewModal } from '@/components/shop';
 import { ShopLayout } from '@/layouts/ShopLayout';
-import { SharedData, SiteSettings } from '@/types';
+import { SharedData } from '@/types';
 import {
     ApiCategory,
     ApiProduct,
@@ -56,14 +56,9 @@ export default function ProductsIndex({
     currentCategory,
     filters,
 }: Props) {
-    console.log(
-        'Categories in Index:',
-        categories,
-        'Current Category:',
-        currentCategory,
-    );
-    const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const { siteSettings, featuredCategories: sharedCategories } =
+        usePage<SharedData>().props;
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const safeFilters = Array.isArray(filters) ? {} : filters;
 
     // Handle CategoryResource wrapping (data property)
@@ -128,14 +123,35 @@ export default function ProductsIndex({
         router.get('/shop/products', {}, { preserveState: true });
     };
 
+    // Debounced search - only trigger when user stops typing
     useEffect(() => {
+        // Skip if searchQuery matches current filter (avoid loop on page load)
+        const currentFilterName = safeFilters.filter?.name || '';
+        if (searchQuery === currentFilterName) {
+            return;
+        }
+
         const timer = setTimeout(() => {
-            if (searchQuery !== (safeFilters.filter?.name || '')) {
-                applyFilters();
-            }
+            const params: Record<string, string> = {};
+
+            if (searchQuery) params['filter[name]'] = searchQuery;
+            if (selectedCategory)
+                params['filter[category_id]'] = String(selectedCategory);
+            if (priceRange.min)
+                params['filter[price_min]'] = String(priceRange.min);
+            if (priceRange.max)
+                params['filter[price_max]'] = String(priceRange.max);
+            if (selectedSort) params['sort'] = selectedSort;
+
+            router.get('/shop/products', params, {
+                preserveState: true,
+                preserveScroll: true,
+            });
         }, 500);
+
         return () => clearTimeout(timer);
-    }, [searchQuery, applyFilters, safeFilters.filter?.name]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery]);
 
     const hasActiveFilters =
         searchQuery || selectedCategory || priceRange.min || priceRange.max;
@@ -161,8 +177,8 @@ export default function ProductsIndex({
                       name: normalizedCurrentCategory.name,
                       url:
                           typeof window !== 'undefined'
-                              ? `${window.location.origin}/shop/category/${normalizedCurrentCategory.slug}`
-                              : `/shop/category/${normalizedCurrentCategory.slug}`,
+                              ? `${window.location.origin}/shop/products?filter[category]=${normalizedCurrentCategory.slug}`
+                              : `/shop/products?filter[category]=${normalizedCurrentCategory.slug}`,
                   },
               ]
             : [
@@ -196,7 +212,7 @@ export default function ProductsIndex({
             />
             <BreadcrumbStructuredData items={breadcrumbItems} />
             <div className="bg-noise" />
-            <ShopLayout featuredCategories={normalizedCategories}>
+            <ShopLayout>
                 <main className="min-h-screen bg-white pt-8 pb-20">
                     <div className="mx-auto max-w-[1400px] px-6 md:px-12">
                         {/* Breadcrumb */}
@@ -342,6 +358,7 @@ export default function ProductsIndex({
                     isOpen={showFilters}
                     onClose={() => setShowFilters(false)}
                     categories={normalizedCategories}
+                    featuredCategories={sharedCategories}
                     selectedCategory={selectedCategory}
                     setSelectedCategory={setSelectedCategory}
                     priceRange={priceRange}
@@ -371,6 +388,7 @@ interface FilterDrawerProps {
     isOpen: boolean;
     onClose: () => void;
     categories: ApiCategory[];
+    featuredCategories?: ApiCategory[];
     selectedCategory: number | null;
     setSelectedCategory: (id: number | null) => void;
     priceRange: { min?: number; max?: number };
@@ -402,6 +420,7 @@ function FilterDrawer({
     isOpen,
     onClose,
     categories,
+    featuredCategories,
     selectedCategory,
     setSelectedCategory,
     priceRange,
@@ -418,8 +437,6 @@ function FilterDrawer({
     // 2. isVisible: controls the CSS opacity/transform classes
     const [shouldRender, setShouldRender] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-
-    console.log('FilterDrawer Categories Prop:', categories);
 
     useEffect(() => {
         setMounted(true);
@@ -452,6 +469,9 @@ function FilterDrawer({
 
     // Safety check for categories
     const safeCategories = Array.isArray(categories) ? categories : [];
+    const safeFeaturedCategories = Array.isArray(featuredCategories)
+        ? featuredCategories
+        : [];
 
     return createPortal(
         <>
@@ -508,34 +528,60 @@ function FilterDrawer({
                     </div>
 
                     {/* Categories */}
+                    {/* Categories */}
                     <div>
-                        <h3 className="mb-4 font-medium text-neutral-900">
-                            Kategori
-                        </h3>
-                        <div className="space-y-2">
-                            <button
-                                onClick={() => setSelectedCategory(null)}
-                                className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${!selectedCategory ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
-                            >
-                                Semua Kategori
-                            </button>
-                            {safeCategories.length > 0 ? (
-                                safeCategories.map((cat) => (
+                        {safeFeaturedCategories?.length > 0 && (
+                            <div className="mb-6">
+                                <h3 className="mb-4 font-medium text-neutral-900">
+                                    Kategori Unggulan
+                                </h3>
+                                <div className="space-y-2">
                                     <button
-                                        key={cat.id}
                                         onClick={() =>
-                                            setSelectedCategory(cat.id)
+                                            setSelectedCategory(null)
                                         }
-                                        className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                        className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${!selectedCategory ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
                                     >
-                                        {cat.name}
+                                        Semua Kategori
                                     </button>
-                                ))
-                            ) : (
-                                <p className="px-4 py-2 text-sm text-neutral-400">
-                                    Tidak ada kategori tersedia
-                                </p>
-                            )}
+                                    {safeFeaturedCategories.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() =>
+                                                setSelectedCategory(cat.id)
+                                            }
+                                            className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                        >
+                                            {cat.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div>
+                            <h3 className="mb-4 font-medium text-neutral-900">
+                                Semua Kategori
+                            </h3>
+                            <div className="space-y-2">
+                                {safeCategories.length > 0 ? (
+                                    safeCategories.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() =>
+                                                setSelectedCategory(cat.id)
+                                            }
+                                            className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                                        >
+                                            {cat.name}
+                                        </button>
+                                    ))
+                                ) : (
+                                    <p className="px-4 py-2 text-sm text-neutral-400">
+                                        Tidak ada kategori tersedia
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
 

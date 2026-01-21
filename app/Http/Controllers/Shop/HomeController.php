@@ -72,13 +72,13 @@ class HomeController extends Controller
 
         // Page-specific Site Settings for SEO (siteSettings is shared via middleware)
         $pageSiteSettings = [
-            'name' => Setting::get('site_name', 'Latif Living'),
+            'name' => Setting::get('site_name', 'Furniturin'),
             'description' => Setting::get('site_description', 'Toko furnitur premium Indonesia'),
         ];
 
         return Inertia::render('Shop/Home', [
             'featuredProducts' => ProductResource::collection($featuredProducts),
-            'featuredCategories' => CategoryResource::collection($featuredCategories),
+            'landingCategories' => CategoryResource::collection($featuredCategories),
             'testimonials' => $testimonials,
             'heroSettings' => $heroSettings,
             'trustLogos' => $trustLogos,
