@@ -1,9 +1,5 @@
 # Today Todo list
 
-- [x] Cleaning code
-
-# Pending
-
-- [ ] Setup Payment Gateway Midtrans
-- [ ] Setup Ongkir dengan rajaongkir or else
-- [ ] Setup pembayaran lain dengan menghubungi via whatsapp
+- [ ] alur post pembayaran di admin, ada hal yang kurang seperti di invoice tidak ditulis harga asli lalu diskon
+- [ ] alur post pembayaran di user
+- [ ] alur pembayaran dengan admin wa

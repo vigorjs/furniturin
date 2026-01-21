@@ -30,7 +30,13 @@ interface OrderItem {
   product_sku: string;
   quantity: number;
   unit_price: number;
+  unit_price_formatted?: string;
+  original_price?: number;
+  original_price_formatted?: string;
+  discount_percentage?: number;
+  has_discount?: boolean;
   subtotal: number;
+  subtotal_formatted?: string;
   product?: {
     id: number;
     slug: string;
@@ -63,6 +69,7 @@ interface Order {
   delivered_at?: string;
   cancelled_at?: string;
   cancellation_reason?: string;
+  snap_token?: string;
 }
 
 interface PaymentSettings {
@@ -86,6 +93,145 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
   delivered: <CheckCircle size={20} />,
   cancelled: <XCircle size={20} />,
 };
+
+// Order Timeline Component
+function OrderTimeline({
+  order,
+  status,
+  paymentStatus,
+}: {
+  order: Order;
+  status: { value: string; label: string };
+  paymentStatus: { value: string; label: string };
+}) {
+  const isCancelled = status.value === 'cancelled';
+
+  const isPaid = paymentStatus.value === 'paid';
+  const isProcessing = ['processing', 'shipped', 'delivered'].includes(
+    status.value,
+  );
+  const isShipped = ['shipped', 'delivered'].includes(status.value);
+  const isDelivered = status.value === 'delivered';
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  if (isCancelled) {
+    return (
+      <div className="mb-6 rounded-sm bg-red-50 p-6">
+        <div className="flex items-center justify-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <XCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <div>
+            <p className="font-semibold text-red-800">Pesanan Dibatalkan</p>
+            {order.cancellation_reason && (
+              <p className="text-sm text-red-600">
+                {order.cancellation_reason}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const steps = [
+    {
+      key: 'created',
+      label: 'Pesanan Dibuat',
+      icon: <Package size={18} />,
+      completed: true,
+      date: formatDate(order.created_at),
+    },
+    {
+      key: 'paid',
+      label: 'Pembayaran',
+      icon: <CreditCard size={18} />,
+      completed: isPaid,
+      date: isPaid ? 'Lunas' : 'Menunggu',
+    },
+    {
+      key: 'processing',
+      label: 'Diproses',
+      icon: <AlertCircle size={18} />,
+      completed: isProcessing,
+    },
+    {
+      key: 'shipped',
+      label: 'Dikirim',
+      icon: <Truck size={18} />,
+      completed: isShipped,
+      date: formatDate(order.shipped_at),
+    },
+    {
+      key: 'delivered',
+      label: 'Diterima',
+      icon: <CheckCircle size={18} />,
+      completed: isDelivered,
+      date: formatDate(order.delivered_at),
+    },
+  ];
+
+  return (
+    <div className="mb-6 overflow-x-auto rounded-sm bg-white p-6">
+      <h2 className="mb-6 text-center font-medium text-terra-900">
+        Status Pesanan
+      </h2>
+      <div className="flex min-w-[500px] items-start justify-center">
+        {steps.map((step, index) => (
+          <div key={step.key} className="flex items-start">
+            {/* Step content */}
+            <div className="flex w-24 flex-col items-center">
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                  step.completed
+                    ? 'border-teal-500 bg-teal-500 text-white'
+                    : 'border-terra-300 bg-white text-terra-400'
+                }`}
+              >
+                {step.completed ? <CheckCircle size={18} /> : step.icon}
+              </div>
+              <p
+                className={`mt-2 text-center text-xs font-medium ${
+                  step.completed ? 'text-teal-600' : 'text-terra-400'
+                }`}
+              >
+                {step.label}
+              </p>
+              {step.date && (
+                <p
+                  className={`mt-0.5 text-center text-[10px] ${step.completed ? 'text-teal-500' : 'text-terra-400'}`}
+                >
+                  {step.date}
+                </p>
+              )}
+            </div>
+            {/* Connector line */}
+            {index < steps.length - 1 && (
+              <div
+                className={`mt-5 h-0.5 w-12 ${
+                  step.completed && steps[index + 1].completed
+                    ? 'bg-teal-500'
+                    : step.completed
+                      ? 'bg-gradient-to-r from-teal-500 to-terra-300'
+                      : 'bg-terra-300'
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function OrderShow({ order, paymentSettings }: Props) {
   const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
@@ -246,6 +392,13 @@ export default function OrderShow({ order, paymentSettings }: Props) {
               )}
             </div>
 
+            {/* Order Timeline */}
+            <OrderTimeline
+              order={order}
+              status={status}
+              paymentStatus={paymentStatus}
+            />
+
             <div className="grid gap-6 md:grid-cols-3">
               {/* Items */}
               <div className="rounded-sm bg-white p-6 md:col-span-2">
@@ -284,13 +437,33 @@ export default function OrderShow({ order, paymentSettings }: Props) {
                           <p className="text-sm text-terra-500">
                             SKU: {item.product_sku}
                           </p>
-                          <p className="text-sm text-terra-500">
-                            {item.quantity} x Rp{' '}
-                            {item.unit_price.toLocaleString('id-ID')}
-                          </p>
+                          {item.has_discount ? (
+                            <div className="flex flex-wrap items-center gap-2 text-sm">
+                              <span className="text-terra-400 line-through">
+                                {item.original_price_formatted ||
+                                  `Rp ${(item.original_price || 0).toLocaleString('id-ID')}`}
+                              </span>
+                              <span className="font-medium text-green-600">
+                                {item.unit_price_formatted ||
+                                  `Rp ${item.unit_price.toLocaleString('id-ID')}`}
+                              </span>
+                              <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
+                                -{item.discount_percentage}%
+                              </span>
+                              <span className="text-terra-400">
+                                × {item.quantity}
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-terra-500">
+                              {item.quantity} x Rp{' '}
+                              {item.unit_price.toLocaleString('id-ID')}
+                            </p>
+                          )}
                         </div>
                         <p className="font-medium text-terra-900">
-                          Rp {item.subtotal.toLocaleString('id-ID')}
+                          {item.subtotal_formatted ||
+                            `Rp ${item.subtotal.toLocaleString('id-ID')}`}
                         </p>
                       </div>
                     );
