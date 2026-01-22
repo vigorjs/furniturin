@@ -1,210 +1,314 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Banknote, ChevronLeft, Clock, CreditCard, Save } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle,
+  ChevronLeft,
+  CreditCard,
+  ExternalLink,
+  Info,
+  MessageCircle,
+  Save,
+} from 'lucide-react';
 
 interface PaymentSettingsProps {
-    settings: {
-        bank_name: string;
-        bank_account_number: string;
-        bank_account_name: string;
-        cod_fee: number;
-        payment_deadline_hours: number;
-    };
+  settings: {
+    midtrans_enabled: boolean;
+    midtrans_environment: string;
+    whatsapp_payment_enabled: boolean;
+    whatsapp_payment_message: string;
+  };
+  midtransConfigured: boolean;
+  whatsappNumber: string | null;
 }
 
-export default function PaymentSettings({ settings }: PaymentSettingsProps) {
-    const { data, setData, post, processing } = useForm(settings);
+export default function PaymentSettings({
+  settings,
+  midtransConfigured,
+  whatsappNumber,
+}: PaymentSettingsProps) {
+  const { data, setData, post, processing } = useForm({
+    midtrans_enabled: settings.midtrans_enabled ?? true,
+    midtrans_environment: settings.midtrans_environment ?? 'sandbox',
+    whatsapp_payment_enabled: settings.whatsapp_payment_enabled ?? true,
+    whatsapp_payment_message:
+      settings.whatsapp_payment_message ??
+      'Halo, saya ingin melakukan pemesanan:',
+  });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post('/admin/settings/payment');
-    };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    post('/admin/settings/payment');
+  };
 
-    return (
-        <AdminLayout
-            breadcrumbs={[
-                { title: 'Pengaturan', href: '/admin/settings' },
-                { title: 'Pembayaran', href: '/admin/settings/payment' },
-            ]}
-        >
-            <Head title="Pengaturan Pembayaran" />
+  return (
+    <AdminLayout
+      breadcrumbs={[
+        { title: 'Pengaturan', href: '/admin/settings' },
+        { title: 'Pembayaran', href: '/admin/settings/payment' },
+      ]}
+    >
+      <Head title="Pengaturan Pembayaran" />
 
-            <div className="mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex items-center gap-4">
-                    <Link
-                        href="/admin/settings"
-                        className="rounded-lg p-2 text-terra-600 transition-colors hover:bg-terra-100"
-                    >
-                        <ChevronLeft className="h-5 w-5" />
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold text-terra-900">
-                            Pengaturan Pembayaran
-                        </h1>
-                        <p className="mt-1 text-terra-500">
-                            Kelola rekening bank dan biaya COD
-                        </p>
-                    </div>
+      <div className="mx-auto max-w-6xl space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Link
+            href="/admin/settings"
+            className="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-900">
+              Pengaturan Pembayaran
+            </h1>
+            <p className="mt-1 text-neutral-500">
+              Kelola metode pembayaran yang tersedia
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Midtrans Settings */}
+          <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+            <div className="border-b border-neutral-100 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
+                    <CreditCard className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-neutral-900">
+                      Midtrans Payment Gateway
+                    </h2>
+                    <p className="text-sm text-neutral-500">
+                      Pembayaran online otomatis
+                    </p>
+                  </div>
                 </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Bank Account Settings */}
-                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
-                        <div className="mb-6 flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-                                <CreditCard className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-semibold text-terra-900">
-                                    Rekening Bank
-                                </h2>
-                                <p className="text-sm text-terra-500">
-                                    Info rekening untuk transfer bank
-                                </p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Nama Bank
-                                </label>
-                                <input
-                                    type="text"
-                                    value={data.bank_name}
-                                    onChange={(e) =>
-                                        setData('bank_name', e.target.value)
-                                    }
-                                    placeholder="BCA"
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Nomor Rekening
-                                </label>
-                                <input
-                                    type="text"
-                                    value={data.bank_account_number}
-                                    onChange={(e) =>
-                                        setData(
-                                            'bank_account_number',
-                                            e.target.value,
-                                        )
-                                    }
-                                    placeholder="1234567890"
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Atas Nama
-                                </label>
-                                <input
-                                    type="text"
-                                    value={data.bank_account_name}
-                                    onChange={(e) =>
-                                        setData(
-                                            'bank_account_name',
-                                            e.target.value,
-                                        )
-                                    }
-                                    placeholder="Furniturin"
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* COD Settings */}
-                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
-                        <div className="mb-6 flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
-                                <Banknote className="h-5 w-5 text-green-600" />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-semibold text-terra-900">
-                                    Bayar di Tempat (COD)
-                                </h2>
-                                <p className="text-sm text-terra-500">
-                                    Biaya tambahan untuk pembayaran COD
-                                </p>
-                            </div>
-                        </div>
-                        <div className="max-w-xs">
-                            <label className="mb-2 block text-sm font-medium text-terra-700">
-                                Biaya COD (Rp)
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                step="1000"
-                                value={data.cod_fee}
-                                onChange={(e) =>
-                                    setData(
-                                        'cod_fee',
-                                        parseInt(e.target.value) || 0,
-                                    )
-                                }
-                                className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                            />
-                            <p className="mt-2 text-xs text-terra-500">
-                                Set ke 0 untuk gratis
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Payment Deadline */}
-                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
-                        <div className="mb-6 flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50">
-                                <Clock className="h-5 w-5 text-orange-600" />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-semibold text-terra-900">
-                                    Batas Waktu Pembayaran
-                                </h2>
-                                <p className="text-sm text-terra-500">
-                                    Waktu maksimal untuk transfer bank
-                                </p>
-                            </div>
-                        </div>
-                        <div className="max-w-xs">
-                            <label className="mb-2 block text-sm font-medium text-terra-700">
-                                Batas Waktu (Jam)
-                            </label>
-                            <input
-                                type="number"
-                                min="1"
-                                max="168"
-                                value={data.payment_deadline_hours}
-                                onChange={(e) =>
-                                    setData(
-                                        'payment_deadline_hours',
-                                        parseInt(e.target.value) || 24,
-                                    )
-                                }
-                                className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                            />
-                            <p className="mt-2 text-xs text-terra-500">
-                                Contoh: 24 jam, 48 jam, dll
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Submit */}
-                    <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-3 font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
-                        >
-                            <Save className="h-5 w-5" />
-                            {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}
-                        </button>
-                    </div>
-                </form>
+                <label className="relative inline-flex cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    checked={data.midtrans_enabled}
+                    onChange={(e) =>
+                      setData('midtrans_enabled', e.target.checked)
+                    }
+                    className="peer sr-only"
+                  />
+                  <div className="peer h-6 w-11 rounded-full bg-neutral-300 peer-checked:bg-teal-600 peer-focus:ring-4 peer-focus:ring-teal-200 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></div>
+                </label>
+              </div>
             </div>
-        </AdminLayout>
-    );
+
+            <div className="p-6">
+              {/* Status */}
+              <div
+                className={`mb-6 flex items-start gap-3 rounded-lg p-4 ${
+                  midtransConfigured ? 'bg-green-50' : 'bg-amber-50'
+                }`}
+              >
+                {midtransConfigured ? (
+                  <CheckCircle className="h-5 w-5 flex-shrink-0 text-green-600" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-600" />
+                )}
+                <div>
+                  <p
+                    className={`text-sm font-medium ${midtransConfigured ? 'text-green-900' : 'text-amber-900'}`}
+                  >
+                    {midtransConfigured
+                      ? 'API Keys Terkonfigurasi'
+                      : 'Konfigurasi Diperlukan'}
+                  </p>
+                  <p
+                    className={`text-xs ${midtransConfigured ? 'text-green-700' : 'text-amber-700'}`}
+                  >
+                    {midtransConfigured
+                      ? 'Midtrans siap digunakan'
+                      : 'Tambahkan MIDTRANS_SERVER_KEY & MIDTRANS_CLIENT_KEY di .env'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Environment */}
+              <div className="mb-6">
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Environment
+                </label>
+                <select
+                  value={data.midtrans_environment}
+                  onChange={(e) =>
+                    setData('midtrans_environment', e.target.value)
+                  }
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                >
+                  <option value="sandbox">Sandbox (Testing)</option>
+                  <option value="production">Production (Live)</option>
+                </select>
+              </div>
+
+              {/* Supported Methods */}
+              <div>
+                <p className="mb-3 text-sm font-medium text-neutral-700">
+                  Metode Pembayaran
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    'GoPay',
+                    'QRIS',
+                    'Bank Transfer',
+                    'Credit Card',
+                    'ShopeePay',
+                  ].map((method) => (
+                    <span
+                      key={method}
+                      className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600"
+                    >
+                      {method}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* WhatsApp Payment */}
+          <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+            <div className="border-b border-neutral-100 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-50">
+                    <MessageCircle className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-neutral-900">
+                      Pembayaran via WhatsApp
+                    </h2>
+                    <p className="text-sm text-neutral-500">
+                      Hubungi admin untuk pembayaran manual
+                    </p>
+                  </div>
+                </div>
+                <label className="relative inline-flex cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    checked={data.whatsapp_payment_enabled}
+                    onChange={(e) =>
+                      setData('whatsapp_payment_enabled', e.target.checked)
+                    }
+                    className="peer sr-only"
+                  />
+                  <div className="peer h-6 w-11 rounded-full bg-neutral-300 peer-checked:bg-teal-600 peer-focus:ring-4 peer-focus:ring-teal-200 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></div>
+                </label>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* WhatsApp Number Status */}
+              {whatsappNumber ? (
+                <div className="mb-6 flex items-start gap-3 rounded-lg bg-green-50 p-4">
+                  <CheckCircle className="h-5 w-5 flex-shrink-0 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium text-green-900">
+                      WhatsApp Terkonfigurasi
+                    </p>
+                    <p className="text-xs text-green-700">
+                      Nomor: {whatsappNumber}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-6 flex items-start gap-3 rounded-lg bg-amber-50 p-4">
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0 text-amber-600" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-900">
+                      Nomor WhatsApp Belum Diatur
+                    </p>
+                    <p className="text-xs text-amber-700">
+                      Atur di{' '}
+                      <Link href="/admin/settings" className="underline">
+                        Pengaturan Umum
+                      </Link>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Message */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Pesan Awal (Template)
+                </label>
+                <textarea
+                  value={data.whatsapp_payment_message}
+                  onChange={(e) =>
+                    setData('whatsapp_payment_message', e.target.value)
+                  }
+                  rows={3}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                  placeholder="Halo, saya ingin melakukan pemesanan:"
+                />
+                <p className="mt-2 text-xs text-neutral-500">
+                  Pesan ini akan muncul di awal chat WhatsApp saat pelanggan
+                  memilih pembayaran via WhatsApp
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4">
+            <Info className="h-5 w-5 flex-shrink-0 text-blue-600" />
+            <div className="text-sm text-blue-700">
+              <p className="font-medium text-blue-900">Cara Kerja</p>
+              <ul className="mt-1 list-inside list-disc space-y-1">
+                <li>
+                  <strong>Midtrans:</strong> Pembayaran otomatis, status pesanan
+                  diupdate secara realtime
+                </li>
+                <li>
+                  <strong>WhatsApp:</strong> Pelanggan menghubungi admin,
+                  pembayaran manual (transfer/COD)
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Documentation Link */}
+          <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-4">
+            <div>
+              <p className="font-medium text-neutral-900">
+                Dokumentasi Midtrans
+              </p>
+              <p className="text-sm text-neutral-500">
+                Pelajari integrasi payment gateway
+              </p>
+            </div>
+            <a
+              href="https://docs.midtrans.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Buka
+            </a>
+          </div>
+
+          {/* Submit */}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={processing}
+              className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-6 py-3 font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+            >
+              <Save className="h-5 w-5" />
+              {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </AdminLayout>
+  );
 }

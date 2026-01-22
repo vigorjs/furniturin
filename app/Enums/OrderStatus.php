@@ -54,7 +54,7 @@ enum OrderStatus: string
      */
     public function isCancellable(): bool
     {
-        return in_array($this, [self::PENDING, self::CONFIRMED]);
+        return in_array($this, [self::PENDING, self::CONFIRMED, self::PROCESSING]);
     }
 
     /**
@@ -65,4 +65,3 @@ enum OrderStatus: string
         return in_array($this, [self::DELIVERED, self::CANCELLED, self::REFUNDED]);
     }
 }
-

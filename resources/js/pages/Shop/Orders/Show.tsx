@@ -1,3 +1,9 @@
+import {
+  AlertDialog,
+  ConfirmDialog,
+  useAlertDialog,
+  useConfirmDialog,
+} from '@/components/ui/alert-dialog';
 import { ShopLayout } from '@/layouts/ShopLayout';
 import { SiteSettings } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -238,16 +244,24 @@ export default function OrderShow({ order, paymentSettings }: Props) {
   const siteName = siteSettings?.site_name || 'Furniturin';
   const [cancelling, setCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { state: alertState, showAlert, closeAlert } = useAlertDialog();
+  const { state: confirmState, showConfirm, closeConfirm } = useConfirmDialog();
 
-  const handleCancel = async () => {
-    if (!confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
-    setCancelling(true);
-    router.post(
-      `/shop/orders/${order.id}/cancel`,
-      {},
-      {
-        onFinish: () => setCancelling(false),
+  const handleCancel = () => {
+    showConfirm(
+      'Batalkan Pesanan',
+      'Apakah Anda yakin ingin membatalkan pesanan ini?',
+      () => {
+        setCancelling(true);
+        router.post(
+          `/shop/orders/${order.id}/cancel`,
+          {},
+          {
+            onFinish: () => setCancelling(false),
+          },
+        );
       },
+      'danger',
     );
   };
 
@@ -280,6 +294,7 @@ export default function OrderShow({ order, paymentSettings }: Props) {
   const isBankTransfer = paymentMethod.value === 'bank_transfer';
   const isCOD = paymentMethod.value === 'cod';
   const isMidtrans = paymentMethod.value === 'midtrans';
+  const isWhatsApp = paymentMethod.value === 'whatsapp';
 
   const handleMidtransPayment = () => {
     if (order.snap_token) {
@@ -291,30 +306,43 @@ export default function OrderShow({ order, paymentSettings }: Props) {
             window.location.reload();
           },
           onPending: function (result: any) {
-            alert('Menunggu pembayaran...');
+            showAlert('Menunggu pembayaran...', 'info', 'Info Pembayaran');
             window.location.reload();
           },
           onError: function (result: any) {
-            alert('Pembayaran gagal!');
+            showAlert('Pembayaran gagal!', 'error', 'Pembayaran Gagal');
           },
           onClose: function () {
             // Closed
           },
         });
       } else {
-        alert('Skrip pembayaran belum dimuat. Silakan refresh halaman.');
+        showAlert(
+          'Skrip pembayaran belum dimuat. Silakan refresh halaman.',
+          'error',
+          'Error',
+        );
       }
     } else {
-      alert('Token pembayaran tidak ditemukan.');
+      showAlert('Token pembayaran tidak ditemukan.', 'error', 'Error');
     }
   };
 
-  // Generate WhatsApp message
+  // Generate WhatsApp message with product details
   const generateWhatsAppMessage = () => {
-    if (isBankTransfer) {
+    const productList = items
+      .map(
+        (item) =>
+          `• ${item.product_name} x${item.quantity} - ${item.subtotal_formatted || `Rp ${item.subtotal.toLocaleString('id-ID')}`}`,
+      )
+      .join('%0A');
+
+    if (isWhatsApp) {
+      return `Halo ${siteName}! 👋%0A%0ASaya ingin memesan:%0A%0A📦 *Order: %23${order.order_number}*%0A%0A*Produk:*%0A${productList}%0A%0A🚚 *Pengiriman:*%0A${order.shipping_name}%0A${order.shipping_phone}%0A${order.shipping_address}%0A${order.shipping_city}, ${order.shipping_province} ${order.shipping_postal_code}%0A%0A💰 *Total: ${order.total_formatted}*%0A%0AMohon dikonfirmasi untuk pembayaran. Terima kasih! 🙏`;
+    } else if (isBankTransfer) {
       return `Halo ${siteName}! 👋%0A%0ASaya sudah transfer untuk pesanan:%0A📦 Order: %23${order.order_number}%0A💰 Total: ${order.total_formatted}%0A🏦 Ke: ${paymentSettings.bank_name} ${paymentSettings.bank_account_number}%0A%0AMohon dikonfirmasi. Terima kasih! 🙏`;
     } else {
-      return `Halo ${siteName}! 👋%0A%0ASaya mau konfirmasi pesanan COD:%0A📦 Order: %23${order.order_number}%0A💰 Total: ${order.total_formatted}%0A📍 Alamat: ${order.shipping_address}, ${order.shipping_city}%0A%0AMohon diproses. Terima kasih! 🙏`;
+      return `Halo ${siteName}! 👋%0A%0ASaya mau konfirmasi pesanan:%0A📦 Order: %23${order.order_number}%0A💰 Total: ${order.total_formatted}%0A📍 Alamat: ${order.shipping_address}, ${order.shipping_city}%0A%0AMohon diproses. Terima kasih! 🙏`;
     }
   };
 
@@ -678,8 +706,45 @@ export default function OrderShow({ order, paymentSettings }: Props) {
                   </div>
                 )}
 
-                {/* WhatsApp Confirmation */}
-                {needsPayment && paymentSettings?.whatsapp && (
+                {/* WhatsApp Order - Special Section */}
+                {needsPayment && isWhatsApp && paymentSettings?.whatsapp && (
+                  <div className="rounded-sm border border-green-200 bg-gradient-to-br from-green-50 to-green-100/50 p-6 shadow-sm">
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-green-500">
+                        <MessageCircle size={20} className="text-white" />
+                      </div>
+                      <div>
+                        <h2 className="font-semibold text-green-900">
+                          Lanjutkan via WhatsApp
+                        </h2>
+                        <p className="text-xs text-green-600">
+                          Hubungi admin untuk pembayaran
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mb-4 rounded-sm border border-green-100 bg-white/80 p-4 backdrop-blur">
+                      <p className="text-sm text-green-800">
+                        Klik tombol di bawah untuk mengirim detail pesanan ke
+                        admin via WhatsApp. Admin akan mengonfirmasi pesanan dan
+                        memberikan instruksi pembayaran.
+                      </p>
+                    </div>
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex w-full items-center justify-center gap-3 rounded-sm bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 font-semibold text-white shadow-lg shadow-green-500/25 transition-all duration-300 hover:scale-[1.02] hover:from-green-600 hover:to-green-700 hover:shadow-green-500/40"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 transition-colors group-hover:bg-white/30">
+                        <MessageCircle size={18} />
+                      </div>
+                      <span>Hubungi Admin via WhatsApp</span>
+                    </a>
+                  </div>
+                )}
+
+                {/* WhatsApp Confirmation for other payment methods */}
+                {needsPayment && !isWhatsApp && paymentSettings?.whatsapp && (
                   <a
                     href={whatsappUrl}
                     target="_blank"
@@ -701,6 +766,23 @@ export default function OrderShow({ order, paymentSettings }: Props) {
           </div>
         </main>
       </ShopLayout>
+
+      <AlertDialog
+        open={alertState.open}
+        onOpenChange={closeAlert}
+        title={alertState.title}
+        description={alertState.description}
+        type={alertState.type}
+      />
+
+      <ConfirmDialog
+        open={confirmState.open}
+        onOpenChange={closeConfirm}
+        title={confirmState.title}
+        description={confirmState.description}
+        variant={confirmState.variant}
+        onConfirm={confirmState.onConfirm}
+      />
     </>
   );
 }

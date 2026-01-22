@@ -76,6 +76,18 @@ class HomeController extends Controller
             'description' => Setting::get('site_description', 'Toko furnitur premium Indonesia'),
         ];
 
+        // Section Visibility
+        $sectionVisibility = [
+            'hero' => filter_var(Setting::get('section_hero_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+            'trust' => filter_var(Setting::get('section_trust_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+            'categories' => filter_var(Setting::get('section_categories_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+            'catalog' => filter_var(Setting::get('section_catalog_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+            'values' => filter_var(Setting::get('section_values_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+            'products' => filter_var(Setting::get('section_products_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+            'testimonials' => filter_var(Setting::get('section_testimonials_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+            'newsletter' => filter_var(Setting::get('section_newsletter_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+        ];
+
         return Inertia::render('Shop/Home', [
             'featuredProducts' => ProductResource::collection($featuredProducts),
             'landingCategories' => CategoryResource::collection($featuredCategories),
@@ -84,6 +96,7 @@ class HomeController extends Controller
             'trustLogos' => $trustLogos,
             'values' => $values,
             'pageSiteSettings' => $pageSiteSettings,
+            'sectionVisibility' => $sectionVisibility,
         ]);
     }
 }
