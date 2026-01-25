@@ -421,4 +421,22 @@ class Product extends Model implements HasMedia
             $this->increment('stock_quantity', $quantity);
         }
     }
+
+    /**
+     * Increment sold count when order is paid.
+     */
+    public function incrementSoldCount(int $quantity): void
+    {
+        $this->increment('sold_count', $quantity);
+    }
+
+    /**
+     * Decrement sold count when order is cancelled (after payment).
+     */
+    public function decrementSoldCount(int $quantity): void
+    {
+        if ($this->sold_count >= $quantity) {
+            $this->decrement('sold_count', $quantity);
+        }
+    }
 }

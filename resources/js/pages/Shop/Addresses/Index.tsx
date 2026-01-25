@@ -1,3 +1,9 @@
+import {
+  AlertDialog,
+  ConfirmDialog,
+  useAlertDialog,
+  useConfirmDialog,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -44,6 +50,22 @@ interface KomerceLocation {
 export default function AddressIndex({ addresses }: { addresses: Address[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const { state: alertState, showAlert, closeAlert } = useAlertDialog();
+  const { state: confirmState, showConfirm, closeConfirm } = useConfirmDialog();
+
+  const handleDelete = (id: number) => {
+    showConfirm(
+      'Hapus Alamat',
+      'Apakah Anda yakin ingin menghapus alamat ini?',
+      () => {
+        router.delete(route('shop.addresses.destroy', id), {
+          onSuccess: () => console.log('Address deleted'),
+          onError: () => showAlert('Gagal menghapus alamat', 'error', 'Error'),
+        });
+      },
+      'danger',
+    );
+  };
 
   return (
     <ShopLayout>
@@ -83,6 +105,7 @@ export default function AddressIndex({ addresses }: { addresses: Address[] }) {
                     setEditingAddress(address);
                     setIsOpen(true);
                   }}
+                  onDelete={() => handleDelete(address.id)}
                 />
               ))
             )}
@@ -94,6 +117,23 @@ export default function AddressIndex({ addresses }: { addresses: Address[] }) {
           onOpenChange={setIsOpen}
           address={editingAddress}
         />
+
+        <AlertDialog
+          open={alertState.open}
+          onOpenChange={closeAlert}
+          title={alertState.title}
+          description={alertState.description}
+          type={alertState.type}
+        />
+
+        <ConfirmDialog
+          open={confirmState.open}
+          onOpenChange={closeConfirm}
+          title={confirmState.title}
+          description={confirmState.description}
+          variant={confirmState.variant}
+          onConfirm={confirmState.onConfirm}
+        />
       </div>
     </ShopLayout>
   );
@@ -102,19 +142,12 @@ export default function AddressIndex({ addresses }: { addresses: Address[] }) {
 function AddressCard({
   address,
   onEdit,
+  onDelete,
 }: {
   address: Address;
   onEdit: () => void;
+  onDelete: () => void;
 }) {
-  const handleDelete = () => {
-    if (confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
-      router.delete(route('shop.addresses.destroy', address.id), {
-        onSuccess: () => console.log('Address deleted'),
-        onError: () => alert('Gagal menghapus alamat'),
-      });
-    }
-  };
-
   const handleSetDefault = () => {
     router.post(
       route('shop.addresses.default', address.id),
@@ -167,7 +200,7 @@ function AddressCard({
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleDelete}
+            onClick={onDelete}
             className="text-gray-500 hover:text-red-600"
           >
             <Trash2 className="h-4 w-4" />
@@ -301,6 +334,7 @@ function AddressFormDialog({
     notes: '',
     is_default: false,
   });
+  const { state: alertState, showAlert, closeAlert } = useAlertDialog();
 
   useEffect(() => {
     if (open) {
@@ -343,7 +377,8 @@ function AddressFormDialog({
         onOpenChange(false);
         reset();
       },
-      onError: () => alert('Mohon periksa form kembali.'),
+      onError: () =>
+        showAlert('Mohon periksa form kembali.', 'warning', 'Perhatian'),
     };
 
     if (address) {
@@ -499,6 +534,13 @@ function AddressFormDialog({
             </Button>
           </DialogFooter>
         </form>
+        <AlertDialog
+          open={alertState.open}
+          onOpenChange={closeAlert}
+          title={alertState.title}
+          description={alertState.description}
+          type={alertState.type}
+        />
       </DialogContent>
     </Dialog>
   );

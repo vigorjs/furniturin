@@ -93,6 +93,15 @@ class MidtransController extends Controller
     {
         $order->markAsPaid();
         $order->update(['status' => OrderStatus::PROCESSING]);
+
+        // Increment sold_count for each product
+        $order->load('items');
+        foreach ($order->items as $item) {
+            if ($item->product) {
+                $item->product->incrementSoldCount($item->quantity);
+            }
+        }
+
         Log::info('Order payment successful', ['order_id' => $order->order_number]);
     }
 
@@ -104,9 +113,18 @@ class MidtransController extends Controller
             'cancel' => 'Payment Cancelled',
         ];
 
+        // Restore stock for each product since payment failed
+        $order->load('items');
+        foreach ($order->items as $item) {
+            if ($item->product && $item->product->track_stock) {
+                $item->product->addStock($item->quantity);
+            }
+        }
+
         $order->update([
             'payment_status' => PaymentStatus::FAILED,
             'status' => OrderStatus::CANCELLED,
+            'cancelled_at' => now(),
             'cancellation_reason' => $reasonMap[$reason] ?? 'Payment Failed',
         ]);
 

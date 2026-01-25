@@ -75,16 +75,28 @@ class SettingsController extends Controller
                 'hero_title_highlight' => $settings['hero_title_highlight'] ?? 'bernafas.',
                 'hero_description' => $settings['hero_description'] ?? 'Furniture minimalis dari bahan berkelanjutan. Dibuat untuk mereka yang menemukan kemewahan dalam kesederhanaan.',
                 'hero_image_main' => $settings['hero_image_main'] ?? '/images/placeholder-hero.svg',
-                'hero_image_secondary' => $settings['hero_image_secondary'] ?? '/images/placeholder-hero.svg',
                 'hero_product_name' => $settings['hero_product_name'] ?? 'Kursi Santai Premium',
                 // Trust Logos (JSON array)
-                'trust_logos' => $settings['trust_logos'] ?? '["Kompas", "Tempo", "Forbes Indonesia", "Bisnis Indonesia", "The Jakarta Post"]',
+                'trust_logos' => $settings['trust_logos'] ?? json_encode([
+                    ['name' => 'Kompas', 'logo_url' => ''],
+                    ['name' => 'Tempo', 'logo_url' => ''],
+                    ['name' => 'Forbes Indonesia', 'logo_url' => ''],
+                ]),
                 // Values (JSON array)
                 'home_values' => $settings['home_values'] ?? json_encode([
                     ['icon' => 'leaf', 'title' => 'Bahan Berkelanjutan', 'desc' => 'Setiap produk menggunakan kayu dari hutan yang dikelola secara bertanggung jawab dan bahan daur ulang.'],
                     ['icon' => 'truck', 'title' => 'Gratis Pengiriman', 'desc' => 'Pengiriman gratis untuk pembelian di atas Rp 5 juta ke seluruh Indonesia.'],
                     ['icon' => 'shield-check', 'title' => 'Garansi Selamanya', 'desc' => 'Garansi seumur hidup untuk semua kerusakan struktural karena kami percaya dengan kualitas kami.'],
                 ]),
+                // Section visibility
+                'section_hero_visible' => filter_var($settings['section_hero_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_trust_visible' => filter_var($settings['section_trust_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_categories_visible' => filter_var($settings['section_categories_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_catalog_visible' => filter_var($settings['section_catalog_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_values_visible' => filter_var($settings['section_values_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_products_visible' => filter_var($settings['section_products_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_testimonials_visible' => filter_var($settings['section_testimonials_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_newsletter_visible' => filter_var($settings['section_newsletter_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
             ],
         ]);
     }
@@ -99,19 +111,30 @@ class SettingsController extends Controller
             'hero_title' => ['nullable', 'string', 'max:100'],
             'hero_title_highlight' => ['nullable', 'string', 'max:100'],
             'hero_description' => ['nullable', 'string', 'max:500'],
-            'hero_image_main' => ['nullable', 'url', 'max:500'],
-            'hero_image_secondary' => ['nullable', 'url', 'max:500'],
+            'hero_image_main' => ['nullable', 'string', 'max:500'],
             'hero_product_name' => ['nullable', 'string', 'max:100'],
             'trust_logos' => ['nullable', 'string'],
             'home_values' => ['nullable', 'string'],
+            // Section visibility
+            'section_hero_visible' => ['required', 'boolean'],
+            'section_trust_visible' => ['required', 'boolean'],
+            'section_categories_visible' => ['required', 'boolean'],
+            'section_catalog_visible' => ['required', 'boolean'],
+            'section_values_visible' => ['required', 'boolean'],
+            'section_products_visible' => ['required', 'boolean'],
+            'section_testimonials_visible' => ['required', 'boolean'],
+            'section_newsletter_visible' => ['required', 'boolean'],
         ]);
 
         foreach ($validated as $key => $value) {
             Setting::updateOrCreate(
                 ['key' => $key],
-                ['value' => $value ?? '']
+                ['value' => is_bool($value) ? ($value ? '1' : '0') : ($value ?? '')]
             );
         }
+
+        // Clear cache
+        Cache::forget('site_settings');
 
         return back()->with('success', 'Pengaturan homepage berhasil disimpan.');
     }
@@ -123,17 +146,20 @@ class SettingsController extends Controller
     {
         $settings = Setting::all()->pluck('value', 'key')->toArray();
 
+        // Check if Midtrans is configured
+        $midtransConfigured = !empty(config('midtrans.server_key')) && !empty(config('midtrans.client_key'));
+
         return Inertia::render('Admin/Settings/Payment', [
             'settings' => [
-                // Bank Account
-                'bank_name' => $settings['bank_name'] ?? 'BCA',
-                'bank_account_number' => $settings['bank_account_number'] ?? '',
-                'bank_account_name' => $settings['bank_account_name'] ?? '',
-                // COD Settings
-                'cod_fee' => (int) ($settings['cod_fee'] ?? 5000),
-                // Payment Deadline
-                'payment_deadline_hours' => (int) ($settings['payment_deadline_hours'] ?? 24),
+                // Midtrans
+                'midtrans_enabled' => filter_var($settings['midtrans_enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'midtrans_environment' => $settings['midtrans_environment'] ?? (config('midtrans.is_production') ? 'production' : 'sandbox'),
+                // WhatsApp Payment
+                'whatsapp_payment_enabled' => filter_var($settings['whatsapp_payment_enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'whatsapp_payment_message' => $settings['whatsapp_payment_message'] ?? 'Halo, saya ingin melakukan pemesanan:',
             ],
+            'midtransConfigured' => $midtransConfigured,
+            'whatsappNumber' => $settings['contact_whatsapp'] ?? null,
         ]);
     }
 
@@ -143,19 +169,21 @@ class SettingsController extends Controller
     public function updatePayment(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'bank_name' => ['required', 'string', 'max:100'],
-            'bank_account_number' => ['required', 'string', 'max:50'],
-            'bank_account_name' => ['required', 'string', 'max:100'],
-            'cod_fee' => ['required', 'integer', 'min:0'],
-            'payment_deadline_hours' => ['required', 'integer', 'min:1', 'max:168'],
+            'midtrans_enabled' => ['required', 'boolean'],
+            'midtrans_environment' => ['required', 'string', 'in:sandbox,production'],
+            'whatsapp_payment_enabled' => ['required', 'boolean'],
+            'whatsapp_payment_message' => ['nullable', 'string', 'max:500'],
         ]);
 
         foreach ($validated as $key => $value) {
             Setting::updateOrCreate(
                 ['key' => $key],
-                ['value' => (string) $value]
+                ['value' => is_bool($value) ? ($value ? '1' : '0') : (string) ($value ?? '')]
             );
         }
+
+        // Clear site settings cache
+        Cache::forget('site_settings');
 
         return back()->with('success', 'Pengaturan pembayaran berhasil disimpan.');
     }

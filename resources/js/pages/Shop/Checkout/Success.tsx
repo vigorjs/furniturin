@@ -1,3 +1,4 @@
+import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,6 +26,7 @@ interface Props {
 
 export default function Success({ order }: Props) {
   const { flash } = usePage().props;
+  const { state: alertState, showAlert, closeAlert } = useAlertDialog();
 
   useEffect(() => {
     // Auto-trigger Midtrans if applicable
@@ -41,11 +43,11 @@ export default function Success({ order }: Props) {
             window.location.reload();
           },
           onPending: function (result: any) {
-            alert('Menunggu pembayaran...');
+            showAlert('Menunggu pembayaran...', 'info', 'Info Pembayaran');
             window.location.reload();
           },
           onError: function (result: any) {
-            alert('Pembayaran gagal!');
+            showAlert('Pembayaran gagal!', 'error', 'Gagal');
           },
           onClose: function () {
             // User closed popup
@@ -80,11 +82,11 @@ export default function Success({ order }: Props) {
           window.location.reload();
         },
         onPending: function (result: any) {
-          alert('Menunggu pembayaran...');
+          showAlert('Menunggu pembayaran...', 'info', 'Info Pembayaran');
           window.location.reload();
         },
         onError: function (result: any) {
-          alert('Pembayaran gagal!');
+          showAlert('Pembayaran gagal!', 'error', 'Gagal');
         },
         onClose: function () {
           // Closed
@@ -178,7 +180,11 @@ export default function Success({ order }: Props) {
                           className="h-6 w-6"
                           onClick={() => {
                             navigator.clipboard.writeText('1234567890');
-                            alert('Nomor rekening disalin');
+                            showAlert(
+                              'Nomor rekening disalin',
+                              'success',
+                              'Berhasil',
+                            );
                           }}
                         >
                           <Copy className="h-3 w-3" />
@@ -266,6 +272,14 @@ export default function Success({ order }: Props) {
           </CardFooter>
         </Card>
       </div>
+
+      <AlertDialog
+        open={alertState.open}
+        onOpenChange={closeAlert}
+        title={alertState.title}
+        description={alertState.description}
+        type={alertState.type}
+      />
     </div>
   );
 }
