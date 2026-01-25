@@ -30,7 +30,7 @@ export default function Appearance() {
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <div className="rounded-xl border border-terra-100 bg-white p-6 shadow-sm md:p-8">
+                    <div className="rounded-sm border border-terra-100 bg-white p-6 shadow-sm md:p-8">
                         <HeadingSmall
                             title="Appearance settings"
                             description="Update your account's appearance settings"

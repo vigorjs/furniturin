@@ -70,7 +70,7 @@ export default function TwoFactor({
                                             variant="destructive"
                                             type="submit"
                                             disabled={processing}
-                                            className="rounded-lg"
+                                            className="rounded-sm"
                                         >
                                             <ShieldBan className="mr-2 h-4 w-4" />{' '}
                                             Nonaktifkan 2FA
@@ -98,7 +98,7 @@ export default function TwoFactor({
                                 {hasSetupData ? (
                                     <Button
                                         onClick={() => setShowSetupModal(true)}
-                                        className="rounded-lg bg-teal-500 text-white hover:bg-teal-600"
+                                        className="rounded-sm bg-teal-500 text-white hover:bg-teal-600"
                                     >
                                         <ShieldCheck className="mr-2 h-4 w-4" />
                                         Lanjutkan Setup
@@ -114,7 +114,7 @@ export default function TwoFactor({
                                             <Button
                                                 type="submit"
                                                 disabled={processing}
-                                                className="rounded-lg bg-teal-500 text-white hover:bg-teal-600"
+                                                className="rounded-sm bg-teal-500 text-white hover:bg-teal-600"
                                             >
                                                 <ShieldCheck className="mr-2 h-4 w-4" />
                                                 Aktifkan 2FA

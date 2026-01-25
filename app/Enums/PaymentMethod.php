@@ -11,6 +11,8 @@ enum PaymentMethod: string
 {
     case BANK_TRANSFER = 'bank_transfer';
     case COD = 'cod';
+    case MIDTRANS = 'midtrans';
+    case WHATSAPP = 'whatsapp';
 
     /**
      * Get label untuk ditampilkan di UI (Bahasa Indonesia).
@@ -18,8 +20,10 @@ enum PaymentMethod: string
     public function label(): string
     {
         return match ($this) {
-            self::BANK_TRANSFER => 'Transfer Bank',
-            self::COD => 'Bayar di Tempat (COD)',
+            self::BANK_TRANSFER => 'Transfer Bank (Manual)',
+            self::COD => 'Cash on Delivery (COD)',
+            self::MIDTRANS => 'Online Payment (Midtrans)',
+            self::WHATSAPP => 'WhatsApp Order',
         };
     }
 
@@ -29,8 +33,10 @@ enum PaymentMethod: string
     public function description(): string
     {
         return match ($this) {
-            self::BANK_TRANSFER => 'Transfer ke rekening bank kami, konfirmasi via WhatsApp',
-            self::COD => 'Bayar tunai saat barang diterima',
+            self::BANK_TRANSFER => 'Transfer ke rekening BCA/Mandiri, lalu upload bukti bayar.',
+            self::COD => 'Bayar saat barang sampai (Biaya tambahan Rp 5.000).',
+            self::MIDTRANS => 'Bayar otomatis via GoPay, OVO, ShopeePay, Kartu Kredit, dll.',
+            self::WHATSAPP => 'Pesan via WhatsApp dan bayar langsung ke admin.',
         };
     }
 
@@ -50,7 +56,9 @@ enum PaymentMethod: string
      */
     public function requiresManualVerification(): bool
     {
-        return true; // Both methods require manual verification
+        return match ($this) {
+            self::BANK_TRANSFER, self::COD, self::WHATSAPP => true,
+            self::MIDTRANS => false,
+        };
     }
 }
-

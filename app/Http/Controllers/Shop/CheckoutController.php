@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shop;
 
+use App\Actions\Checkout\ResolveShippingAddressAction;
 use App\Actions\Order\CreateOrderAction;
 use App\Enums\PaymentMethod;
 use App\Http\Controllers\Controller;
@@ -11,7 +12,6 @@ use App\Http\Requests\Shop\CheckoutRequest;
 use App\Http\Resources\AddressResource;
 use App\Http\Resources\CartResource;
 use App\Http\Resources\OrderResource;
-use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Setting;
 use App\Models\User;
@@ -53,7 +53,10 @@ class CheckoutController extends Controller implements HasMiddleware
         return Inertia::render('Shop/Checkout/Index', [
             'cart' => (new CartResource($cart))->resolve(),
             'addresses' => AddressResource::collection($addresses)->resolve(),
-            'paymentMethods' => collect(PaymentMethod::cases())->map(fn ($method) => [
+            'paymentMethods' => collect([
+                PaymentMethod::MIDTRANS,
+                PaymentMethod::WHATSAPP,
+            ])->map(fn ($method) => [
                 'value' => $method->value,
                 'name' => $method->label(),
                 'description' => $method->description(),
@@ -66,8 +69,12 @@ class CheckoutController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function store(CheckoutRequest $request, CreateOrderAction $action): RedirectResponse
-    {
+    public function store(
+        CheckoutRequest $request,
+        CreateOrderAction $createOrderAction,
+        ResolveShippingAddressAction $resolveAddressAction,
+        \App\Services\Payment\MidtransService $midtransService
+    ): RedirectResponse {
         /** @var User $user */
         $user = $request->user();
 
@@ -82,53 +89,25 @@ class CheckoutController extends Controller implements HasMiddleware
 
         $validated = $request->validated();
 
-        // Get shipping data from address or form
-        if (isset($validated['address_id'])) {
-            /** @var Address $address */
-            $address = Address::findOrFail($validated['address_id']);
-            $shippingData = [
-                'shipping_name' => $address->recipient_name,
-                'shipping_phone' => $address->phone,
-                'shipping_email' => $user->email,
-                'shipping_address' => $address->full_address,
-                'shipping_city' => $address->city,
-                'shipping_province' => $address->province,
-                'shipping_postal_code' => $address->postal_code,
-                'payment_method' => $validated['payment_method'],
-                'shipping_method' => $validated['shipping_method'],
-                'customer_notes' => $validated['customer_notes'] ?? null,
-                'coupon_code' => $validated['coupon_code'] ?? null,
-            ];
-        } else {
-            $shippingData = [
-                'shipping_name' => $validated['shipping_name'],
-                'shipping_phone' => $validated['shipping_phone'],
-                'shipping_email' => $validated['shipping_email'],
-                'shipping_address' => $validated['shipping_address'],
-                'shipping_city' => $validated['shipping_city'],
-                'shipping_province' => $validated['shipping_province'],
-                'shipping_postal_code' => $validated['shipping_postal_code'],
-                'payment_method' => $validated['payment_method'],
-                'shipping_method' => $validated['shipping_method'],
-                'customer_notes' => $validated['customer_notes'] ?? null,
-                'coupon_code' => $validated['coupon_code'] ?? null,
-            ];
+        $shippingData = $resolveAddressAction->execute($user, $validated);
 
-            // Save address if requested
-            if (! empty($validated['save_address'])) {
-                $user->addresses()->create([
-                    'label' => 'Alamat Baru',
-                    'recipient_name' => $validated['shipping_name'],
-                    'phone' => $validated['shipping_phone'],
-                    'address' => $validated['shipping_address'],
-                    'city' => $validated['shipping_city'],
-                    'province' => $validated['shipping_province'],
-                    'postal_code' => $validated['shipping_postal_code'],
-                ]);
+        // Use shipping cost from frontend (already calculated via RajaOngkir API)
+        $shippingData['shipping_cost'] = $validated['shipping_cost'];
+        $shippingData['shipping_method'] = $validated['shipping_method'];
+
+        $order = $createOrderAction->execute($user, $cart, $shippingData);
+
+        // Handle Midtrans Payment
+        if ($order->payment_method === PaymentMethod::MIDTRANS) {
+            try {
+                $snapToken = $midtransService->getSnapToken($order);
+                $order->update(['snap_token' => $snapToken]);
+            } catch (\Exception $e) {
+                return redirect()
+                    ->route('shop.orders.show', $order)
+                    ->with('error', 'Gagal memproses pembayaran Midtrans: ' . $e->getMessage());
             }
         }
-
-        $order = $action->execute($user, $cart, $shippingData);
 
         return redirect()
             ->route('shop.orders.show', $order)

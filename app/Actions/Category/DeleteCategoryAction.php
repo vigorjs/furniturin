@@ -43,7 +43,7 @@ class DeleteCategoryAction
                 Storage::disk('public')->delete($category->image_path);
             }
 
-            return (bool) $category->delete();
+            return (bool) $category->forceDelete();
         });
     }
 }

@@ -39,8 +39,8 @@ class CartResource extends JsonResource
             'saved_items_count' => $this->saved_item_count,
             'subtotal' => $this->subtotal,
             'subtotal_formatted' => $this->formatted_subtotal,
-            'items' => CartItemResource::collection($activeItems),
-            'saved_items' => CartItemResource::collection($savedItems),
+            'items' => CartItemResource::collection($activeItems)->resolve(),
+            'saved_items' => CartItemResource::collection($savedItems)->resolve(),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

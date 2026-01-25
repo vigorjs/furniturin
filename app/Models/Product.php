@@ -132,6 +132,10 @@ class Product extends Model implements HasMedia
         'discount_ends_at',
         'meta_title',
         'meta_description',
+        'view_count',
+        'sold_count',
+        'average_rating',
+        'review_count',
     ];
 
     protected function casts(): array
@@ -353,7 +357,7 @@ class Product extends Model implements HasMedia
             return false;
         }
 
-        return true;
+        return $this->sale_type->hasDiscount();
     }
 
     public function isInStock(): bool
@@ -415,6 +419,24 @@ class Product extends Model implements HasMedia
     {
         if ($this->track_stock) {
             $this->increment('stock_quantity', $quantity);
+        }
+    }
+
+    /**
+     * Increment sold count when order is paid.
+     */
+    public function incrementSoldCount(int $quantity): void
+    {
+        $this->increment('sold_count', $quantity);
+    }
+
+    /**
+     * Decrement sold count when order is cancelled (after payment).
+     */
+    public function decrementSoldCount(int $quantity): void
+    {
+        if ($this->sold_count >= $quantity) {
+            $this->decrement('sold_count', $quantity);
         }
     }
 }

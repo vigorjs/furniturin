@@ -301,7 +301,7 @@ export default function CategoriesIndex({ categories }: CategoriesIndexProps) {
                     </div>
                     <Link
                         href="/admin/categories/create"
-                        className="inline-flex items-center gap-2 rounded-xl bg-terra-900 px-4 py-2.5 font-medium text-white transition-all hover:bg-wood-dark"
+                        className="inline-flex items-center gap-2 rounded-xl bg-wood-dark px-4 py-2.5 font-medium text-white transition-all"
                     >
                         <Plus className="h-5 w-5" />
                         Tambah Kategori
@@ -454,7 +454,7 @@ export default function CategoriesIndex({ categories }: CategoriesIndexProps) {
                                 </p>
                             </div>
                         )}
-                    <DialogFooter className="mt-4 gap-2 sm:gap-0">
+                    <DialogFooter className="mt-4 gap-2">
                         <DialogClose asChild>
                             <button
                                 type="button"

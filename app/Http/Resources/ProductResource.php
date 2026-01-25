@@ -69,10 +69,16 @@ class ProductResource extends JsonResource
                 : [],
             'is_wishlisted' => $request->user()?->hasProductInWishlist($this->resource) ?? false,
             'rating_counts' => $this->reviews()
+                ->where('is_approved', true) // Filter ulasan yang disetujui
                 ->toBase()
-                ->selectRaw('ROUND(rating) as star, count(*) as count')
+                ->selectRaw('rating as star, count(*) as count')
                 ->groupBy('star')
-                ->pluck('count', 'star')
+                ->get()
+                ->map(fn($item) => [
+                    'star' => (int) $item->star,
+                    'count' => (int) $item->count
+                ])
+                ->values() // Ensure it's a list, not keyed object
                 ->toArray(),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

@@ -44,6 +44,10 @@ class CategoryController extends Controller implements HasMiddleware
 
         // Manually map to ensure children are properly included
         $mappedCategories = $categories->map(function ($category) {
+            // Calculate total products count including children
+            $childrenProductsCount = $category->children->sum('products_count');
+            $totalProductsCount = $category->products_count + $childrenProductsCount;
+
             return [
                 'id' => $category->id,
                 'parent_id' => $category->parent_id,
@@ -54,7 +58,7 @@ class CategoryController extends Controller implements HasMiddleware
                 'is_active' => $category->is_active,
                 'is_featured' => $category->is_featured,
                 'sort_order' => $category->sort_order,
-                'products_count' => $category->products_count,
+                'products_count' => $totalProductsCount,
                 'children' => $category->children->map(function ($child) {
                     return [
                         'id' => $child->id,

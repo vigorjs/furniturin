@@ -34,6 +34,7 @@ class CheckoutRequest extends FormRequest
 
             // Shipping
             'shipping_method' => ['required', 'string', 'max:100'],
+            'shipping_cost' => ['required', 'integer', 'min:0'],
 
             // Optional
             'customer_notes' => ['nullable', 'string', 'max:500'],
@@ -57,6 +58,7 @@ class CheckoutRequest extends FormRequest
             'payment_method.required' => 'Metode pembayaran wajib dipilih.',
             'payment_method.enum' => 'Metode pembayaran tidak valid.',
             'shipping_method.required' => 'Metode pengiriman wajib dipilih.',
+            'shipping_cost.required' => 'Ongkos kirim wajib dipilih.',
             'customer_notes.max' => 'Catatan maksimal 500 karakter.',
         ];
     }

@@ -4,6 +4,7 @@ import {
     SEOHead,
 } from '@/components/seo';
 import {
+    ProductCard,
     RecentlyViewedSection,
     saveToRecentlyViewed,
     ShareModal,
@@ -35,11 +36,16 @@ import { useEffect, useState } from 'react';
 interface Props {
     product: ApiProduct;
     relatedProducts: ApiProduct[];
+    userReview?: ProductReview;
 }
 
-export default function ProductShow({ product, relatedProducts }: Props) {
+export default function ProductShow({
+    product,
+    relatedProducts,
+    userReview,
+}: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const [quantity, setQuantity] = useState(1);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
@@ -182,8 +188,8 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                       name: product.category.name,
                       url:
                           typeof window !== 'undefined'
-                              ? `${window.location.origin}/shop/category/${product.category.slug}`
-                              : `/shop/category/${product.category.slug}`,
+                              ? `${window.location.origin}/shop/products?filter[category]=${product.category.slug}`
+                              : `/shop/products?filter[category]=${product.category.slug}`,
                   },
               ]
             : []),
@@ -278,12 +284,14 @@ export default function ProductShow({ product, relatedProducts }: Props) {
                             />
                         </div>
                         {/* Customer Reviews */}
-                        {product.reviews && product.reviews.length > 0 && (
+                        {product.reviews && (
                             <CustomerReviews
                                 reviews={product.reviews}
                                 averageRating={product.average_rating}
                                 reviewCount={product.review_count}
                                 ratingCountData={product.rating_counts}
+                                productId={product.id}
+                                userReview={userReview}
                             />
                         )}
 
@@ -336,7 +344,7 @@ function Breadcrumb({ product }: { product: ApiProduct }) {
             {product.category && (
                 <>
                     <Link
-                        href={`/shop/category/${product.category.slug}`}
+                        href={`/shop/products?filter[category]=${product.category.slug}`}
                         className="hover:text-neutral-900"
                     >
                         {product.category.name}
@@ -488,7 +496,7 @@ function ProductInfo({
                     <>
                         <span className="text-neutral-300">|</span>
                         <Link
-                            href={`/shop/category/${product.category.slug}`}
+                            href={`/shop/products?filter[category]=${product.category.slug}`}
                             className="hover:text-neutral-900"
                         >
                             {product.category.name}
@@ -728,38 +736,14 @@ function ProductInfo({
 // ==================== Related Products ====================
 function RelatedProducts({ products }: { products: ApiProduct[] }) {
     return (
-        <section>
+        <section className="mb-20">
             <h2 className="mb-8 font-serif text-2xl text-neutral-900">
                 Produk Terkait
             </h2>
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-                {products.map((product) => {
-                    const imageUrl =
-                        product.primary_image?.image_url ||
-                        product.images?.[0]?.image_url ||
-                        '/images/placeholder-product.svg';
-                    return (
-                        <Link
-                            key={product.id}
-                            href={`/shop/products/${product.slug}`}
-                            className="group"
-                        >
-                            <div className="mb-3 aspect-square overflow-hidden rounded-sm bg-sand-100">
-                                <img
-                                    src={imageUrl}
-                                    alt={product.name}
-                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                />
-                            </div>
-                            <h3 className="line-clamp-1 font-medium text-neutral-900 transition-colors group-hover:text-teal-600">
-                                {product.name}
-                            </h3>
-                            <p className="text-neutral-600">
-                                {product.final_price_formatted}
-                            </p>
-                        </Link>
-                    );
-                })}
+                {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                ))}
             </div>
         </section>
     );
@@ -767,12 +751,15 @@ function RelatedProducts({ products }: { products: ApiProduct[] }) {
 
 // ==================== Customer Reviews ====================
 import { ProductReview } from '@/types/shop';
+import { useMemo } from 'react';
 
 interface CustomerReviewsProps {
     reviews: ProductReview[];
     averageRating: number;
     reviewCount: number;
-    ratingCountData?: Record<number, number>;
+    ratingCountData?: { star: number; count: number }[];
+    productId: number;
+    userReview?: ProductReview;
 }
 
 function CustomerReviews({
@@ -780,14 +767,29 @@ function CustomerReviews({
     averageRating,
     reviewCount,
     ratingCountData,
+    productId,
+    userReview,
 }: CustomerReviewsProps) {
     const totalReviews = reviewCount || reviews.length || 1;
 
-    // Use backend data if available, otherwise fallback to frontend calc (which might be incomplete due to pagination)
+    // Convert array of objects to map for easier lookup
+    const ratingMap = useMemo(() => {
+        if (!ratingCountData || !Array.isArray(ratingCountData)) return {};
+        return ratingCountData.reduce(
+            (acc, item) => {
+                acc[item.star] = item.count;
+                return acc;
+            },
+            {} as Record<number, number>,
+        );
+    }, [ratingCountData]);
+
     const ratingCounts = [5, 4, 3, 2, 1].map((rating) => {
-        const count = ratingCountData
-            ? ratingCountData[rating] || 0
-            : reviews.filter((r) => Math.round(r.rating) === rating).length;
+        const count = ratingMap[rating] || 0;
+        // Fallback checks internal reviews if map is empty (though backend should handle it)
+        // const count = ratingMap[rating] !== undefined
+        //     ? ratingMap[rating]
+        //     : reviews.filter((r) => Math.round(r.rating) === rating).length;
         return {
             rating,
             count,
@@ -845,6 +847,12 @@ function CustomerReviews({
                             </div>
                         ))}
                     </div>
+
+                    {/* Review Form - Show if logged in */}
+                    <ReviewForm
+                        productId={productId}
+                        existingReview={userReview}
+                    />
                 </div>
 
                 {/* Reviews List */}
@@ -884,15 +892,22 @@ function CustomerReviews({
                                         </div>
                                     </div>
                                 </div>
-                                <span className="text-sm text-neutral-400">
-                                    {new Date(
-                                        review.created_at,
-                                    ).toLocaleDateString('id-ID', {
-                                        day: 'numeric',
-                                        month: 'short',
-                                        year: 'numeric',
-                                    })}
-                                </span>
+                                <div className="flex flex-col items-end gap-1">
+                                    <span className="text-sm text-neutral-400">
+                                        {new Date(
+                                            review.created_at,
+                                        ).toLocaleDateString('id-ID', {
+                                            day: 'numeric',
+                                            month: 'short',
+                                            year: 'numeric',
+                                        })}
+                                    </span>
+                                    {!review.is_approved && (
+                                        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+                                            Menunggu Persetujuan
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             {review.title && (
                                 <p className="mb-1 font-medium text-neutral-900">
@@ -995,5 +1010,184 @@ function ZoomModal({
                 </div>
             </motion.div>
         </AnimatePresence>
+    );
+}
+
+// ==================== Review Form ====================
+function ReviewForm({
+    productId,
+    existingReview,
+}: {
+    productId: number;
+    existingReview?: ProductReview;
+}) {
+    const { auth } = usePage<SharedData>().props;
+    const [rating, setRating] = useState(existingReview?.rating || 0);
+    const [hoverRating, setHoverRating] = useState(0);
+    const [comment, setComment] = useState(existingReview?.comment || '');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [message, setMessage] = useState<{
+        type: 'success' | 'error';
+        text: string;
+    } | null>(null);
+
+    // Update state if existingReview changes (e.g. after fresh load or prop update)
+    useEffect(() => {
+        if (existingReview) {
+            setRating(existingReview.rating);
+            setComment(existingReview.comment || '');
+        }
+    }, [existingReview]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (rating === 0) {
+            setMessage({
+                type: 'error',
+                text: 'Silakan pilih rating bintang.',
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+        setMessage(null);
+
+        if (existingReview) {
+            router.put(
+                `/shop/products/${productId}/reviews`,
+                { product_id: productId, rating, comment },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setMessage({
+                            type: 'success',
+                            text: 'Ulasan Anda berhasil diperbarui dan menunggu persetujuan!',
+                        });
+                        // Don't reset form on edit success
+                    },
+                    onError: (errors) => {
+                        setMessage({
+                            type: 'error',
+                            text:
+                                Object.values(errors)[0] ||
+                                'Gagal memperbarui ulasan.',
+                        });
+                    },
+                    onFinish: () => setIsSubmitting(false),
+                },
+            );
+        } else {
+            router.post(
+                `/shop/products/${productId}/reviews`,
+                { product_id: productId, rating, comment },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setMessage({
+                            type: 'success',
+                            text: 'Ulasan Anda berhasil dikirim!',
+                        });
+                        setRating(0);
+                        setComment('');
+                    },
+                    onError: (errors) => {
+                        setMessage({
+                            type: 'error',
+                            text:
+                                Object.values(errors)[0] ||
+                                'Gagal mengirim ulasan.',
+                        });
+                    },
+                    onFinish: () => setIsSubmitting(false),
+                },
+            );
+        }
+    };
+
+    if (!auth.user) {
+        return (
+            <div className="mt-8 rounded-sm bg-neutral-50 p-6 text-center">
+                <p className="mb-4 text-neutral-600">
+                    Silakan masuk untuk menulis ulasan.
+                </p>
+                <Link
+                    href="/login"
+                    className="inline-block rounded-sm bg-teal-600 px-6 py-2 font-medium text-white transition-colors hover:bg-teal-700"
+                >
+                    Masuk Akun
+                </Link>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-8 border-t border-neutral-100 pt-8">
+            <h3 className="mb-4 font-medium text-neutral-900">
+                {existingReview ? 'Edit Ulasan Anda' : 'Tulis Ulasan Anda'}
+            </h3>
+            {message && (
+                <div
+                    className={`mb-4 rounded-sm p-4 ${
+                        message.type === 'success'
+                            ? 'bg-green-50 text-green-700'
+                            : 'bg-red-50 text-red-700'
+                    }`}
+                >
+                    {message.text}
+                </div>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="mb-2 block text-sm font-medium text-neutral-700">
+                        Rating
+                    </label>
+                    <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                            <button
+                                key={s}
+                                type="button"
+                                onClick={() => setRating(s)}
+                                onMouseEnter={() => setHoverRating(s)}
+                                onMouseLeave={() => setHoverRating(0)}
+                                className="transition-transform hover:scale-110"
+                            >
+                                <Star
+                                    size={24}
+                                    className={`${
+                                        s <= (hoverRating || rating)
+                                            ? 'fill-yellow-400 text-yellow-400'
+                                            : 'text-neutral-300'
+                                    }`}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <label
+                        htmlFor="comment"
+                        className="mb-2 block text-sm font-medium text-neutral-700"
+                    >
+                        Ulasan
+                    </label>
+                    <textarea
+                        id="comment"
+                        rows={4}
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        className="w-full rounded-sm border-neutral-200 focus:border-teal-500 focus:ring-teal-500"
+                        placeholder="Bagikan pengalaman Anda tentang produk ini..."
+                        required
+                    />
+                </div>
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="rounded-sm bg-teal-600 px-6 py-2 font-medium text-white transition-colors hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    {isSubmitting ? 'Mengirim...' : 'Kirim Ulasan'}
+                </button>
+            </form>
+        </div>
     );
 }

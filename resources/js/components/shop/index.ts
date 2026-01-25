@@ -2,6 +2,7 @@
 export { CustomCursor } from './CustomCursor';
 export { Footer } from './Footer';
 export { Header } from './Header';
+export { ProductCard } from './ProductCard';
 
 // View Components
 export { CartDrawer } from './CartDrawer';

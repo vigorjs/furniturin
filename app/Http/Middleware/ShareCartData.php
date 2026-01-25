@@ -33,7 +33,13 @@ class ShareCartData
             'id' => $cart->id,
             'items_count' => $cart->items->sum('quantity'),
             'items' => $cart->items->map(function ($item) {
-                $price = $item->product->sale_price ?? $item->product->price;
+                // Use final_price which already includes discount calculation
+                $price = $item->product->final_price;
+                
+                // Get primary image from loaded images relation
+                $primaryImage = $item->product->images->firstWhere('is_primary', true) 
+                    ?? $item->product->images->first();
+                
                 return [
                     'id' => $item->id,
                     'product_id' => $item->product_id,
@@ -45,10 +51,11 @@ class ShareCartData
                         'name' => $item->product->name,
                         'slug' => $item->product->slug,
                         'price' => $item->product->price,
-                        'sale_price' => $item->product->sale_price,
                         'final_price' => $item->product->final_price,
-                        'primary_image' => $item->product->primaryImage ? [
-                            'image_url' => $item->product->primaryImage->image_url,
+                        'has_discount' => $item->product->hasActiveDiscount(),
+                        'discount_percentage' => $item->product->discount_percentage,
+                        'primary_image' => $primaryImage ? [
+                            'image_url' => asset('storage/' . $primaryImage->image_path),
                         ] : null,
                         'category' => $item->product->category ? [
                             'name' => $item->product->category->name,
@@ -57,8 +64,7 @@ class ShareCartData
                 ];
             }),
             'subtotal' => $cart->items->sum(function ($item) {
-                $price = $item->product->sale_price ?? $item->product->price;
-                return $price * $item->quantity;
+                return $item->product->final_price * $item->quantity;
             }),
         ] : [
             'id' => null,

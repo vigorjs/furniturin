@@ -15,7 +15,7 @@ import { useState } from 'react';
 
 export default function Contact() {
     const { siteSettings } = usePage<{ siteSettings: SiteSettings }>().props;
-    const siteName = siteSettings?.site_name || 'Latif Living';
+    const siteName = siteSettings?.site_name || 'Furniturin';
     const [isSuccess, setIsSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 

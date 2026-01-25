@@ -43,7 +43,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
     }
 
     return (
-        <section className="bg-neutral-50 px-6 py-24 md:px-12">
+        <section className="bg-neutral-50 px-6 pt-24 md:px-12">
             <div className="mx-auto max-w-[1400px]">
                 {/* Section Header */}
                 <motion.div
@@ -81,7 +81,7 @@ export const CategoriesSection: React.FC<CategoriesSectionProps> = ({
                     {displayCategories.map((category, index) => (
                         <motion.div key={category.id} variants={itemVariants}>
                             <Link
-                                href={`/shop/category/${category.slug}`}
+                                href={`/shop/products?filter[category]=${category.slug}`}
                                 className="group relative block cursor-pointer overflow-hidden rounded-sm"
                             >
                                 {/* Image */}

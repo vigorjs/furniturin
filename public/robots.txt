@@ -1,4 +1,4 @@
-# Robots.txt for Latif Living E-commerce
+# Robots.txt for Furniturin E-commerce
 # https://www.robotstxt.org/robotstxt.html
 
 User-agent: *
