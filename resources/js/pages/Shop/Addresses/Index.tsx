@@ -16,8 +16,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ShopLayout } from '@/layouts/ShopLayout';
-import { Head, router, useForm } from '@inertiajs/react';
-import { Edit, Loader2, MapPin, Plus, Search, Trash2 } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import {
+  ArrowLeft,
+  Edit,
+  Loader2,
+  MapPin,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface Address {
@@ -47,7 +55,16 @@ interface KomerceLocation {
   zip_code: string;
 }
 
-export default function AddressIndex({ addresses }: { addresses: Address[] }) {
+export default function AddressIndex({
+  addresses,
+}: {
+  addresses: Address[] | { data: Address[] };
+}) {
+  // Handle both array and Resource Collection format
+  const addressList = Array.isArray(addresses)
+    ? addresses
+    : addresses?.data || [];
+
   const [isOpen, setIsOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const { state: alertState, showAlert, closeAlert } = useAlertDialog();
@@ -68,49 +85,67 @@ export default function AddressIndex({ addresses }: { addresses: Address[] }) {
   };
 
   return (
-    <ShopLayout>
-      <Head title="Daftar Alamat" />
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Daftar Alamat
-              </h1>
-              <p className="text-gray-600">Kelola alamat pengiriman Anda</p>
-            </div>
-            <Button
-              onClick={() => {
-                setEditingAddress(null);
-                setIsOpen(true);
-              }}
-              className="bg-teal-600 hover:bg-teal-700"
+    <>
+      <div className="bg-noise" />
+      <ShopLayout>
+        <Head title="Daftar Alamat" />
+        <main className="min-h-screen bg-white pb-20">
+          <div className="mx-auto max-w-[1400px] px-6 py-12 md:px-12">
+            {/* Back Button */}
+            <Link
+              href="/shop/checkout"
+              className="mb-8 inline-flex items-center gap-2 text-teal-700 transition-colors hover:text-teal-900"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Alamat
-            </Button>
-          </div>
+              <ArrowLeft size={18} />
+              <span>Kembali ke Checkout</span>
+            </Link>
 
-          <div className="grid gap-6">
-            {addresses.length === 0 ? (
-              <div className="py-12 text-center text-gray-500">
-                Belum ada alamat yang tersimpan.
+            {/* Header */}
+            <div className="mb-12 flex items-center justify-between">
+              <div>
+                <h1 className="mb-2 font-serif text-3xl font-medium text-neutral-900 md:text-4xl">
+                  Daftar Alamat
+                </h1>
+                <p className="text-neutral-500">
+                  {addressList.length} alamat tersimpan
+                </p>
               </div>
-            ) : (
-              addresses.map((address) => (
-                <AddressCard
-                  key={address.id}
-                  address={address}
-                  onEdit={() => {
-                    setEditingAddress(address);
-                    setIsOpen(true);
-                  }}
-                  onDelete={() => handleDelete(address.id)}
-                />
-              ))
-            )}
+            </div>
+
+            {/* Add Address Button */}
+            <div className="mb-8">
+              <Button
+                onClick={() => {
+                  setEditingAddress(null);
+                  setIsOpen(true);
+                }}
+                className="bg-teal-600 hover:bg-teal-700"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Alamat Baru
+              </Button>
+            </div>
+
+            {/* Address List */}
+            <div className="grid gap-6">
+              {addressList.length === 0 ? (
+                <EmptyState onAddAddress={() => setIsOpen(true)} />
+              ) : (
+                addressList.map((address) => (
+                  <AddressCard
+                    key={address.id}
+                    address={address}
+                    onEdit={() => {
+                      setEditingAddress(address);
+                      setIsOpen(true);
+                    }}
+                    onDelete={() => handleDelete(address.id)}
+                  />
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        </main>
 
         <AddressFormDialog
           open={isOpen}
@@ -134,8 +169,8 @@ export default function AddressIndex({ addresses }: { addresses: Address[] }) {
           variant={confirmState.variant}
           onConfirm={confirmState.onConfirm}
         />
-      </div>
-    </ShopLayout>
+      </ShopLayout>
+    </>
   );
 }
 
@@ -543,5 +578,28 @@ function AddressFormDialog({
         />
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EmptyState({ onAddAddress }: { onAddAddress: () => void }) {
+  return (
+    <div className="py-20 text-center">
+      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-sm bg-sand-100">
+        <MapPin size={32} className="text-neutral-400" />
+      </div>
+      <h3 className="mb-2 text-xl font-medium text-neutral-900">
+        Belum Ada Alamat
+      </h3>
+      <p className="mx-auto mb-8 max-w-md text-neutral-500">
+        Tambahkan alamat pengiriman untuk memudahkan proses checkout
+      </p>
+      <button
+        onClick={onAddAddress}
+        className="inline-flex items-center gap-2 rounded-sm bg-teal-900 px-6 py-3 text-white transition-colors hover:bg-teal-800"
+      >
+        <Plus size={18} />
+        <span>Tambah Alamat Baru</span>
+      </button>
+    </div>
   );
 }

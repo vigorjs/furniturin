@@ -109,6 +109,41 @@ class CheckoutController extends Controller implements HasMiddleware
             }
         }
 
+        // Handle WhatsApp Order - generate WhatsApp URL for direct redirect
+        if ($order->payment_method === PaymentMethod::WHATSAPP) {
+            $whatsappNumber = Setting::get('contact_whatsapp', '');
+            if ($whatsappNumber) {
+                // Load items for message
+                $order->load('items');
+                $siteName = Setting::get('site_name', 'Furniturin');
+                
+                // Build product list
+                $productList = $order->items->map(function ($item) {
+                    return "- {$item->product_name} x{$item->quantity} = Rp " . number_format($item->subtotal, 0, ',', '.');
+                })->join("\n");
+                
+                // Build WhatsApp message (without emojis for better compatibility)
+                $message = "Halo {$siteName}!\n\n"
+                    . "Saya ingin memesan:\n\n"
+                    . "*ORDER: #{$order->order_number}*\n\n"
+                    . "*PRODUK:*\n{$productList}\n\n"
+                    . "*PENGIRIMAN:*\n"
+                    . "{$order->shipping_name}\n"
+                    . "{$order->shipping_phone}\n"
+                    . "{$order->shipping_address}\n"
+                    . "{$order->shipping_city}, {$order->shipping_province} {$order->shipping_postal_code}\n\n"
+                    . "*TOTAL: " . $order->total_formatted . "*\n\n"
+                    . "Mohon dikonfirmasi untuk pembayaran. Terima kasih!";
+                
+                $whatsappUrl = 'https://wa.me/' . $whatsappNumber . '?text=' . rawurlencode($message);
+                
+                return redirect()
+                    ->route('shop.orders.show', $order)
+                    ->with('success', 'Pesanan berhasil dibuat. Nomor pesanan: ' . $order->order_number)
+                    ->with('whatsapp_redirect', $whatsappUrl);
+            }
+        }
+
         return redirect()
             ->route('shop.orders.show', $order)
             ->with('success', 'Pesanan berhasil dibuat. Nomor pesanan: '.$order->order_number);

@@ -82,7 +82,6 @@ export default function WishlistIndex({ products }: Props) {
                       key={product.id}
                       product={product}
                       onRemove={() => handleRemove(product.id)}
-                      onRemove={() => handleRemove(product.id)}
                       isRemoving={removingId === product.id}
                       onAddToCart={() => handleAddToCart(product.id)}
                       isAddingToCart={addingToCartId === product.id}

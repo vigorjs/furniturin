@@ -22,7 +22,7 @@ import {
   Truck,
   XCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface OrderStatus {
   value: string;
@@ -240,18 +240,30 @@ function OrderTimeline({
 }
 
 export default function OrderShow({ order, paymentSettings }: Props) {
-  const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
+  const { siteSettings, flash } = usePage<{
+    siteSettings?: SiteSettings;
+    flash?: { whatsapp_redirect?: string };
+  }>().props;
   const siteName = siteSettings?.site_name || 'Furniturin';
   const [cancelling, setCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
   const { state: alertState, showAlert, closeAlert } = useAlertDialog();
   const { state: confirmState, showConfirm, closeConfirm } = useConfirmDialog();
 
+  // Auto-open WhatsApp when redirected from checkout with whatsapp payment method
+  useEffect(() => {
+    if (flash?.whatsapp_redirect) {
+      // Open WhatsApp in new tab
+      window.open(flash.whatsapp_redirect, '_blank');
+    }
+  }, [flash?.whatsapp_redirect]);
+
   const handleCancel = () => {
     showConfirm(
       'Batalkan Pesanan',
       'Apakah Anda yakin ingin membatalkan pesanan ini?',
       () => {
+        closeConfirm(); // Close dialog immediately
         setCancelling(true);
         router.post(
           `/shop/orders/${order.id}/cancel`,
@@ -328,21 +340,21 @@ export default function OrderShow({ order, paymentSettings }: Props) {
     }
   };
 
-  // Generate WhatsApp message with product details
+  // Generate WhatsApp message with product details (without emojis for compatibility)
   const generateWhatsAppMessage = () => {
     const productList = items
       .map(
         (item) =>
-          `• ${item.product_name} x${item.quantity} - ${item.subtotal_formatted || `Rp ${item.subtotal.toLocaleString('id-ID')}`}`,
+          `- ${item.product_name} x${item.quantity} = ${item.subtotal_formatted || `Rp ${item.subtotal.toLocaleString('id-ID')}`}`,
       )
       .join('%0A');
 
     if (isWhatsApp) {
-      return `Halo ${siteName}! 👋%0A%0ASaya ingin memesan:%0A%0A📦 *Order: %23${order.order_number}*%0A%0A*Produk:*%0A${productList}%0A%0A🚚 *Pengiriman:*%0A${order.shipping_name}%0A${order.shipping_phone}%0A${order.shipping_address}%0A${order.shipping_city}, ${order.shipping_province} ${order.shipping_postal_code}%0A%0A💰 *Total: ${order.total_formatted}*%0A%0AMohon dikonfirmasi untuk pembayaran. Terima kasih! 🙏`;
+      return `Halo ${siteName}!%0A%0ASaya ingin memesan:%0A%0A*ORDER: %23${order.order_number}*%0A%0A*PRODUK:*%0A${productList}%0A%0A*PENGIRIMAN:*%0A${order.shipping_name}%0A${order.shipping_phone}%0A${order.shipping_address}%0A${order.shipping_city}, ${order.shipping_province} ${order.shipping_postal_code}%0A%0A*TOTAL: ${order.total_formatted}*%0A%0AMohon dikonfirmasi untuk pembayaran. Terima kasih!`;
     } else if (isBankTransfer) {
-      return `Halo ${siteName}! 👋%0A%0ASaya sudah transfer untuk pesanan:%0A📦 Order: %23${order.order_number}%0A💰 Total: ${order.total_formatted}%0A🏦 Ke: ${paymentSettings.bank_name} ${paymentSettings.bank_account_number}%0A%0AMohon dikonfirmasi. Terima kasih! 🙏`;
+      return `Halo ${siteName}!%0A%0ASaya sudah transfer untuk pesanan:%0AOrder: %23${order.order_number}%0ATotal: ${order.total_formatted}%0AKe: ${paymentSettings.bank_name} ${paymentSettings.bank_account_number}%0A%0AMohon dikonfirmasi. Terima kasih!`;
     } else {
-      return `Halo ${siteName}! 👋%0A%0ASaya mau konfirmasi pesanan:%0A📦 Order: %23${order.order_number}%0A💰 Total: ${order.total_formatted}%0A📍 Alamat: ${order.shipping_address}, ${order.shipping_city}%0A%0AMohon diproses. Terima kasih! 🙏`;
+      return `Halo ${siteName}!%0A%0ASaya mau konfirmasi pesanan:%0AOrder: %23${order.order_number}%0ATotal: ${order.total_formatted}%0AAlamat: ${order.shipping_address}, ${order.shipping_city}%0A%0AMohon diproses. Terima kasih!`;
     }
   };
 
