@@ -48,6 +48,7 @@ class HandleInertiaRequests extends Middleware
         $featuredCategories = Cache::remember('featured_categories_navbar', 3600, function () {
             return \App\Models\Category::query()
                 ->active()
+                ->featured() // Only featured categories
                 ->root() // Only top level
                 ->with(['children' => function ($query) {
                     $query->active()->orderBy('sort_order');

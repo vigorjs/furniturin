@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 /**
@@ -37,6 +38,14 @@ class Category extends Model
     use HasFactory;
     use SoftDeletes;
 
+    /**
+     * Clear category-related caches.
+     */
+    protected static function clearCategoryCache(): void
+    {
+        Cache::forget('featured_categories_navbar');
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Category $category) {
@@ -45,10 +54,30 @@ class Category extends Model
             }
         });
 
+        // Clear cache after category is created
+        static::created(function () {
+            static::clearCategoryCache();
+        });
+
         static::updating(function (Category $category) {
             if ($category->isDirty('name') && ! $category->isDirty('slug')) {
                 $category->slug = static::generateUniqueSlug($category->name, $category->id);
             }
+        });
+
+        // Clear cache after category is updated
+        static::updated(function () {
+            static::clearCategoryCache();
+        });
+
+        // Clear cache after category is deleted
+        static::deleted(function () {
+            static::clearCategoryCache();
+        });
+
+        // Clear cache after category is restored
+        static::restored(function () {
+            static::clearCategoryCache();
         });
     }
 

@@ -23,7 +23,7 @@ class HomeController extends Controller
             ->featured()
             ->with(['category', 'images'])
             ->orderByDesc('sold_count')
-            ->limit(6)
+            ->limit(8)
             ->get();
 
         // Featured Categories (for navbar display)
