@@ -27,11 +27,39 @@ class HomeController extends Controller
             ->get();
 
         // Featured Categories (for navbar display)
-        $featuredCategories = Category::where('is_active', true)
-            ->where('is_featured', true)
-            ->whereNull('parent_id')
-            ->orderBy('sort_order')
-            ->get();
+        // Featured Categories (for navbar display & shop by room)
+        $homeCategoriesConfig = json_decode(Setting::get('home_categories', '[]'), true);
+        $featuredCategories = collect();
+
+        if (!empty($homeCategoriesConfig)) {
+            $categoryIds = array_column($homeCategoriesConfig, 'category_id');
+            $categories = Category::whereIn('id', $categoryIds)->get()->keyBy('id');
+
+            foreach ($homeCategoriesConfig as $config) {
+                if (isset($categories[$config['category_id']])) {
+                    $category = $categories[$config['category_id']];
+                    // Override image if custom one is provided
+                    if (!empty($config['image_url'])) {
+                        // We need to inject this into the model or resource somehow
+                        // For now we can add a runtime attribute
+                        $category->custom_image_url = $config['image_url'];
+                    }
+                    // Override title if provided
+                    if (!empty($config['title'])) {
+                        $category->name = $config['title'];
+                    }
+                    $featuredCategories->push($category);
+                }
+            }
+        } else {
+            // Fallback to default featured categories
+            $featuredCategories = Category::where('is_active', true)
+                ->where('is_featured', true)
+                ->whereNull('parent_id')
+                ->orderBy('sort_order')
+                ->limit(4)
+                ->get();
+        }
 
         // Testimonials (approved reviews with high rating)
         $testimonials = ProductReview::where('is_approved', true)
@@ -81,6 +109,8 @@ class HomeController extends Controller
             'hero' => filter_var(Setting::get('section_hero_visible', '1'), FILTER_VALIDATE_BOOLEAN),
             'trust' => filter_var(Setting::get('section_trust_visible', '1'), FILTER_VALIDATE_BOOLEAN),
             'categories' => filter_var(Setting::get('section_categories_visible', '1'), FILTER_VALIDATE_BOOLEAN),
+            'categories_title' => Setting::get('section_categories_title', 'Shop by Room'),
+            'categories_subtitle' => Setting::get('section_categories_subtitle', 'Explore our curated collections designed with care for every space in your home.'),
             'catalog' => filter_var(Setting::get('section_catalog_visible', '1'), FILTER_VALIDATE_BOOLEAN),
             'values' => filter_var(Setting::get('section_values_visible', '1'), FILTER_VALIDATE_BOOLEAN),
             'products' => filter_var(Setting::get('section_products_visible', '1'), FILTER_VALIDATE_BOOLEAN),

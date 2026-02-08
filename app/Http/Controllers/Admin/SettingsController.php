@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -66,6 +68,7 @@ class SettingsController extends Controller
     public function homepage(): Response
     {
         $settings = Setting::all()->pluck('value', 'key')->toArray();
+        $categories = Category::orderBy('name')->get(['id', 'name', 'slug']);
 
         return Inertia::render('Admin/Settings/Homepage', [
             'settings' => [
@@ -91,13 +94,21 @@ class SettingsController extends Controller
                 // Section visibility
                 'section_hero_visible' => filter_var($settings['section_hero_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_trust_visible' => filter_var($settings['section_trust_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_trust_visible' => filter_var($settings['section_trust_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_categories_visible' => filter_var($settings['section_categories_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_categories_title' => $settings['section_categories_title'] ?? 'Shop by Room',
+                'section_categories_subtitle' => $settings['section_categories_subtitle'] ?? 'Explore our curated collections designed with care for every space in your home.',
                 'section_catalog_visible' => filter_var($settings['section_catalog_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_values_visible' => filter_var($settings['section_values_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_products_visible' => filter_var($settings['section_products_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_testimonials_visible' => filter_var($settings['section_testimonials_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_products_visible' => filter_var($settings['section_products_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'section_testimonials_visible' => filter_var($settings['section_testimonials_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_newsletter_visible' => filter_var($settings['section_newsletter_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                // Home Categories (JSON array)
+                'home_categories' => $settings['home_categories'] ?? '[]',
             ],
+            'categories' => $categories,
         ]);
     }
 
@@ -115,10 +126,13 @@ class SettingsController extends Controller
             'hero_product_name' => ['nullable', 'string', 'max:100'],
             'trust_logos' => ['nullable', 'string'],
             'home_values' => ['nullable', 'string'],
+            'home_categories' => ['nullable', 'string'],
             // Section visibility
             'section_hero_visible' => ['required', 'boolean'],
             'section_trust_visible' => ['required', 'boolean'],
             'section_categories_visible' => ['required', 'boolean'],
+            'section_categories_title' => ['nullable', 'string', 'max:255'],
+            'section_categories_subtitle' => ['nullable', 'string', 'max:500'],
             'section_catalog_visible' => ['required', 'boolean'],
             'section_values_visible' => ['required', 'boolean'],
             'section_products_visible' => ['required', 'boolean'],
@@ -137,6 +151,23 @@ class SettingsController extends Controller
         Cache::forget('site_settings');
 
         return back()->with('success', 'Pengaturan homepage berhasil disimpan.');
+    }
+
+    /**
+     * Upload image for homepage settings
+     */
+    public function uploadImage(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'image' => ['required', 'image', 'max:5120'], // Max 5MB
+        ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('settings', 'public');
+            return response()->json(['url' => asset('storage/' . $path)]);
+        }
+
+        return response()->json(['error' => 'No image uploaded'], 400);
     }
 
     /**

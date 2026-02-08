@@ -9,6 +9,7 @@ import {
   Home,
   Image,
   LayoutGrid,
+  Loader2,
   Mail,
   MessageSquare,
   Plus,
@@ -17,9 +18,10 @@ import {
   ShoppingBag,
   Trash2,
   Type,
+  Upload,
   Users,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface HomepageSettingsProps {
   settings: {
@@ -31,6 +33,7 @@ interface HomepageSettingsProps {
     hero_product_name: string;
     trust_logos: string;
     home_values: string;
+    home_categories: string;
     // Section visibility
     section_hero_visible: boolean;
     section_trust_visible: boolean;
@@ -40,7 +43,16 @@ interface HomepageSettingsProps {
     section_products_visible: boolean;
     section_testimonials_visible: boolean;
     section_newsletter_visible: boolean;
+    section_categories_title: string;
+    section_categories_subtitle: string;
   };
+  categories: { id: number; name: string; slug: string }[];
+}
+
+interface CategoryConfig {
+  category_id: string;
+  image_url: string;
+  title?: string;
 }
 
 interface ValueItem {
@@ -85,8 +97,14 @@ const SECTIONS = [
   },
 ];
 
-export default function HomepageSettings({ settings }: HomepageSettingsProps) {
+export default function HomepageSettings({
+  settings,
+  categories,
+}: HomepageSettingsProps) {
   // Parse JSON strings
+  const initialCategories: CategoryConfig[] = JSON.parse(
+    settings.home_categories || '[]',
+  );
   const initialTrustLogos: TrustLogo[] = (() => {
     try {
       const parsed = JSON.parse(settings.trust_logos || '[]');
@@ -103,6 +121,9 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
 
   const [trustLogos, setTrustLogos] = useState<TrustLogo[]>(initialTrustLogos);
   const [values, setValues] = useState<ValueItem[]>(initialValues);
+  const [homeCategories, setHomeCategories] =
+    useState<CategoryConfig[]>(initialCategories);
+
   const [newLogoName, setNewLogoName] = useState('');
   const [newLogoUrl, setNewLogoUrl] = useState('');
 
@@ -115,10 +136,16 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
     hero_product_name: settings.hero_product_name,
     trust_logos: settings.trust_logos,
     home_values: settings.home_values,
+    home_categories: settings.home_categories,
     // Section visibility
     section_hero_visible: settings.section_hero_visible ?? true,
     section_trust_visible: settings.section_trust_visible ?? true,
     section_categories_visible: settings.section_categories_visible ?? true,
+    section_categories_title:
+      settings.section_categories_title ?? 'Shop by Room',
+    section_categories_subtitle:
+      settings.section_categories_subtitle ??
+      'Explore our curated collections designed with care for every space in your home.',
     section_catalog_visible: settings.section_catalog_visible ?? true,
     section_values_visible: settings.section_values_visible ?? true,
     section_products_visible: settings.section_products_visible ?? true,
@@ -131,6 +158,7 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
     // Update JSON strings before submit
     setData('trust_logos', JSON.stringify(trustLogos));
     setData('home_values', JSON.stringify(values));
+    setData('home_categories', JSON.stringify(homeCategories));
     post('/admin/settings/homepage');
   };
 
@@ -181,6 +209,79 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
   const toggleSection = (key: string) => {
     const fieldName = `section_${key}_visible` as keyof typeof data;
     setData(fieldName, !data[fieldName]);
+  };
+
+  // Category Configuration Handlers
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const addCategory = () => {
+    const updated = [...homeCategories, { category_id: '', image_url: '' }];
+    setHomeCategories(updated);
+    setData('home_categories', JSON.stringify(updated));
+  };
+
+  const removeCategory = (index: number) => {
+    const updated = homeCategories.filter((_, i) => i !== index);
+    setHomeCategories(updated);
+    setData('home_categories', JSON.stringify(updated));
+  };
+
+  const updateCategory = (
+    index: number,
+    field: keyof CategoryConfig,
+    value: string,
+  ) => {
+    const updated = [...homeCategories];
+    updated[index] = { ...updated[index], [field]: value };
+    setHomeCategories(updated);
+    setData('home_categories', JSON.stringify(updated));
+  };
+
+  const handleImageUpload = async (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingIndex(index);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('/admin/settings/upload-image', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRF-TOKEN':
+            document
+              .querySelector('meta[name="csrf-token"]')
+              ?.getAttribute('content') || '',
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Upload failed');
+      }
+
+      const data = await response.json();
+      updateCategory(index, 'image_url', data.url);
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      alert(`Gagal mengupload gambar: ${error.message || 'Unknown error'}`);
+    } finally {
+      setUploadingIndex(null);
+      // Reset input
+      const fileInput = fileInputRefs.current[index];
+      if (fileInput) {
+        fileInput.value = '';
+      }
+    }
   };
 
   return (
@@ -458,6 +559,185 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
                 <Plus size={16} />
                 Tambah
               </button>
+            </div>
+          </div>
+
+          {/* Product Categories Configuration */}
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50">
+                  <LayoutGrid className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Kategori Produk
+                  </h2>
+                  <p className="text-sm text-neutral-500">
+                    Konfigurasi kategori yang ditampilkan di homepage
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={addCategory}
+                className="inline-flex items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+              >
+                <Plus size={16} />
+                Tambah
+              </button>
+            </div>
+
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Judul Section
+                </label>
+                <input
+                  type="text"
+                  value={data.section_categories_title}
+                  onChange={(e) =>
+                    setData('section_categories_title', e.target.value)
+                  }
+                  placeholder="Shop by Room"
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Subtitle Section
+                </label>
+                <input
+                  type="text"
+                  value={data.section_categories_subtitle}
+                  onChange={(e) =>
+                    setData('section_categories_subtitle', e.target.value)
+                  }
+                  placeholder="Explore our curated collections..."
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {homeCategories.map((item, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl border border-neutral-100 bg-neutral-50 p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-sm font-medium text-neutral-500">
+                      Kategori {index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeCategory(index)}
+                      className="text-neutral-400 hover:text-red-500"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs text-neutral-500">
+                        Pilih Kategori
+                      </label>
+                      <select
+                        value={item.category_id}
+                        onChange={(e) =>
+                          updateCategory(index, 'category_id', e.target.value)
+                        }
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-neutral-900 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                      >
+                        <option value="">-- Pilih Kategori --</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs text-neutral-500">
+                        Judul Custom (Opsional)
+                      </label>
+                      <input
+                        type="text"
+                        value={item.title || ''}
+                        onChange={(e) =>
+                          updateCategory(index, 'title', e.target.value)
+                        }
+                        placeholder="Override nama kategori..."
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-neutral-900 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="mb-1 block text-xs text-neutral-500">
+                        Foto Kategori
+                      </label>
+                      <div className="flex items-start gap-4">
+                        {item.image_url ? (
+                          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+                            <img
+                              src={item.image_url}
+                              alt="Category"
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg border border-dashed border-neutral-300 bg-neutral-100">
+                            <Image className="h-8 w-8 text-neutral-400" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            ref={(el) => {
+                              fileInputRefs.current[index] = el;
+                            }}
+                            onChange={(e) => handleImageUpload(index, e)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              fileInputRefs.current[index]?.click()
+                            }
+                            disabled={uploadingIndex === index}
+                            className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+                          >
+                            {uploadingIndex === index ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Upload className="h-4 w-4" />
+                            )}
+                            {item.image_url ? 'Ganti Foto' : 'Upload Foto'}
+                          </button>
+                          <p className="mt-2 text-xs text-neutral-500">
+                            Format JPG, PNG, atau WEBP. Maksimal 5MB.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {homeCategories.length === 0 && (
+                <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
+                  <p className="text-neutral-500">
+                    Belum ada kategori yang dikonfigurasi.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={addCategory}
+                    className="mt-2 text-teal-600 hover:underline"
+                  >
+                    Tambah Kategori Sekarang
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
