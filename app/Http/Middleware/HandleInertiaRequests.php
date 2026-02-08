@@ -54,13 +54,25 @@ class HandleInertiaRequests extends Middleware
                     $query->active()->orderBy('sort_order');
                 }])
                 ->orderBy('sort_order')
-                ->limit(11) // Limit logic updated to match shop page
+                ->limit(11)
                 ->get()
                 ->map(function ($category) {
-                     // Ensure image_url is appended or available
-                     $category->image_url = $category->image_url;
-                     return $category;
-                });
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                        'slug' => $category->slug,
+                        'image_url' => $category->image_path 
+                            ? asset('storage/' . $category->image_path) 
+                            : null,
+                        'children' => $category->children->map(function ($child) {
+                            return [
+                                'id' => $child->id,
+                                'name' => $child->name,
+                                'slug' => $child->slug,
+                            ];
+                        })->toArray(),
+                    ];
+                })->toArray();
         });
 
         // Fetch active promo banners for shop frontend
