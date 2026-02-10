@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->prefix('admin
     // Homepage Settings
     Route::get('/settings/homepage', [SettingsController::class, 'homepage'])->name('settings.homepage');
     Route::post('/settings/homepage', [SettingsController::class, 'updateHomepage'])->name('settings.homepage.update');
+    Route::post('/settings/upload-image', [SettingsController::class, 'uploadImage'])->name('settings.upload-image');
 
     // Payment Settings
     Route::get('/settings/payment', [SettingsController::class, 'payment'])->name('settings.payment');

@@ -24,6 +24,8 @@ interface SectionVisibility {
   products: boolean;
   testimonials: boolean;
   newsletter: boolean;
+  categories_title?: string;
+  categories_subtitle?: string;
 }
 
 interface LandingViewProps {
@@ -67,7 +69,11 @@ export const LandingView: React.FC<LandingViewProps> = ({
       {visibility.hero && <HeroSection settings={heroSettings} />}
       {visibility.trust && <TrustSection logos={trustLogos} />}
       {visibility.categories && (
-        <CategoriesSection categories={featuredCategories} />
+        <CategoriesSection
+          categories={featuredCategories}
+          title={visibility.categories_title}
+          subtitle={visibility.categories_subtitle}
+        />
       )}
       {visibility.catalog && <CatalogSection />}
       {visibility.values && <ValuesSection values={values} />}

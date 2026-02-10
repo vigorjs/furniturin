@@ -3,401 +3,383 @@ import { QuickViewModal } from '@/components/shop';
 import { ShopLayout } from '@/layouts/ShopLayout';
 import { SharedData } from '@/types';
 import {
-    ApiCategory,
-    ApiProduct,
-    PaginatedResponse,
-    ProductFilters,
+  ApiCategory,
+  ApiProduct,
+  PaginatedResponse,
+  ProductFilters,
 } from '@/types/shop';
 import { Link, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
-    ChevronLeft,
-    ChevronRight,
-    Eye,
-    Grid3X3,
-    Heart,
-    LayoutList,
-    Loader2,
-    Search,
-    ShoppingBag,
-    SlidersHorizontal,
-    Star,
-    X,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Grid3X3,
+  Heart,
+  LayoutList,
+  Loader2,
+  Search,
+  ShoppingBag,
+  SlidersHorizontal,
+  Star,
+  X,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface Props {
-    products: PaginatedResponse<ApiProduct>;
-    categories: ApiCategory[];
-    currentCategory?: ApiCategory;
-    filters: ProductFilters;
+  products: PaginatedResponse<ApiProduct>;
+  categories: ApiCategory[];
+  currentCategory?: ApiCategory;
+  filters: ProductFilters;
 }
 
 const SORT_OPTIONS = [
-    { value: '-created_at', label: 'Terbaru' },
-    { value: 'price', label: 'Harga: Rendah ke Tinggi' },
-    { value: '-price', label: 'Harga: Tinggi ke Rendah' },
-    { value: '-sold_count', label: 'Terlaris' },
-    { value: '-average_rating', label: 'Rating Tertinggi' },
+  { value: '-created_at', label: 'Terbaru' },
+  { value: 'price', label: 'Harga: Rendah ke Tinggi' },
+  { value: '-price', label: 'Harga: Tinggi ke Rendah' },
+  { value: '-sold_count', label: 'Terlaris' },
+  { value: '-average_rating', label: 'Rating Tertinggi' },
 ];
 
 const PRICE_RANGES = [
-    { min: 0, max: 1000000, label: 'Di bawah Rp 1 Juta' },
-    { min: 1000000, max: 5000000, label: 'Rp 1 - 5 Juta' },
-    { min: 5000000, max: 10000000, label: 'Rp 5 - 10 Juta' },
-    { min: 10000000, max: 50000000, label: 'Rp 10 - 50 Juta' },
-    { min: 50000000, max: null, label: 'Di atas Rp 50 Juta' },
+  { min: 0, max: 1000000, label: 'Di bawah Rp 1 Juta' },
+  { min: 1000000, max: 5000000, label: 'Rp 1 - 5 Juta' },
+  { min: 5000000, max: 10000000, label: 'Rp 5 - 10 Juta' },
+  { min: 10000000, max: 50000000, label: 'Rp 10 - 50 Juta' },
+  { min: 50000000, max: null, label: 'Di atas Rp 50 Juta' },
 ];
 
 export default function ProductsIndex({
-    products,
-    categories,
-    currentCategory,
-    filters,
+  products,
+  categories,
+  currentCategory,
+  filters,
 }: Props) {
-    const { siteSettings, featuredCategories: sharedCategories } =
-        usePage<SharedData>().props;
-    const siteName = siteSettings?.site_name || 'Furniturin';
-    const safeFilters = Array.isArray(filters) ? {} : filters;
+  const { siteSettings, featuredCategories: sharedCategories } =
+    usePage<SharedData>().props;
+  const siteName = siteSettings?.site_name || 'Furniturin';
+  const safeFilters = Array.isArray(filters) ? {} : filters;
 
-    // Handle CategoryResource wrapping (data property)
-    const normalizedCategories = Array.isArray(categories)
-        ? categories
-        : (categories as any)?.data || [];
+  // Handle CategoryResource wrapping (data property)
+  const normalizedCategories = Array.isArray(categories)
+    ? categories
+    : (categories as any)?.data || [];
 
-    const normalizedCurrentCategory =
-        currentCategory && 'data' in currentCategory
-            ? (currentCategory as any).data
-            : currentCategory;
+  const normalizedCurrentCategory =
+    currentCategory && 'data' in currentCategory
+      ? (currentCategory as any).data
+      : currentCategory;
 
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [showFilters, setShowFilters] = useState(false);
-    const [searchQuery, setSearchQuery] = useState(
-        safeFilters.filter?.name || '',
-    );
-    const [selectedCategory, setSelectedCategory] = useState<number | null>(
-        safeFilters.filter?.category_id
-            ? Number(safeFilters.filter.category_id)
-            : normalizedCurrentCategory?.id
-              ? Number(normalizedCurrentCategory.id)
-              : null,
-    );
-    const [selectedSort, setSelectedSort] = useState(
-        safeFilters.sort || '-created_at',
-    );
-    const [priceRange, setPriceRange] = useState<{
-        min?: number;
-        max?: number;
-    }>({
-        min: safeFilters.filter?.price_min,
-        max: safeFilters.filter?.price_max,
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(
+    safeFilters.filter?.name || '',
+  );
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(
+    safeFilters.filter?.category_id
+      ? Number(safeFilters.filter.category_id)
+      : normalizedCurrentCategory?.id
+        ? Number(normalizedCurrentCategory.id)
+        : null,
+  );
+  const [selectedSort, setSelectedSort] = useState(
+    safeFilters.sort || '-created_at',
+  );
+  const [priceRange, setPriceRange] = useState<{
+    min?: number;
+    max?: number;
+  }>({
+    min: safeFilters.filter?.price_min,
+    max: safeFilters.filter?.price_max,
+  });
+  const [quickViewProduct, setQuickViewProduct] = useState<ApiProduct | null>(
+    null,
+  );
+
+  const applyFilters = useCallback(() => {
+    const params: Record<string, string> = {};
+
+    if (searchQuery) params['filter[name]'] = searchQuery;
+    if (selectedCategory)
+      params['filter[category_id]'] = String(selectedCategory);
+    if (priceRange.min) params['filter[price_min]'] = String(priceRange.min);
+    if (priceRange.max) params['filter[price_max]'] = String(priceRange.max);
+    if (selectedSort) params['sort'] = selectedSort;
+
+    router.get('/shop/products', params, {
+      preserveState: true,
+      preserveScroll: true,
     });
-    const [quickViewProduct, setQuickViewProduct] = useState<ApiProduct | null>(
-        null,
-    );
+  }, [searchQuery, selectedCategory, priceRange, selectedSort]);
 
-    const applyFilters = useCallback(() => {
-        const params: Record<string, string> = {};
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory(null);
+    setPriceRange({});
+    setSelectedSort('-created_at');
+    router.get('/shop/products', {}, { preserveState: true });
+  };
 
-        if (searchQuery) params['filter[name]'] = searchQuery;
-        if (selectedCategory)
-            params['filter[category_id]'] = String(selectedCategory);
-        if (priceRange.min)
-            params['filter[price_min]'] = String(priceRange.min);
-        if (priceRange.max)
-            params['filter[price_max]'] = String(priceRange.max);
-        if (selectedSort) params['sort'] = selectedSort;
+  // Debounced search - only trigger when user stops typing
+  useEffect(() => {
+    // Skip if searchQuery matches current filter (avoid loop on page load)
+    const currentFilterName = safeFilters.filter?.name || '';
+    if (searchQuery === currentFilterName) {
+      return;
+    }
 
-        router.get('/shop/products', params, {
-            preserveState: true,
-            preserveScroll: true,
-        });
-    }, [searchQuery, selectedCategory, priceRange, selectedSort]);
+    const timer = setTimeout(() => {
+      const params: Record<string, string> = {};
 
-    const clearFilters = () => {
-        setSearchQuery('');
-        setSelectedCategory(null);
-        setPriceRange({});
-        setSelectedSort('-created_at');
-        router.get('/shop/products', {}, { preserveState: true });
-    };
+      if (searchQuery) params['filter[name]'] = searchQuery;
+      if (selectedCategory)
+        params['filter[category_id]'] = String(selectedCategory);
+      if (priceRange.min) params['filter[price_min]'] = String(priceRange.min);
+      if (priceRange.max) params['filter[price_max]'] = String(priceRange.max);
+      if (selectedSort) params['sort'] = selectedSort;
 
-    // Debounced search - only trigger when user stops typing
-    useEffect(() => {
-        // Skip if searchQuery matches current filter (avoid loop on page load)
-        const currentFilterName = safeFilters.filter?.name || '';
-        if (searchQuery === currentFilterName) {
-            return;
-        }
+      router.get('/shop/products', params, {
+        preserveState: true,
+        preserveScroll: true,
+      });
+    }, 500);
 
-        const timer = setTimeout(() => {
-            const params: Record<string, string> = {};
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
-            if (searchQuery) params['filter[name]'] = searchQuery;
-            if (selectedCategory)
-                params['filter[category_id]'] = String(selectedCategory);
-            if (priceRange.min)
-                params['filter[price_min]'] = String(priceRange.min);
-            if (priceRange.max)
-                params['filter[price_max]'] = String(priceRange.max);
-            if (selectedSort) params['sort'] = selectedSort;
+  const hasActiveFilters =
+    searchQuery || selectedCategory || priceRange.min || priceRange.max;
 
-            router.get('/shop/products', params, {
-                preserveState: true,
-                preserveScroll: true,
-            });
-        }, 500);
-
-        return () => clearTimeout(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchQuery]);
-
-    const hasActiveFilters =
-        searchQuery || selectedCategory || priceRange.min || priceRange.max;
-
-    // SEO Data
-    const pageTitle = normalizedCurrentCategory
-        ? normalizedCurrentCategory.name
-        : 'Semua Produk';
-    const pageDescription = normalizedCurrentCategory
-        ? `Koleksi ${normalizedCurrentCategory.name} berkualitas tinggi di ${siteName}. Temukan berbagai pilihan ${normalizedCurrentCategory.name?.toLowerCase() || ''} dengan harga terbaik.`
-        : `Jelajahi koleksi lengkap furnitur berkualitas di ${siteName}. Kursi, meja, lemari, dan berbagai furnitur lainnya dengan harga terjangkau.`;
-    const breadcrumbItems = [
-        {
-            name: 'Beranda',
+  // SEO Data
+  const pageTitle = normalizedCurrentCategory
+    ? normalizedCurrentCategory.name
+    : 'Semua Produk';
+  const pageDescription = normalizedCurrentCategory
+    ? `Koleksi ${normalizedCurrentCategory.name} berkualitas tinggi di ${siteName}. Temukan berbagai pilihan ${normalizedCurrentCategory.name?.toLowerCase() || ''} dengan harga terbaik.`
+    : `Jelajahi koleksi lengkap furnitur berkualitas di ${siteName}. Kursi, meja, lemari, dan berbagai furnitur lainnya dengan harga terjangkau.`;
+  const breadcrumbItems = [
+    {
+      name: 'Beranda',
+      url:
+        typeof window !== 'undefined'
+          ? `${window.location.origin}/shop`
+          : '/shop',
+    },
+    ...(normalizedCurrentCategory
+      ? [
+          {
+            name: normalizedCurrentCategory.name,
             url:
-                typeof window !== 'undefined'
-                    ? `${window.location.origin}/shop`
-                    : '/shop',
-        },
-        ...(normalizedCurrentCategory
-            ? [
-                  {
-                      name: normalizedCurrentCategory.name,
-                      url:
-                          typeof window !== 'undefined'
-                              ? `${window.location.origin}/shop/products?filter[category]=${normalizedCurrentCategory.slug}`
-                              : `/shop/products?filter[category]=${normalizedCurrentCategory.slug}`,
-                  },
-              ]
-            : [
-                  {
-                      name: 'Semua Produk',
-                      url:
-                          typeof window !== 'undefined'
-                              ? `${window.location.origin}/shop/products`
-                              : '/shop/products',
-                  },
-              ]),
-    ];
+              typeof window !== 'undefined'
+                ? `${window.location.origin}/shop/products?filter[category]=${normalizedCurrentCategory.slug}`
+                : `/shop/products?filter[category]=${normalizedCurrentCategory.slug}`,
+          },
+        ]
+      : [
+          {
+            name: 'Semua Produk',
+            url:
+              typeof window !== 'undefined'
+                ? `${window.location.origin}/shop/products`
+                : '/shop/products',
+          },
+        ]),
+  ];
 
-    return (
-        <>
-            <SEOHead
-                title={pageTitle}
-                description={pageDescription}
-                keywords={
-                    normalizedCurrentCategory
-                        ? [normalizedCurrentCategory.name, 'furnitur', 'mebel']
-                        : [
-                              'furnitur',
-                              'furniture',
-                              'mebel',
-                              'kursi',
-                              'meja',
-                              'lemari',
-                          ]
-                }
-            />
-            <BreadcrumbStructuredData items={breadcrumbItems} />
-            <div className="bg-noise" />
-            <ShopLayout>
-                <main className="min-h-screen bg-white pt-8 pb-20">
-                    <div className="mx-auto max-w-[1400px] px-6 md:px-12">
-                        {/* Breadcrumb */}
-                        <nav className="mb-8 flex items-center gap-2 text-sm text-neutral-500">
-                            <Link href="/shop" className="hover:text-teal-500">
-                                Beranda
-                            </Link>
-                            <span>/</span>
-                            <span className="text-neutral-900">
-                                {normalizedCurrentCategory
-                                    ? normalizedCurrentCategory.name
-                                    : 'Semua Produk'}
-                            </span>
-                        </nav>
+  return (
+    <>
+      <SEOHead
+        title={pageTitle}
+        description={pageDescription}
+        keywords={
+          normalizedCurrentCategory
+            ? [normalizedCurrentCategory.name, 'furnitur', 'mebel']
+            : ['furnitur', 'furniture', 'mebel', 'kursi', 'meja', 'lemari']
+        }
+      />
+      <BreadcrumbStructuredData items={breadcrumbItems} />
+      <div className="bg-noise" />
+      <ShopLayout>
+        <main className="min-h-screen bg-white pt-4 pb-20 sm:pt-8">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-12">
+            {/* Breadcrumb */}
+            <nav className="mb-4 flex items-center gap-2 text-xs text-neutral-500 sm:mb-8 sm:text-sm">
+              <Link href="/shop" className="hover:text-teal-500">
+                Beranda
+              </Link>
+              <span>/</span>
+              <span className="text-neutral-900">
+                {normalizedCurrentCategory
+                  ? normalizedCurrentCategory.name
+                  : 'Semua Produk'}
+              </span>
+            </nav>
 
-                        {/* Header */}
-                        <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-                            <div>
-                                <h1 className="font-serif text-4xl text-neutral-900 md:text-5xl">
-                                    {normalizedCurrentCategory
-                                        ? normalizedCurrentCategory.name
-                                        : 'Semua Produk'}
-                                </h1>
-                                <p className="mt-2 text-neutral-500">
-                                    {products.meta.total} produk ditemukan
-                                </p>
-                            </div>
+            {/* Header */}
+            <div className="mb-6 flex flex-col justify-between gap-4 sm:mb-10 sm:gap-6 md:flex-row md:items-end">
+              <div>
+                <h1 className="font-serif text-2xl text-neutral-900 sm:text-4xl md:text-5xl">
+                  {normalizedCurrentCategory
+                    ? normalizedCurrentCategory.name
+                    : 'Semua Produk'}
+                </h1>
+                <p className="mt-1 text-sm text-neutral-500 sm:mt-2 sm:text-base">
+                  {products.meta.total} produk ditemukan
+                </p>
+              </div>
 
-                            {/* Search & Filter Toggle */}
-                            <div className="flex items-center gap-4">
-                                <div className="relative flex-1 md:w-80">
-                                    <Search
-                                        className="absolute top-1/2 left-4 -translate-y-1/2 text-neutral-400"
-                                        size={20}
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Cari produk..."
-                                        value={searchQuery}
-                                        onChange={(e) =>
-                                            setSearchQuery(e.target.value)
-                                        }
-                                        className="w-full rounded-sm border border-neutral-200 py-3 pr-4 pl-12 transition-colors focus:border-teal-500 focus:outline-none"
-                                    />
-                                </div>
-                                <button
-                                    onClick={() => setShowFilters(true)}
-                                    className="flex items-center gap-2 rounded-sm border border-neutral-200 bg-white px-4 py-3 text-neutral-700 transition-colors hover:border-teal-500 hover:text-teal-600"
-                                >
-                                    <SlidersHorizontal size={20} />
-                                    <span className="hidden sm:inline">
-                                        Filter
-                                    </span>
-                                </button>
-                                <div className="hidden items-center gap-1 rounded-sm border border-neutral-200 p-1 md:flex">
-                                    <button
-                                        onClick={() => setViewMode('grid')}
-                                        className={`rounded-sm p-2 transition-colors ${viewMode === 'grid' ? 'bg-teal-500 text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}
-                                    >
-                                        <Grid3X3 size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => setViewMode('list')}
-                                        className={`rounded-sm p-2 transition-colors ${viewMode === 'list' ? 'bg-teal-500 text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}
-                                    >
-                                        <LayoutList size={18} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+              {/* Search & Filter Toggle */}
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="relative flex-1 md:w-80">
+                  <Search
+                    className="absolute top-1/2 left-3 -translate-y-1/2 text-neutral-400 sm:left-4"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Cari produk..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-sm border border-neutral-200 py-2.5 pr-4 pl-10 text-sm transition-colors focus:border-teal-500 focus:outline-none sm:py-3 sm:pl-12 sm:text-base"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowFilters(true)}
+                  className="flex items-center gap-2 rounded-sm border border-neutral-200 bg-white px-3 py-2.5 text-neutral-700 transition-colors hover:border-teal-500 hover:text-teal-600 sm:px-4 sm:py-3"
+                >
+                  <SlidersHorizontal size={18} className="sm:hidden" />
+                  <SlidersHorizontal size={20} className="hidden sm:block" />
+                  <span className="hidden sm:inline">Filter</span>
+                </button>
+                <div className="hidden items-center gap-1 rounded-sm border border-neutral-200 p-1 md:flex">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`rounded-sm p-2 transition-colors ${viewMode === 'grid' ? 'bg-teal-500 text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}
+                  >
+                    <Grid3X3 size={18} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`rounded-sm p-2 transition-colors ${viewMode === 'list' ? 'bg-teal-500 text-white' : 'text-neutral-500 hover:bg-neutral-100'}`}
+                  >
+                    <LayoutList size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
 
-                        {/* Active Filters */}
-                        {hasActiveFilters && (
-                            <div className="mb-6 flex flex-wrap items-center gap-2">
-                                <span className="text-sm text-neutral-500">
-                                    Active Filters:
-                                </span>
+            {/* Active Filters */}
+            {hasActiveFilters && (
+              <div className="mb-6 flex flex-wrap items-center gap-2">
+                <span className="text-sm text-neutral-500">
+                  Active Filters:
+                </span>
 
-                                {selectedCategory && (
-                                    <button
-                                        onClick={() =>
-                                            setSelectedCategory(null)
-                                        }
-                                        className="flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
-                                    >
-                                        {normalizedCategories.find(
-                                            (c: ApiCategory) =>
-                                                Number(c.id) ===
-                                                Number(selectedCategory),
-                                        )?.name ||
-                                            (normalizedCurrentCategory &&
-                                            Number(
-                                                normalizedCurrentCategory.id,
-                                            ) === Number(selectedCategory)
-                                                ? normalizedCurrentCategory.name
-                                                : 'Category')}
-                                        <X size={14} />
-                                    </button>
-                                )}
+                {selectedCategory && (
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    className="flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
+                  >
+                    {normalizedCategories.find(
+                      (c: ApiCategory) =>
+                        Number(c.id) === Number(selectedCategory),
+                    )?.name ||
+                      (normalizedCurrentCategory &&
+                      Number(normalizedCurrentCategory.id) ===
+                        Number(selectedCategory)
+                        ? normalizedCurrentCategory.name
+                        : 'Category')}
+                    <X size={14} />
+                  </button>
+                )}
 
-                                {searchQuery && (
-                                    <button
-                                        onClick={() => setSearchQuery('')}
-                                        className="flex items-center gap-1 rounded-sm bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
-                                    >
-                                        Search: {searchQuery}
-                                        <X size={14} />
-                                    </button>
-                                )}
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="flex items-center gap-1 rounded-sm bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
+                  >
+                    Search: {searchQuery}
+                    <X size={14} />
+                  </button>
+                )}
 
-                                {(priceRange.min || priceRange.max) && (
-                                    <button
-                                        onClick={() => setPriceRange({})}
-                                        className="flex items-center gap-1 rounded-sm bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
-                                    >
-                                        Price
-                                        <X size={14} />
-                                    </button>
-                                )}
+                {(priceRange.min || priceRange.max) && (
+                  <button
+                    onClick={() => setPriceRange({})}
+                    className="flex items-center gap-1 rounded-sm bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 transition-colors hover:bg-teal-100"
+                  >
+                    Price
+                    <X size={14} />
+                  </button>
+                )}
 
-                                <button
-                                    onClick={clearFilters}
-                                    className="text-sm text-neutral-500 underline hover:text-neutral-900"
-                                >
-                                    Clear All
-                                </button>
-                            </div>
-                        )}
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-neutral-500 underline hover:text-neutral-900"
+                >
+                  Clear All
+                </button>
+              </div>
+            )}
 
-                        {/* Product Content */}
-                        <div className="flex-1">
-                            <ProductGrid
-                                products={products.data}
-                                viewMode={viewMode}
-                                onQuickView={setQuickViewProduct}
-                            />
-                            <Pagination meta={products.meta} />
-                        </div>
-                    </div>
-                </main>
+            {/* Product Content */}
+            <div className="flex-1">
+              <ProductGrid
+                products={products.data}
+                viewMode={viewMode}
+                onQuickView={setQuickViewProduct}
+              />
+              <Pagination meta={products.meta} />
+            </div>
+          </div>
+        </main>
 
-                <FilterDrawer
-                    isOpen={showFilters}
-                    onClose={() => setShowFilters(false)}
-                    categories={normalizedCategories}
-                    featuredCategories={sharedCategories}
-                    selectedCategory={selectedCategory}
-                    setSelectedCategory={setSelectedCategory}
-                    priceRange={priceRange}
-                    setPriceRange={setPriceRange}
-                    selectedSort={selectedSort}
-                    setSelectedSort={setSelectedSort}
-                    onApply={() => {
-                        applyFilters();
-                        setShowFilters(false);
-                    }}
-                    onClear={clearFilters}
-                    hasActiveFilters={!!hasActiveFilters}
-                />
+        <FilterDrawer
+          isOpen={showFilters}
+          onClose={() => setShowFilters(false)}
+          categories={normalizedCategories}
+          featuredCategories={sharedCategories}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          priceRange={priceRange}
+          setPriceRange={setPriceRange}
+          selectedSort={selectedSort}
+          setSelectedSort={setSelectedSort}
+          onApply={() => {
+            applyFilters();
+            setShowFilters(false);
+          }}
+          onClear={clearFilters}
+          hasActiveFilters={!!hasActiveFilters}
+        />
 
-                <QuickViewModal
-                    product={quickViewProduct}
-                    isOpen={!!quickViewProduct}
-                    onClose={() => setQuickViewProduct(null)}
-                />
-            </ShopLayout>
-        </>
-    );
+        <QuickViewModal
+          product={quickViewProduct}
+          isOpen={!!quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+        />
+      </ShopLayout>
+    </>
+  );
 }
 
 // ==================== Filter Drawer ====================
 interface FilterDrawerProps {
-    isOpen: boolean;
-    onClose: () => void;
-    categories: ApiCategory[];
-    featuredCategories?: ApiCategory[];
-    selectedCategory: number | null;
-    setSelectedCategory: (id: number | null) => void;
-    priceRange: { min?: number; max?: number };
-    setPriceRange: (range: { min?: number; max?: number }) => void;
-    selectedSort: string;
-    setSelectedSort: (sort: string) => void;
-    onApply: () => void;
-    onClear: () => void;
-    hasActiveFilters: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+  categories: ApiCategory[];
+  featuredCategories?: ApiCategory[];
+  selectedCategory: number | null;
+  setSelectedCategory: (id: number | null) => void;
+  priceRange: { min?: number; max?: number };
+  setPriceRange: (range: { min?: number; max?: number }) => void;
+  selectedSort: string;
+  setSelectedSort: (sort: string) => void;
+  onApply: () => void;
+  onClear: () => void;
+  hasActiveFilters: boolean;
 }
 
 // ... (imports remain the same, just removing createPortal usually) but since I can't edit multiple distinct blocks easily without multi_replace, I will focus on the component function first.
@@ -417,662 +399,621 @@ interface FilterDrawerProps {
 // Import CATEGORIES
 
 function FilterDrawer({
-    isOpen,
-    onClose,
-    categories,
-    featuredCategories,
-    selectedCategory,
-    setSelectedCategory,
-    priceRange,
-    setPriceRange,
-    selectedSort,
-    setSelectedSort,
-    onApply,
-    onClear,
-    hasActiveFilters,
+  isOpen,
+  onClose,
+  categories,
+  featuredCategories,
+  selectedCategory,
+  setSelectedCategory,
+  priceRange,
+  setPriceRange,
+  selectedSort,
+  setSelectedSort,
+  onApply,
+  onClear,
+  hasActiveFilters,
 }: FilterDrawerProps) {
-    const [mounted, setMounted] = useState(false);
-    // Two states for animation:
-    // 1. shouldRender: controls whether the component is in the DOM (createPortal)
-    // 2. isVisible: controls the CSS opacity/transform classes
-    const [shouldRender, setShouldRender] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  // Two states for animation:
+  // 1. shouldRender: controls whether the component is in the DOM (createPortal)
+  // 2. isVisible: controls the CSS opacity/transform classes
+  const [shouldRender, setShouldRender] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-        return () => setMounted(false);
-    }, []);
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
-    useEffect(() => {
-        if (isOpen) {
-            // Mount first
-            setShouldRender(true);
-            // Then fade in (use double RAF to ensure paint happens first)
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setIsVisible(true);
-                });
-            });
-        } else {
-            // Fade out first
-            setIsVisible(false);
-            // Then unmount after transition matches duration (300ms)
-            const timer = setTimeout(() => {
-                setShouldRender(false);
-            }, 300);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      // Mount first
+      setShouldRender(true);
+      // Then fade in (use double RAF to ensure paint happens first)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      });
+    } else {
+      // Fade out first
+      setIsVisible(false);
+      // Then unmount after transition matches duration (300ms)
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
-    if (!mounted || typeof document === 'undefined' || !shouldRender)
-        return null;
+  if (!mounted || typeof document === 'undefined' || !shouldRender) return null;
 
-    // Safety check for categories
-    const safeCategories = Array.isArray(categories) ? categories : [];
-    const safeFeaturedCategories = Array.isArray(featuredCategories)
-        ? featuredCategories
-        : [];
+  // Safety check for categories
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeFeaturedCategories = Array.isArray(featuredCategories)
+    ? featuredCategories
+    : [];
 
-    return createPortal(
-        <>
-            {/* Backdrop */}
-            <div
-                className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
-                    isVisible ? 'opacity-100' : 'opacity-0'
-                }`}
-                onClick={onClose}
-                aria-hidden="true"
-            />
-            {/* Drawer */}
-            <div
-                className={`fixed top-0 right-0 z-[60] flex h-full w-full max-w-sm transform flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
-                    isVisible ? 'translate-x-0' : 'translate-x-full'
-                }`}
-                onTransitionEnd={() => {
-                    if (!isOpen && !isVisible) {
-                        // Optional cleanup if needed
-                    }
-                }}
+  return createPortal(
+    <>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
+          isVisible ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      {/* Drawer */}
+      <div
+        className={`fixed top-0 right-0 z-[60] flex h-full w-full max-w-sm transform flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
+          isVisible ? 'translate-x-0' : 'translate-x-full'
+        }`}
+        onTransitionEnd={() => {
+          if (!isOpen && !isVisible) {
+            // Optional cleanup if needed
+          }
+        }}
+      >
+        <div className="flex items-center justify-between border-b border-neutral-100 p-6">
+          <h2 className="font-display text-xl font-semibold text-neutral-900">
+            Filter & Sort
+          </h2>
+          <button
+            onClick={onClose}
+            className="rounded-sm p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="flex-1 space-y-8 overflow-y-auto p-6">
+          {/* Sort */}
+          <div>
+            <h3 className="mb-4 font-medium text-neutral-900">Urutkan</h3>
+            <select
+              value={selectedSort}
+              onChange={(e) => {
+                setSelectedSort(e.target.value);
+              }}
+              className="w-full rounded-sm border border-neutral-200 p-3 ring-teal-500 focus:border-teal-500 focus:ring-1 focus:outline-none"
             >
-                <div className="flex items-center justify-between border-b border-neutral-100 p-6">
-                    <h2 className="font-display text-xl font-semibold text-neutral-900">
-                        Filter & Sort
-                    </h2>
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Categories */}
+          {/* Categories */}
+          <div>
+            {safeFeaturedCategories?.length > 0 && (
+              <div className="mb-6">
+                <h3 className="mb-4 font-medium text-neutral-900">
+                  Kategori Unggulan
+                </h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${!selectedCategory ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                  >
+                    Semua Kategori
+                  </button>
+                  {safeFeaturedCategories.map((cat) => (
                     <button
-                        onClick={onClose}
-                        className="rounded-sm p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
                     >
-                        <X size={24} />
+                      {cat.name}
                     </button>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                <div className="flex-1 space-y-8 overflow-y-auto p-6">
-                    {/* Sort */}
-                    <div>
-                        <h3 className="mb-4 font-medium text-neutral-900">
-                            Urutkan
-                        </h3>
-                        <select
-                            value={selectedSort}
-                            onChange={(e) => {
-                                setSelectedSort(e.target.value);
-                            }}
-                            className="w-full rounded-sm border border-neutral-200 p-3 ring-teal-500 focus:border-teal-500 focus:ring-1 focus:outline-none"
-                        >
-                            {SORT_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Categories */}
-                    {/* Categories */}
-                    <div>
-                        {safeFeaturedCategories?.length > 0 && (
-                            <div className="mb-6">
-                                <h3 className="mb-4 font-medium text-neutral-900">
-                                    Kategori Unggulan
-                                </h3>
-                                <div className="space-y-2">
-                                    <button
-                                        onClick={() =>
-                                            setSelectedCategory(null)
-                                        }
-                                        className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${!selectedCategory ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
-                                    >
-                                        Semua Kategori
-                                    </button>
-                                    {safeFeaturedCategories.map((cat) => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() =>
-                                                setSelectedCategory(cat.id)
-                                            }
-                                            className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
-                                        >
-                                            {cat.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div>
-                            <h3 className="mb-4 font-medium text-neutral-900">
-                                Semua Kategori
-                            </h3>
-                            <div className="space-y-2">
-                                {safeCategories.length > 0 ? (
-                                    safeCategories.map((cat) => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() =>
-                                                setSelectedCategory(cat.id)
-                                            }
-                                            className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
-                                        >
-                                            {cat.name}
-                                        </button>
-                                    ))
-                                ) : (
-                                    <p className="px-4 py-2 text-sm text-neutral-400">
-                                        Tidak ada kategori tersedia
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Price Range */}
-                    <div>
-                        <h3 className="mb-4 font-medium text-neutral-900">
-                            Rentang Harga
-                        </h3>
-                        <div className="space-y-2">
-                            {PRICE_RANGES.map((range, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() =>
-                                        setPriceRange({
-                                            min: range.min,
-                                            max: range.max ?? undefined,
-                                        })
-                                    }
-                                    className={`w-full rounded-sm px-4 py-2 text-left text-sm transition-colors ${
-                                        priceRange.min === range.min &&
-                                        priceRange.max ===
-                                            (range.max ?? undefined)
-                                            ? 'bg-teal-50 font-medium text-teal-700'
-                                            : 'text-neutral-600 hover:bg-neutral-50'
-                                    }`}
-                                >
-                                    {range.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer Actions */}
-                <div className="border-t border-neutral-100 bg-neutral-50 p-6">
-                    <div className="flex gap-3">
-                        <button
-                            onClick={onApply}
-                            className="flex-1 rounded-sm bg-teal-600 py-3 font-medium text-white shadow-sm transition-colors hover:bg-teal-700"
-                        >
-                            Terapkan Filter
-                        </button>
-                        {hasActiveFilters && (
-                            <button
-                                onClick={onClear}
-                                className="rounded-sm border border-neutral-200 bg-white px-4 py-3 text-neutral-600 transition-colors hover:border-neutral-300 hover:text-neutral-900"
-                            >
-                                Reset
-                            </button>
-                        )}
-                    </div>
-                </div>
+            <div>
+              <h3 className="mb-4 font-medium text-neutral-900">
+                Semua Kategori
+              </h3>
+              <div className="space-y-2">
+                {safeCategories.length > 0 ? (
+                  safeCategories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`w-full rounded-sm px-4 py-2 text-left transition-colors ${selectedCategory === cat.id ? 'bg-teal-50 font-medium text-teal-700' : 'text-neutral-600 hover:bg-neutral-50'}`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))
+                ) : (
+                  <p className="px-4 py-2 text-sm text-neutral-400">
+                    Tidak ada kategori tersedia
+                  </p>
+                )}
+              </div>
             </div>
-        </>,
-        document.body,
-    );
+          </div>
+
+          {/* Price Range */}
+          <div>
+            <h3 className="mb-4 font-medium text-neutral-900">Rentang Harga</h3>
+            <div className="space-y-2">
+              {PRICE_RANGES.map((range, i) => (
+                <button
+                  key={i}
+                  onClick={() =>
+                    setPriceRange({
+                      min: range.min,
+                      max: range.max ?? undefined,
+                    })
+                  }
+                  className={`w-full rounded-sm px-4 py-2 text-left text-sm transition-colors ${
+                    priceRange.min === range.min &&
+                    priceRange.max === (range.max ?? undefined)
+                      ? 'bg-teal-50 font-medium text-teal-700'
+                      : 'text-neutral-600 hover:bg-neutral-50'
+                  }`}
+                >
+                  {range.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="border-t border-neutral-100 bg-neutral-50 p-6">
+          <div className="flex gap-3">
+            <button
+              onClick={onApply}
+              className="flex-1 rounded-sm bg-teal-600 py-3 font-medium text-white shadow-sm transition-colors hover:bg-teal-700"
+            >
+              Terapkan Filter
+            </button>
+            {hasActiveFilters && (
+              <button
+                onClick={onClear}
+                className="rounded-sm border border-neutral-200 bg-white px-4 py-3 text-neutral-600 transition-colors hover:border-neutral-300 hover:text-neutral-900"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body,
+  );
 }
 
 // ==================== Product Grid ====================
 interface ProductGridProps {
-    products: ApiProduct[];
-    viewMode: 'grid' | 'list';
-    onQuickView: (product: ApiProduct) => void;
+  products: ApiProduct[];
+  viewMode: 'grid' | 'list';
+  onQuickView: (product: ApiProduct) => void;
 }
 
 function ProductGrid({ products, viewMode, onQuickView }: ProductGridProps) {
-    if (products.length === 0) {
-        return (
-            <div className="py-20 text-center">
-                <ShoppingBag
-                    className="mx-auto mb-4 text-neutral-300"
-                    size={64}
-                />
-                <h3 className="mb-2 text-xl font-medium text-neutral-900">
-                    Tidak ada produk ditemukan
-                </h3>
-                <p className="text-neutral-500">
-                    Coba ubah filter atau kata kunci pencarian Anda
-                </p>
-            </div>
-        );
-    }
-
+  if (products.length === 0) {
     return (
-        <div
-            className={
-                viewMode === 'grid'
-                    ? 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'
-                    : 'space-y-6'
-            }
-        >
-            {products.map((product, index) => (
-                <ProductCard
-                    key={product.id}
-                    product={product}
-                    viewMode={viewMode}
-                    index={index}
-                    onQuickView={onQuickView}
-                />
-            ))}
-        </div>
+      <div className="py-20 text-center">
+        <ShoppingBag className="mx-auto mb-4 text-neutral-300" size={64} />
+        <h3 className="mb-2 text-xl font-medium text-neutral-900">
+          Tidak ada produk ditemukan
+        </h3>
+        <p className="text-neutral-500">
+          Coba ubah filter atau kata kunci pencarian Anda
+        </p>
+      </div>
     );
+  }
+
+  return (
+    <div
+      className={
+        viewMode === 'grid'
+          ? 'grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4'
+          : 'space-y-4 sm:space-y-6'
+      }
+    >
+      {products.map((product, index) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          viewMode={viewMode}
+          index={index}
+          onQuickView={onQuickView}
+        />
+      ))}
+    </div>
+  );
 }
 
 // ==================== Product Card ====================
 interface ProductCardProps {
-    product: ApiProduct;
-    viewMode: 'grid' | 'list';
-    index: number;
-    onQuickView: (product: ApiProduct) => void;
+  product: ApiProduct;
+  viewMode: 'grid' | 'list';
+  index: number;
+  onQuickView: (product: ApiProduct) => void;
 }
 
 function ProductCard({
-    product,
-    viewMode,
-    index,
-    onQuickView,
+  product,
+  viewMode,
+  index,
+  onQuickView,
 }: ProductCardProps) {
-    const { auth } = usePage<SharedData>().props;
-    const [isWishlisted, setIsWishlisted] = useState(product.is_wishlisted);
-    const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
-    const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { auth } = usePage<SharedData>().props;
+  const [isWishlisted, setIsWishlisted] = useState(product.is_wishlisted);
+  const [isTogglingWishlist, setIsTogglingWishlist] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-    // Sync prop changes
-    useEffect(() => {
-        setIsWishlisted(product.is_wishlisted);
-    }, [product.is_wishlisted]);
+  // Sync prop changes
+  useEffect(() => {
+    setIsWishlisted(product.is_wishlisted);
+  }, [product.is_wishlisted]);
 
-    const handleWishlistToggle = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-        if (!auth?.user) {
-            router.visit('/login');
-            return;
-        }
-
-        setIsTogglingWishlist(true);
-
-        router.post(
-            `/shop/wishlist/${product.id}`,
-            {},
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onFinish: () => {
-                    setIsTogglingWishlist(false);
-                },
-            },
-        );
-    };
-
-    const handleAddToCart = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!auth?.user) {
-            router.visit('/login');
-            return;
-        }
-
-        setIsAddingToCart(true);
-
-        router.post(
-            '/shop/cart',
-            { product_id: product.id, quantity: 1 },
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onFinish: () => {
-                    setIsAddingToCart(false);
-                },
-            },
-        );
-    };
-
-    const imageUrl =
-        product.primary_image?.image_url ||
-        product.images?.[0]?.image_url ||
-        '/images/placeholder-product.svg';
-
-    if (viewMode === 'list') {
-        return (
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-            >
-                <Link
-                    href={`/shop/products/${product.slug}`}
-                    className="group flex gap-6 rounded-sm border border-neutral-100 bg-white p-4 transition-shadow hover:shadow-lg"
-                >
-                    <div className="relative h-48 w-48 flex-shrink-0 overflow-hidden rounded-sm bg-neutral-100">
-                        <img
-                            src={imageUrl}
-                            alt={product.name}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                onQuickView(product);
-                            }}
-                            className="absolute right-2 bottom-2 rounded-sm bg-white/90 p-2 text-neutral-900 opacity-0 transition-colors group-hover:opacity-100 hover:bg-white"
-                            title="Quick View"
-                        >
-                            <Eye size={16} />
-                        </button>
-                    </div>
-                    <div className="flex flex-1 flex-col justify-between py-2">
-                        <div>
-                            <p className="mb-1 text-sm text-neutral-500">
-                                {product.category?.name}
-                            </p>
-                            <h3 className="mb-2 font-serif text-xl text-neutral-900">
-                                {product.name}
-                            </h3>
-                            <p className="line-clamp-2 text-sm text-neutral-600">
-                                {product.short_description}
-                            </p>
-                            <div className="mt-3 flex items-center gap-2">
-                                <div className="flex items-center gap-1">
-                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                    <span className="text-sm font-medium">
-                                        {Number(
-                                            product.average_rating || 0,
-                                        ).toFixed(1)}
-                                    </span>
-                                </div>
-                                <span className="text-neutral-300">•</span>
-                                <span className="text-sm text-neutral-500">
-                                    {product.sold_count} terjual
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                {product.has_discount && (
-                                    <p className="text-sm text-neutral-400 line-through">
-                                        {product.price_formatted}
-                                    </p>
-                                )}
-                                <p className="text-xl font-semibold text-teal-600">
-                                    {product.final_price_formatted}
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={handleWishlistToggle}
-                                    disabled={isTogglingWishlist}
-                                    className={`rounded-sm border p-3 transition-colors disabled:cursor-not-allowed ${
-                                        isWishlisted
-                                            ? 'border-red-200 bg-red-50 text-red-500'
-                                            : 'border-neutral-200 hover:border-neutral-900'
-                                    }`}
-                                >
-                                    {isTogglingWishlist ? (
-                                        <Loader2
-                                            size={18}
-                                            className="animate-spin"
-                                        />
-                                    ) : (
-                                        <Heart
-                                            size={18}
-                                            className={
-                                                isWishlisted
-                                                    ? 'fill-current'
-                                                    : ''
-                                            }
-                                        />
-                                    )}
-                                </button>
-                                <button
-                                    onClick={handleAddToCart}
-                                    disabled={
-                                        !product.is_in_stock || isAddingToCart
-                                    }
-                                    className="rounded-sm bg-teal-500 p-3 text-white transition-colors hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    {isAddingToCart ? (
-                                        <Loader2
-                                            size={18}
-                                            className="animate-spin"
-                                        />
-                                    ) : (
-                                        <ShoppingBag size={18} />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </Link>
-            </motion.div>
-        );
+    if (!auth?.user) {
+      router.visit('/login');
+      return;
     }
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="group"
-        >
-            <Link href={`/shop/products/${product.slug}`}>
-                <div className="relative mb-4 aspect-square overflow-hidden rounded-sm bg-neutral-100">
-                    <img
-                        src={imageUrl}
-                        alt={product.name}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    {product.has_discount && (
-                        <span className="absolute top-4 left-4 rounded-sm bg-red-500 px-3 py-1 text-sm font-medium text-white">
-                            -{product.discount_percentage}%
-                        </span>
-                    )}
-                    {product.sale_type.value !== 'regular' && (
-                        <span className="absolute top-4 right-4 rounded-sm bg-teal-500 px-3 py-1 text-sm font-medium text-white">
-                            {product.sale_type.label}
-                        </span>
-                    )}
-                    <div className="absolute right-4 bottom-4 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                onQuickView(product);
-                            }}
-                            className="rounded-sm bg-white/90 p-3 text-neutral-900 transition-colors hover:bg-white"
-                            title="Quick View"
-                        >
-                            <Eye size={18} />
-                        </button>
-                        <button
-                            onClick={handleWishlistToggle}
-                            disabled={isTogglingWishlist}
-                            className={`rounded-sm p-3 transition-colors disabled:cursor-not-allowed ${
-                                isWishlisted
-                                    ? 'bg-red-50 text-red-500'
-                                    : 'bg-white/90 text-neutral-900 hover:bg-white'
-                            }`}
-                        >
-                            {isTogglingWishlist ? (
-                                <Loader2 size={18} className="animate-spin" />
-                            ) : (
-                                <Heart
-                                    size={18}
-                                    className={
-                                        isWishlisted ? 'fill-current' : ''
-                                    }
-                                />
-                            )}
-                        </button>
-                        <button
-                            onClick={handleAddToCart}
-                            disabled={!product.is_in_stock || isAddingToCart}
-                            className="rounded-sm bg-teal-500 p-3 text-white transition-colors hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {isAddingToCart ? (
-                                <Loader2 size={18} className="animate-spin" />
-                            ) : (
-                                <ShoppingBag size={18} />
-                            )}
-                        </button>
-                    </div>
-                </div>
-                <div>
-                    <p className="mb-1 text-sm text-neutral-500">
-                        {product.category?.name}
-                    </p>
-                    <h3 className="mb-2 font-serif text-lg text-neutral-900 transition-colors group-hover:text-teal-500">
-                        {product.name}
-                    </h3>
-                    <div className="mb-2 flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">
-                                {Number(product.average_rating || 0).toFixed(1)}
-                            </span>
-                        </div>
-                        <span className="text-neutral-300">•</span>
-                        <span className="text-sm text-neutral-500">
-                            {product.sold_count} terjual
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {product.has_discount && (
-                            <span className="text-sm text-neutral-400 line-through">
-                                {product.price_formatted}
-                            </span>
-                        )}
-                        <span className="text-lg font-semibold text-teal-600">
-                            {product.final_price_formatted}
-                        </span>
-                    </div>
-                </div>
-            </Link>
-        </motion.div>
+    setIsTogglingWishlist(true);
+
+    router.post(
+      `/shop/wishlist/${product.id}`,
+      {},
+      {
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+          setIsTogglingWishlist(false);
+        },
+      },
     );
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!auth?.user) {
+      router.visit('/login');
+      return;
+    }
+
+    setIsAddingToCart(true);
+
+    router.post(
+      '/shop/cart',
+      { product_id: product.id, quantity: 1 },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+          setIsAddingToCart(false);
+        },
+      },
+    );
+  };
+
+  const imageUrl =
+    product.primary_image?.image_url ||
+    product.images?.[0]?.image_url ||
+    '/images/placeholder-product.svg';
+
+  if (viewMode === 'list') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.05 }}
+      >
+        <Link
+          href={`/shop/products/${product.slug}`}
+          className="group flex gap-6 rounded-sm border border-neutral-100 bg-white p-4 transition-shadow hover:shadow-lg"
+        >
+          <div className="relative h-48 w-48 flex-shrink-0 overflow-hidden rounded-sm bg-neutral-100">
+            <img
+              src={imageUrl}
+              alt={product.name}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onQuickView(product);
+              }}
+              className="absolute right-2 bottom-2 rounded-sm bg-white/90 p-2 text-neutral-900 opacity-0 transition-colors group-hover:opacity-100 hover:bg-white"
+              title="Quick View"
+            >
+              <Eye size={16} />
+            </button>
+          </div>
+          <div className="flex flex-1 flex-col justify-between py-2">
+            <div>
+              <p className="mb-1 text-sm text-neutral-500">
+                {product.category?.name}
+              </p>
+              <h3 className="mb-2 font-serif text-xl text-neutral-900">
+                {product.name}
+              </h3>
+              <p className="line-clamp-2 text-sm text-neutral-600">
+                {product.short_description}
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-medium">
+                    {Number(product.average_rating || 0).toFixed(1)}
+                  </span>
+                </div>
+                <span className="text-neutral-300">•</span>
+                <span className="text-sm text-neutral-500">
+                  {product.sold_count} terjual
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                {product.has_discount && (
+                  <p className="text-sm text-neutral-400 line-through">
+                    {product.price_formatted}
+                  </p>
+                )}
+                <p className="text-xl font-semibold text-teal-600">
+                  {product.final_price_formatted}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleWishlistToggle}
+                  disabled={isTogglingWishlist}
+                  className={`rounded-sm border p-3 transition-colors disabled:cursor-not-allowed ${
+                    isWishlisted
+                      ? 'border-red-200 bg-red-50 text-red-500'
+                      : 'border-neutral-200 hover:border-neutral-900'
+                  }`}
+                >
+                  {isTogglingWishlist ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Heart
+                      size={18}
+                      className={isWishlisted ? 'fill-current' : ''}
+                    />
+                  )}
+                </button>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!product.is_in_stock || isAddingToCart}
+                  className="rounded-sm bg-teal-500 p-3 text-white transition-colors hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isAddingToCart ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <ShoppingBag size={18} />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="group"
+    >
+      <Link href={`/shop/products/${product.slug}`}>
+        <div className="relative mb-2 aspect-[4/5] overflow-hidden rounded-sm bg-neutral-100 sm:mb-4 sm:aspect-square">
+          <img
+            src={imageUrl}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          {product.has_discount && (
+            <span className="absolute top-2 left-2 rounded-sm bg-red-500 px-1.5 py-0.5 text-xs font-medium text-white sm:top-4 sm:left-4 sm:px-3 sm:py-1 sm:text-sm">
+              -{product.discount_percentage}%
+            </span>
+          )}
+          {product.sale_type.value !== 'regular' && (
+            <span className="absolute top-2 right-2 rounded-sm bg-teal-500 px-1.5 py-0.5 text-xs font-medium text-white sm:top-4 sm:right-4 sm:px-3 sm:py-1 sm:text-sm">
+              {product.sale_type.label}
+            </span>
+          )}
+          <div className="absolute right-2 bottom-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 sm:right-4 sm:bottom-4 sm:gap-2">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onQuickView(product);
+              }}
+              className="rounded-sm bg-white/90 p-2 text-neutral-900 transition-colors hover:bg-white sm:p-3"
+              title="Quick View"
+            >
+              <Eye size={18} />
+            </button>
+            <button
+              onClick={handleWishlistToggle}
+              disabled={isTogglingWishlist}
+              className={`rounded-sm p-2 transition-colors disabled:cursor-not-allowed sm:p-3 ${
+                isWishlisted
+                  ? 'bg-red-50 text-red-500'
+                  : 'bg-white/90 text-neutral-900 hover:bg-white'
+              }`}
+            >
+              {isTogglingWishlist ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Heart
+                  size={18}
+                  className={isWishlisted ? 'fill-current' : ''}
+                />
+              )}
+            </button>
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.is_in_stock || isAddingToCart}
+              className="rounded-sm bg-teal-500 p-2 text-white transition-colors hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-50 sm:p-3"
+            >
+              {isAddingToCart ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <ShoppingBag size={18} />
+              )}
+            </button>
+          </div>
+        </div>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="truncate text-xs text-neutral-500 sm:text-sm">
+            {product.category?.name}
+          </p>
+          <h3 className="line-clamp-2 font-serif text-sm leading-tight text-neutral-900 transition-colors group-hover:text-teal-500 sm:text-lg">
+            {product.name}
+          </h3>
+          <div className="hidden items-center gap-2 text-xs sm:flex sm:text-sm">
+            <div className="flex items-center gap-1">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 sm:h-4 sm:w-4" />
+              <span className="font-medium">
+                {Number(product.average_rating || 0).toFixed(1)}
+              </span>
+            </div>
+            <span className="text-neutral-300">•</span>
+            <span className="text-neutral-500">
+              {product.sold_count} terjual
+            </span>
+          </div>
+          <div className="flex flex-col pt-0.5 sm:flex-row sm:items-center sm:gap-2">
+            {product.has_discount && (
+              <span className="order-2 text-xs text-neutral-400 line-through sm:order-1">
+                {product.price_formatted}
+              </span>
+            )}
+            <span className="order-1 text-sm font-semibold text-teal-600 sm:order-2 sm:text-lg">
+              {product.final_price_formatted}
+            </span>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
 }
 
 // ==================== Pagination ====================
 interface PaginationProps {
-    meta: {
-        current_page: number;
-        last_page: number;
-        from: number;
-        to: number;
-        total: number;
-    };
+  meta: {
+    current_page: number;
+    last_page: number;
+    from: number;
+    to: number;
+    total: number;
+  };
 }
 
 function Pagination({ meta }: PaginationProps) {
-    if (meta.last_page <= 1) return null;
+  if (meta.last_page <= 1) return null;
 
-    const pages: (number | string)[] = [];
-    const current = meta.current_page;
-    const last = meta.last_page;
+  const pages: (number | string)[] = [];
+  const current = meta.current_page;
+  const last = meta.last_page;
 
-    // Build page numbers array
-    if (last <= 7) {
-        for (let i = 1; i <= last; i++) pages.push(i);
+  // Build page numbers array
+  if (last <= 7) {
+    for (let i = 1; i <= last; i++) pages.push(i);
+  } else {
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, '...', last);
+    } else if (current >= last - 2) {
+      pages.push(1, '...', last - 3, last - 2, last - 1, last);
     } else {
-        if (current <= 3) {
-            pages.push(1, 2, 3, 4, '...', last);
-        } else if (current >= last - 2) {
-            pages.push(1, '...', last - 3, last - 2, last - 1, last);
-        } else {
-            pages.push(
-                1,
-                '...',
-                current - 1,
-                current,
-                current + 1,
-                '...',
-                last,
-            );
-        }
+      pages.push(1, '...', current - 1, current, current + 1, '...', last);
     }
+  }
 
-    const goToPage = (page: number) => {
-        router.get(
-            window.location.pathname,
-            {
-                ...Object.fromEntries(
-                    new URLSearchParams(window.location.search),
-                ),
-                page,
-            },
-            { preserveState: true },
-        );
-    };
-
-    return (
-        <div className="mt-12 flex items-center justify-between border-t border-neutral-100 pt-8">
-            <p className="text-sm text-neutral-500">
-                Menampilkan {meta.from}-{meta.to} dari {meta.total} produk
-            </p>
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={() => goToPage(current - 1)}
-                    disabled={current === 1}
-                    className="rounded-sm border border-neutral-200 p-2 transition-colors hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <ChevronLeft size={18} />
-                </button>
-                {pages.map((page, i) =>
-                    typeof page === 'number' ? (
-                        <button
-                            key={i}
-                            onClick={() => goToPage(page)}
-                            className={`h-10 w-10 rounded-sm font-medium transition-colors ${
-                                page === current
-                                    ? 'bg-teal-500 text-white'
-                                    : 'border border-neutral-200 hover:border-neutral-900'
-                            }`}
-                        >
-                            {page}
-                        </button>
-                    ) : (
-                        <span key={i} className="px-2 text-neutral-400">
-                            ...
-                        </span>
-                    ),
-                )}
-                <button
-                    onClick={() => goToPage(current + 1)}
-                    disabled={current === last}
-                    className="rounded-sm border border-neutral-200 p-2 transition-colors hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <ChevronRight size={18} />
-                </button>
-            </div>
-        </div>
+  const goToPage = (page: number) => {
+    router.get(
+      window.location.pathname,
+      {
+        ...Object.fromEntries(new URLSearchParams(window.location.search)),
+        page,
+      },
+      { preserveState: true },
     );
+  };
+
+  return (
+    <div className="mt-12 flex items-center justify-between border-t border-neutral-100 pt-8">
+      <p className="text-sm text-neutral-500">
+        Menampilkan {meta.from}-{meta.to} dari {meta.total} produk
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => goToPage(current - 1)}
+          disabled={current === 1}
+          className="rounded-sm border border-neutral-200 p-2 transition-colors hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        {pages.map((page, i) =>
+          typeof page === 'number' ? (
+            <button
+              key={i}
+              onClick={() => goToPage(page)}
+              className={`h-10 w-10 rounded-sm font-medium transition-colors ${
+                page === current
+                  ? 'bg-teal-500 text-white'
+                  : 'border border-neutral-200 hover:border-neutral-900'
+              }`}
+            >
+              {page}
+            </button>
+          ) : (
+            <span key={i} className="px-2 text-neutral-400">
+              ...
+            </span>
+          ),
+        )}
+        <button
+          onClick={() => goToPage(current + 1)}
+          disabled={current === last}
+          className="rounded-sm border border-neutral-200 p-2 transition-colors hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </div>
+  );
 }

@@ -187,11 +187,13 @@ function OrderTimeline({
   ];
 
   return (
-    <div className="mb-6 overflow-x-auto rounded-sm bg-white p-6">
+    <div className="mb-6 rounded-sm bg-white p-4 md:p-6">
       <h2 className="mb-6 text-center font-medium text-terra-900">
         Status Pesanan
       </h2>
-      <div className="flex min-w-[500px] items-start justify-center">
+
+      {/* Desktop Horizontal View */}
+      <div className="hidden items-start justify-center md:flex">
         {steps.map((step, index) => (
           <div key={step.key} className="flex items-start">
             {/* Step content */}
@@ -223,7 +225,7 @@ function OrderTimeline({
             {/* Connector line */}
             {index < steps.length - 1 && (
               <div
-                className={`mt-5 h-0.5 w-12 ${
+                className={`mt-5 h-0.5 w-12 lg:w-20 ${
                   step.completed && steps[index + 1].completed
                     ? 'bg-teal-500'
                     : step.completed
@@ -232,6 +234,55 @@ function OrderTimeline({
                 }`}
               />
             )}
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile Vertical View */}
+      <div className="flex flex-col pl-2 md:hidden">
+        {steps.map((step, index) => (
+          <div key={step.key} className="relative flex gap-4 pb-8 last:pb-0">
+            {/* Vertical Line */}
+            {index < steps.length - 1 && (
+              <div
+                className={`absolute top-10 bottom-0 left-[19px] -ml-px w-0.5 ${
+                  step.completed && steps[index + 1].completed
+                    ? 'bg-teal-500'
+                    : step.completed
+                      ? 'bg-gradient-to-b from-teal-500 to-terra-300'
+                      : 'bg-terra-300'
+                }`}
+              />
+            )}
+
+            {/* Icon */}
+            <div
+              className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${
+                step.completed
+                  ? 'border-teal-500 bg-teal-500 text-white'
+                  : 'border-terra-300 bg-white text-terra-400'
+              }`}
+            >
+              {step.completed ? <CheckCircle size={18} /> : step.icon}
+            </div>
+
+            {/* Text */}
+            <div className="pt-1">
+              <p
+                className={`text-sm font-medium ${
+                  step.completed ? 'text-teal-600' : 'text-terra-400'
+                }`}
+              >
+                {step.label}
+              </p>
+              {step.date && (
+                <p
+                  className={`text-xs ${step.completed ? 'text-teal-500' : 'text-terra-400'}`}
+                >
+                  {step.date}
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </div>
