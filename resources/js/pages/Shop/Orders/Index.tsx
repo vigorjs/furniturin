@@ -1,4 +1,5 @@
 import Pagination from '@/components/pagination';
+import { useTranslation } from '@/hooks/use-translation';
 import { ShopLayout } from '@/layouts/ShopLayout';
 import { SiteSettings } from '@/types';
 import { PaginatedResponse } from '@/types/shop';
@@ -58,16 +59,17 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 export default function OrdersIndex({ orders }: Props) {
   const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
   const siteName = siteSettings?.site_name || 'Furniturin';
+  const { t } = useTranslation();
 
   return (
     <>
-      <Head title={`Pesanan Saya - ${siteName}`} />
+      <Head title={`${t('shop.orders.title')} - ${siteName}`} />
       <div className="bg-noise" />
       <ShopLayout>
         <main className="min-h-screen bg-white pb-20">
           <div className="mx-auto max-w-[1400px] px-6 py-12 md:px-12">
             <h1 className="mb-8 font-serif text-3xl font-medium text-terra-900 md:text-4xl">
-              Pesanan Saya
+              {t('shop.orders.title')}
             </h1>
 
             {orders.data.length > 0 ? (
@@ -97,6 +99,7 @@ export default function OrdersIndex({ orders }: Props) {
 }
 
 function OrderCard({ order }: { order: Order }) {
+  const { t } = useTranslation();
   const firstItem = order.items[0];
   const imageUrl =
     firstItem?.product?.images?.[0]?.image_url ||
@@ -145,12 +148,12 @@ function OrderCard({ order }: { order: Order }) {
           </p>
           {otherItemsCount > 0 && (
             <p className="mt-1 text-xs text-terra-400">
-              +{otherItemsCount} produk lainnya
+              +{otherItemsCount} {t('shop.products.showing_results', { count: '' })}
             </p>
           )}
         </div>
         <div className="text-right">
-          <p className="text-sm text-terra-500">Total</p>
+          <p className="text-sm text-terra-500">{t('common.total')}</p>
           <p className="font-semibold text-terra-900">
             {order.total_formatted}
           </p>
@@ -162,20 +165,22 @@ function OrderCard({ order }: { order: Order }) {
 }
 
 function EmptyState() {
+  const { t } = useTranslation();
+
   return (
     <div className="rounded-sm bg-white py-20 text-center">
       <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sand-100">
         <Package size={32} className="text-terra-300" />
       </div>
       <h3 className="mb-2 text-xl font-medium text-terra-900">
-        Belum Ada Pesanan
+        {t('shop.orders.no_orders')}
       </h3>
-      <p className="mb-8 text-terra-500">Anda belum memiliki riwayat pesanan</p>
+      <p className="mb-8 text-terra-500">{t('shop.orders.no_orders_desc')}</p>
       <Link
         href="/shop/products"
         className="inline-flex items-center gap-2 rounded-full bg-terra-900 px-6 py-3 text-white transition-colors hover:bg-wood"
       >
-        Mulai Belanja
+        {t('shop.cart.continue_shopping')}
       </Link>
     </div>
   );

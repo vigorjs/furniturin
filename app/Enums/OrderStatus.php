@@ -22,15 +22,7 @@ enum OrderStatus: string
      */
     public function label(): string
     {
-        return match ($this) {
-            self::PENDING => 'Menunggu Konfirmasi',
-            self::CONFIRMED => 'Dikonfirmasi',
-            self::PROCESSING => 'Diproses',
-            self::SHIPPED => 'Dikirim',
-            self::DELIVERED => 'Selesai',
-            self::CANCELLED => 'Dibatalkan',
-            self::REFUNDED => 'Dikembalikan',
-        };
+        return __('enums.order_status.' . $this->value);
     }
 
     /**

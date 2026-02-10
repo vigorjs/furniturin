@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Shop\AddressController;
+use App\Http\Controllers\Shop\ArticleController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\HomeController;
@@ -53,6 +54,10 @@ Route::prefix('shop')->name('shop.')->middleware('share.cart')->group(function (
 
     // Custom Order
     Route::get('/custom-order', fn () => \Inertia\Inertia::render('Shop/CustomOrder'))->name('custom-order');
+
+    // Articles
+    Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
+    Route::get('/articles/{slug}', [ArticleController::class, 'show'])->name('articles.show');
 
     // Static Pages
     Route::get('/about', fn () => \Inertia\Inertia::render('Shop/About'))->name('about');

@@ -3,6 +3,7 @@ import TextLink from '@/components/text-link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslation } from '@/hooks/use-translation';
 import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
@@ -20,12 +21,14 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: LoginProps) {
+    const { t } = useTranslation();
+
     return (
         <AuthLayout
-            title="Selamat Datang Kembali"
-            description="Masuk ke akun Anda untuk melanjutkan belanja"
+            title={t('auth.login.title')}
+            description={t('auth.login.description')}
         >
-            <Head title="Masuk" />
+            <Head title={t('auth.login.page_title')} />
 
             {status && (
                 <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-600">
@@ -46,7 +49,7 @@ export default function Login({
                                     htmlFor="email"
                                     className="font-medium text-neutral-700"
                                 >
-                                    Alamat Email
+                                    {t('auth.login.email_label')}
                                 </Label>
                                 <input
                                     id="email"
@@ -56,7 +59,7 @@ export default function Login({
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="Masukkan alamat email"
+                                    placeholder={t('auth.login.email_placeholder')}
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.email} />
@@ -68,7 +71,7 @@ export default function Login({
                                         htmlFor="password"
                                         className="font-medium text-neutral-700"
                                     >
-                                        Kata Sandi
+                                        {t('auth.login.password_label')}
                                     </Label>
                                     {canResetPassword && (
                                         <TextLink
@@ -76,7 +79,7 @@ export default function Login({
                                             className="text-sm text-teal-600 transition-colors hover:text-teal-700"
                                             tabIndex={5}
                                         >
-                                            Lupa kata sandi?
+                                            {t('auth.login.forgot_password')}
                                         </TextLink>
                                     )}
                                 </div>
@@ -87,7 +90,7 @@ export default function Login({
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Masukkan kata sandi"
+                                    placeholder={t('auth.login.password_placeholder')}
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.password} />
@@ -104,7 +107,7 @@ export default function Login({
                                     htmlFor="remember"
                                     className="cursor-pointer text-sm text-neutral-600"
                                 >
-                                    Ingat saya
+                                    {t('auth.login.remember_me')}
                                 </Label>
                             </div>
 
@@ -118,19 +121,19 @@ export default function Login({
                                 {processing && (
                                     <Spinner className="text-white" />
                                 )}
-                                Masuk
+                                {t('auth.login.submit')}
                             </button>
                         </div>
 
                         {canRegister && (
                             <div className="pt-2 text-center text-sm text-neutral-500">
-                                Belum punya akun?{' '}
+                                {t('auth.login.no_account')}{' '}
                                 <TextLink
                                     href={register()}
                                     tabIndex={5}
                                     className="font-medium text-teal-600 transition-colors hover:text-teal-700"
                                 >
-                                    Daftar sekarang
+                                    {t('auth.login.register_link')}
                                 </TextLink>
                             </div>
                         )}

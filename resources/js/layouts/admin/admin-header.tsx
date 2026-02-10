@@ -1,3 +1,4 @@
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import {
     CommandDialog,
     CommandEmpty,
@@ -13,6 +14,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useInitials } from '@/hooks/use-initials';
+import { useTranslation } from '@/hooks/use-translation';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
@@ -50,6 +52,7 @@ export default function AdminHeader({
     onMobileMenuClick,
 }: AdminHeaderProps) {
     const { auth } = usePage<SharedData>().props;
+    const { t, locale } = useTranslation();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [openSearch, setOpenSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -208,7 +211,7 @@ export default function AdminHeader({
                         className="group hidden w-64 items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 md:flex"
                     >
                         <Search className="h-4 w-4 text-neutral-400 group-hover:text-neutral-600" />
-                        <span>Cari sesuatu...</span>
+                        <span>{t('admin.header.search_placeholder')}</span>
                         <kbd className="pointer-events-none ml-auto inline-flex h-5 items-center gap-1 rounded border bg-white px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 select-none">
                             <span className="text-xs">Ctrl</span>K
                         </kbd>
@@ -226,7 +229,7 @@ export default function AdminHeader({
                         onOpenChange={setOpenSearch}
                     >
                         <CommandInput
-                            placeholder="Ketik untuk mencari produk, pelanggan, atau menu..."
+                            placeholder={t('admin.header.search_input_placeholder')}
                             value={searchQuery}
                             onValueChange={setSearchQuery}
                         />
@@ -237,11 +240,11 @@ export default function AdminHeader({
                                         <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
                                     </div>
                                 ) : (
-                                    'Tidak ada hasil ditemukan.'
+                                    t('common.no_results')
                                 )}
                             </CommandEmpty>
 
-                            <CommandGroup heading="Aksi Cepat">
+                            <CommandGroup heading={t('admin.header.quick_actions')}>
                                 <CommandItem
                                     onSelect={() =>
                                         runCommand(() =>
@@ -252,7 +255,7 @@ export default function AdminHeader({
                                     }
                                 >
                                     <PlusCircle className="mr-2 h-4 w-4" />
-                                    <span>Tambah Produk</span>
+                                    <span>{t('admin.header.add_product')}</span>
                                 </CommandItem>
                                 <CommandItem
                                     onSelect={() =>
@@ -262,18 +265,18 @@ export default function AdminHeader({
                                     }
                                 >
                                     <UserPlus className="mr-2 h-4 w-4" />
-                                    <span>Tambah Pengguna</span>
+                                    <span>{t('admin.header.add_user')}</span>
                                 </CommandItem>
                             </CommandGroup>
                             <CommandSeparator />
-                            <CommandGroup heading="Halaman Utama">
+                            <CommandGroup heading={t('admin.header.main_pages')}>
                                 <CommandItem
                                     onSelect={() =>
                                         runCommand(() => router.visit('/admin'))
                                     }
                                 >
                                     <LayoutDashboard className="mr-2 h-4 w-4" />
-                                    <span>Dashboard</span>
+                                    <span>{t('admin.sidebar.dashboard')}</span>
                                 </CommandItem>
                                 <CommandItem
                                     onSelect={() =>
@@ -283,7 +286,7 @@ export default function AdminHeader({
                                     }
                                 >
                                     <Package className="mr-2 h-4 w-4" />
-                                    <span>Produk</span>
+                                    <span>{t('admin.sidebar.products')}</span>
                                 </CommandItem>
                                 <CommandItem
                                     onSelect={() =>
@@ -293,7 +296,7 @@ export default function AdminHeader({
                                     }
                                 >
                                     <ShoppingCart className="mr-2 h-4 w-4" />
-                                    <span>Pesanan</span>
+                                    <span>{t('admin.sidebar.orders')}</span>
                                 </CommandItem>
                                 <CommandItem
                                     onSelect={() =>
@@ -303,10 +306,10 @@ export default function AdminHeader({
                                     }
                                 >
                                     <Users className="mr-2 h-4 w-4" />
-                                    <span>Pelanggan</span>
+                                    <span>{t('admin.sidebar.customers')}</span>
                                 </CommandItem>
                             </CommandGroup>
-                            <CommandGroup heading="Pengaturan">
+                            <CommandGroup heading={t('admin.header.settings_section')}>
                                 <CommandItem
                                     onSelect={() =>
                                         runCommand(() =>
@@ -315,7 +318,7 @@ export default function AdminHeader({
                                     }
                                 >
                                     <Users className="mr-2 h-4 w-4" />
-                                    <span>Manajemen User</span>
+                                    <span>{t('admin.header.user_management')}</span>
                                 </CommandItem>
                                 <CommandItem
                                     onSelect={() =>
@@ -325,7 +328,7 @@ export default function AdminHeader({
                                     }
                                 >
                                     <User className="mr-2 h-4 w-4" />
-                                    <span>Profil Saya</span>
+                                    <span>{t('admin.header.my_profile')}</span>
                                 </CommandItem>
                                 <CommandItem
                                     onSelect={() =>
@@ -335,14 +338,14 @@ export default function AdminHeader({
                                     }
                                 >
                                     <Settings className="mr-2 h-4 w-4" />
-                                    <span>Pengaturan Toko</span>
+                                    <span>{t('admin.header.store_settings')}</span>
                                 </CommandItem>
                             </CommandGroup>
 
                             {hasResults && (
                                 <>
                                     {searchResults.products.length > 0 && (
-                                        <CommandGroup heading="Produk">
+                                        <CommandGroup heading={t('admin.sidebar.products')}>
                                             {searchResults.products.map(
                                                 (product) => (
                                                     <CommandItem
@@ -365,7 +368,7 @@ export default function AdminHeader({
                                         </CommandGroup>
                                     )}
                                     {searchResults.users.length > 0 && (
-                                        <CommandGroup heading="Pelanggan">
+                                        <CommandGroup heading={t('admin.sidebar.customers')}>
                                             {searchResults.users.map((user) => (
                                                 <CommandItem
                                                     key={user.id}
@@ -387,7 +390,7 @@ export default function AdminHeader({
                                         </CommandGroup>
                                     )}
                                     {searchResults.orders.length > 0 && (
-                                        <CommandGroup heading="Pesanan">
+                                        <CommandGroup heading={t('admin.sidebar.orders')}>
                                             {searchResults.orders.map(
                                                 (order) => (
                                                     <CommandItem
@@ -415,6 +418,9 @@ export default function AdminHeader({
                         </CommandList>
                     </CommandDialog>
 
+                    {/* Language Switcher */}
+                    <LanguageSwitcher variant="toggle" />
+
                     {/* Notifications */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -429,13 +435,13 @@ export default function AdminHeader({
                             <div className="border-b border-border bg-neutral-50/50 p-4">
                                 <div className="flex items-center justify-between">
                                     <h4 className="font-semibold text-neutral-900">
-                                        Notifikasi ({unreadCount})
+                                        {t('admin.header.notifications')} ({unreadCount})
                                     </h4>
                                     <button
                                         onClick={markAllRead}
                                         className="text-xs font-medium text-teal-600 transition-colors hover:text-teal-700"
                                     >
-                                        Tandai semua dibaca
+                                        {t('admin.header.mark_all_read')}
                                     </button>
                                 </div>
                             </div>
@@ -463,7 +469,7 @@ export default function AdminHeader({
                                                         {new Date(
                                                             notif.created_at,
                                                         ).toLocaleString(
-                                                            'id-ID',
+                                                            locale === 'id' ? 'id-ID' : 'en-US',
                                                         )}
                                                     </p>
                                                 </div>
@@ -473,7 +479,7 @@ export default function AdminHeader({
                                 ) : (
                                     <div className="p-8 text-center">
                                         <p className="text-sm text-neutral-400">
-                                            Tidak ada notifikasi baru
+                                            {t('admin.header.no_notifications')}
                                         </p>
                                     </div>
                                 )}
@@ -483,7 +489,7 @@ export default function AdminHeader({
                                     href="/admin/notifications"
                                     className="flex w-full items-center justify-center rounded-md py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
                                 >
-                                    Lihat Semua Notifikasi
+                                    {t('admin.header.view_all_notifications')}
                                 </Link>
                             </div>
                         </DropdownMenuContent>
@@ -513,7 +519,7 @@ export default function AdminHeader({
                                     {auth.user.name}
                                 </p>
                                 <p className="text-xs text-neutral-500">
-                                    Administrator
+                                    {t('admin.header.administrator')}
                                 </p>
                             </div>
                         </button>
@@ -539,14 +545,14 @@ export default function AdminHeader({
                                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
                                     >
                                         <User className="h-4 w-4" />
-                                        Profil Saya
+                                        {t('admin.header.my_profile')}
                                     </Link>
                                     <Link
                                         href="/admin/settings"
                                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
                                     >
                                         <Settings className="h-4 w-4" />
-                                        Pengaturan
+                                        {t('admin.sidebar.settings')}
                                     </Link>
                                     <div className="mt-2 border-t border-neutral-100 pt-2">
                                         <button
@@ -554,7 +560,7 @@ export default function AdminHeader({
                                             className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
                                         >
                                             <LogOut className="h-4 w-4" />
-                                            Keluar
+                                            {t('admin.header.logout')}
                                         </button>
                                     </div>
                                 </div>

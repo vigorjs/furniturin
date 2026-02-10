@@ -52,7 +52,7 @@ class PromoBannerController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.promo-banners.index')
-            ->with('success', 'Promo banner berhasil ditambahkan.');
+            ->with('success', __('messages.promo_banner_created'));
     }
 
     public function edit(PromoBanner $promoBanner): Response
@@ -71,7 +71,7 @@ class PromoBannerController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.promo-banners.index')
-            ->with('success', 'Promo banner berhasil diperbarui.');
+            ->with('success', __('messages.promo_banner_updated'));
     }
 
     public function destroy(PromoBanner $promoBanner, DeletePromoBannerAction $action): RedirectResponse
@@ -80,7 +80,7 @@ class PromoBannerController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.promo-banners.index')
-            ->with('success', 'Promo banner berhasil dihapus.');
+            ->with('success', __('messages.promo_banner_deleted'));
     }
 
     public function toggleActive(PromoBanner $promoBanner): JsonResponse
@@ -92,9 +92,9 @@ class PromoBannerController extends Controller implements HasMiddleware
         return response()->json([
             'success' => true,
             'is_active' => $promoBanner->is_active,
-            'message' => $promoBanner->is_active 
-                ? 'Promo banner diaktifkan.' 
-                : 'Promo banner dinonaktifkan.',
+            'message' => $promoBanner->is_active
+                ? __('messages.promo_banner_activated')
+                : __('messages.promo_banner_deactivated'),
         ]);
     }
 }

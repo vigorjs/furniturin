@@ -35,7 +35,7 @@ class ReviewController extends Controller
             // The approval action in Admin/ReviewController should trigger the update.
         });
 
-        return back()->with('success', 'Ulasan berhasil dikirim dan menunggu persetujuan admin.');
+        return back()->with('success', __('messages.review_submitted'));
     }
 
     public function update(ProductReviewRequest $request, Product $product): RedirectResponse
@@ -53,7 +53,7 @@ class ReviewController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Ulasan berhasil diperbarui dan menunggu persetujuan admin.');
+        return back()->with('success', __('messages.review_updated'));
     }
 
     private function updateProductRating(Product $product): void

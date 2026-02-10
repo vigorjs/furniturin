@@ -1,4 +1,5 @@
 import { SEOHead } from '@/components/seo';
+import { useTranslation } from '@/hooks/use-translation';
 import { ShopLayout } from '@/layouts/ShopLayout';
 import { SiteSettings } from '@/types';
 import { ApiProduct } from '@/types/shop';
@@ -14,6 +15,7 @@ interface Props {
 export default function WishlistIndex({ products }: Props) {
   const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
   const siteName = siteSettings?.site_name || 'Furniturin';
+  const { t } = useTranslation();
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [addingToCartId, setAddingToCartId] = useState<number | null>(null);
 
@@ -46,8 +48,8 @@ export default function WishlistIndex({ products }: Props) {
   return (
     <>
       <SEOHead
-        title="Wishlist Saya"
-        description={`Daftar produk favorit Anda di ${siteName}. Simpan produk yang Anda sukai dan beli kapan saja.`}
+        title={t('shop.wishlist.title')}
+        description={t('shop.wishlist.empty_desc')}
         noindex={true}
       />
       <div className="bg-noise" />
@@ -58,17 +60,17 @@ export default function WishlistIndex({ products }: Props) {
             <div className="mb-12 flex items-center justify-between">
               <div>
                 <h1 className="mb-2 font-serif text-3xl font-medium text-neutral-900 md:text-4xl">
-                  Wishlist Saya
+                  {t('shop.wishlist.title')}
                 </h1>
                 <p className="text-neutral-500">
-                  {products.length} produk tersimpan
+                  {t('shop.products.showing_results', { count: products.length })}
                 </p>
               </div>
               <Link
                 href="/shop/products"
                 className="flex items-center gap-2 text-teal-700 transition-colors hover:text-teal-900"
               >
-                <span>Lanjut Belanja</span>
+                <span>{t('shop.cart.continue_shopping')}</span>
                 <ArrowRight size={18} />
               </Link>
             </div>
@@ -81,7 +83,6 @@ export default function WishlistIndex({ products }: Props) {
                     <WishlistCard
                       key={product.id}
                       product={product}
-                      onRemove={() => handleRemove(product.id)}
                       onRemove={() => handleRemove(product.id)}
                       isRemoving={removingId === product.id}
                       onAddToCart={() => handleAddToCart(product.id)}
@@ -115,6 +116,7 @@ function WishlistCard({
   onAddToCart,
   isAddingToCart,
 }: WishlistCardProps) {
+  const { t } = useTranslation();
   const imageUrl =
     product.primary_image?.image_url ||
     product.images?.[0]?.image_url ||
@@ -186,9 +188,9 @@ function WishlistCard({
         {/* Stock Status */}
         <div className="mt-3 flex items-center justify-between">
           {product.is_in_stock ? (
-            <span className="text-xs text-green-600">Stok Tersedia</span>
+            <span className="text-xs text-green-600">{t('shop.products.in_stock')}</span>
           ) : (
-            <span className="text-xs text-red-500">Stok Habis</span>
+            <span className="text-xs text-red-500">{t('shop.products.out_of_stock')}</span>
           )}
           <button
             onClick={onAddToCart}
@@ -208,22 +210,24 @@ function WishlistCard({
 }
 
 function EmptyState() {
+  const { t } = useTranslation();
+
   return (
     <div className="py-20 text-center">
       <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-sm bg-sand-100">
         <Heart size={32} className="text-neutral-400" />
       </div>
       <h3 className="mb-2 text-xl font-medium text-neutral-900">
-        Wishlist Anda Kosong
+        {t('shop.wishlist.empty')}
       </h3>
       <p className="mx-auto mb-8 max-w-md text-neutral-500">
-        Simpan produk favorit Anda untuk memudahkan belanja nanti
+        {t('shop.wishlist.empty_desc')}
       </p>
       <Link
         href="/shop/products"
         className="inline-flex items-center gap-2 rounded-sm bg-teal-900 px-6 py-3 text-white transition-colors hover:bg-teal-800"
       >
-        <span>Jelajahi Produk</span>
+        <span>{t('common.view_all')}</span>
         <ArrowRight size={18} />
       </Link>
     </div>

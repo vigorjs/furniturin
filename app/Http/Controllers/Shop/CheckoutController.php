@@ -43,7 +43,7 @@ class CheckoutController extends Controller implements HasMiddleware
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()
                 ->route('shop.cart.index')
-                ->with('error', 'Keranjang belanja Anda kosong.');
+                ->with('error', __('messages.cart_empty'));
         }
 
         $addresses = $user->addresses()->orderByDesc('is_default')->get();
@@ -84,7 +84,7 @@ class CheckoutController extends Controller implements HasMiddleware
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()
                 ->route('shop.cart.index')
-                ->with('error', 'Keranjang belanja Anda kosong.');
+                ->with('error', __('messages.cart_empty'));
         }
 
         $validated = $request->validated();
@@ -105,13 +105,13 @@ class CheckoutController extends Controller implements HasMiddleware
             } catch (\Exception $e) {
                 return redirect()
                     ->route('shop.orders.show', $order)
-                    ->with('error', 'Gagal memproses pembayaran Midtrans: ' . $e->getMessage());
+                    ->with('error', __('messages.midtrans_error', ['error' => $e->getMessage()]));
             }
         }
 
         return redirect()
             ->route('shop.orders.show', $order)
-            ->with('success', 'Pesanan berhasil dibuat. Nomor pesanan: '.$order->order_number);
+            ->with('success', __('messages.order_created', ['order_number' => $order->order_number]));
     }
 
     public function success(Request $request): Response

@@ -21,13 +21,7 @@ enum SaleType: string
      */
     public function label(): string
     {
-        return match ($this) {
-            self::REGULAR => 'Regular',
-            self::CLEARANCE => 'Clearance Sale',
-            self::STOCK_SALE => 'Stock Sale',
-            self::CUSTOM => 'Custom Order',
-            self::HOT_SALE => 'Hot Sale',
-        };
+        return __('enums.sale_type.' . $this->value);
     }
 
     /**

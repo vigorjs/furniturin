@@ -1,4 +1,5 @@
 import DearFlipViewer from '@/components/DearFlipViewer';
+import { useTranslation } from '@/hooks/use-translation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import React, { useState } from 'react';
@@ -209,6 +210,7 @@ const FlipbookModal = ({
 export const CatalogSection: React.FC<{ className?: string }> = ({
     className = 'py-20 md:py-28',
 }) => {
+    const { t } = useTranslation();
     const [selectedCatalog, setSelectedCatalog] = useState<
         (typeof CATALOGS)[0] | null
     >(null);
@@ -226,14 +228,13 @@ export const CatalogSection: React.FC<{ className?: string }> = ({
                         className="mb-16 text-center"
                     >
                         <span className="mb-4 inline-block text-xs font-medium tracking-[0.2em] text-teal-500 uppercase">
-                            Katalog Produk
+                            {t('shop.home.catalog_badge')}
                         </span>
                         <h2 className="mb-4 font-display text-3xl font-semibold text-neutral-800 md:text-4xl">
-                            Jelajahi Koleksi Kami
+                            {t('shop.home.catalog_title')}
                         </h2>
                         <p className="mx-auto max-w-xl text-neutral-600">
-                            Telusuri katalog lengkap kami dengan tampilan
-                            flipbook interaktif
+                            {t('shop.home.catalog_description')}
                         </p>
                     </motion.div>
 
