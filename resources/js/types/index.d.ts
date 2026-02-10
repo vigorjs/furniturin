@@ -49,6 +49,8 @@ export interface SharedData {
   name: string;
   quote: { message: string; author: string };
   auth: Auth;
+  locale: string;
+  translations: Record<string, string>;
   sidebarOpen: boolean;
   siteSettings: SiteSettings;
   featuredCategories: any[]; // Using any[] to avoid circular dependency or import issues for now, or import ApiCategory if easy

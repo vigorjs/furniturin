@@ -4,12 +4,14 @@ import {
     Header,
     WhatsAppButton,
 } from '@/components/shop';
+import { useTranslation } from '@/hooks/use-translation';
 import { SiteSettings } from '@/types';
 import { ApiCategory } from '@/types/shop';
 import { router, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import { toast, Toaster } from 'sonner';
 
 interface CartItem {
     id: number;
@@ -62,15 +64,34 @@ export function ShopLayout({
         cart,
         siteSettings,
         featuredCategories: sharedCategories,
+        flash,
     } = usePage<{
         cart: SharedCart;
         siteSettings: SiteSettings;
         featuredCategories: ApiCategory[];
+        flash?: any;
     }>().props;
+    const { t } = useTranslation();
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [updatingItem, setUpdatingItem] = useState<number | null>(null);
 
     const whatsAppPhone = siteSettings?.contact_whatsapp || '';
+
+    // Handle flash messages
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+        if (flash?.info) {
+            toast.info(flash.info);
+        }
+        if (flash?.warning) {
+            toast.warning(flash.warning);
+        }
+    }, [flash]);
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -124,6 +145,7 @@ export function ShopLayout({
 
     return (
         <>
+            <Toaster position="top-right" richColors />
             {/* Custom Cursor - smooth following effect like realteakfurniture.com */}
             <CustomCursor />
 
@@ -175,7 +197,7 @@ export function ShopLayout({
                             {/* Header */}
                             <div className="flex items-center justify-between border-b border-neutral-100 p-6">
                                 <h2 className="font-display text-xl font-semibold text-neutral-800">
-                                    Shopping Cart
+                                    {t('shop.cart.title')}
                                 </h2>
                                 <button
                                     onClick={() => setIsCartOpen(false)}
@@ -194,11 +216,10 @@ export function ShopLayout({
                                             className="mb-6 text-neutral-200"
                                         />
                                         <h3 className="mb-2 font-display text-lg font-medium text-neutral-800">
-                                            Your Cart is Empty
+                                            {t('shop.cart.empty_title')}
                                         </h3>
                                         <p className="text-neutral-500">
-                                            Start shopping to add items to your
-                                            cart.
+                                            {t('shop.cart.empty_description')}
                                         </p>
                                     </div>
                                 ) : (
@@ -345,7 +366,7 @@ export function ShopLayout({
                                 <div className="space-y-4 border-t border-neutral-100 bg-neutral-50 p-6">
                                     <div className="flex items-center justify-between text-lg">
                                         <span className="text-neutral-600">
-                                            Subtotal
+                                            {t('shop.cart.subtotal')}
                                         </span>
                                         <span className="font-semibold text-neutral-800">
                                             {formatPrice(cart.subtotal)}
@@ -355,7 +376,7 @@ export function ShopLayout({
                                         onClick={handleCheckout}
                                         className="flex w-full items-center justify-center gap-2 rounded-sm bg-teal-500 py-4 font-medium text-white transition-colors hover:bg-teal-600"
                                     >
-                                        Proceed to Checkout
+                                        {t('shop.cart.proceed_to_checkout')}
                                         <ArrowRight size={18} />
                                     </button>
                                     <button
@@ -365,7 +386,7 @@ export function ShopLayout({
                                         }}
                                         className="w-full rounded-sm border border-neutral-200 py-3 font-medium text-neutral-700 transition-colors hover:bg-white"
                                     >
-                                        View Cart
+                                        {t('shop.cart.view_cart')}
                                     </button>
                                 </div>
                             )}

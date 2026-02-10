@@ -51,21 +51,21 @@ class ReviewController extends Controller
     {
         $review->approve();
 
-        return back()->with('success', 'Review berhasil disetujui.');
+        return back()->with('success', __('messages.review_approved'));
     }
 
     public function reject(ProductReview $review): RedirectResponse
     {
         $review->update(['is_approved' => false]);
 
-        return back()->with('success', 'Review berhasil ditolak.');
+        return back()->with('success', __('messages.review_rejected'));
     }
 
     public function destroy(ProductReview $review): RedirectResponse
     {
         $review->forceDelete();
 
-        return back()->with('success', 'Review berhasil dihapus.');
+        return back()->with('success', __('messages.review_deleted'));
     }
 }
 

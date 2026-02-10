@@ -6,7 +6,9 @@ use App\Models\PromoBanner;
 use App\Models\Setting;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -42,10 +44,11 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $user = $request->user();
+        $locale = App::getLocale();
 
         // Fetch featured categories for global navbar
         // Cache to avoid query on every page load
-        $featuredCategories = Cache::remember('featured_categories_navbar', 3600, function () {
+        $featuredCategories = Cache::remember("featured_categories_navbar.{$locale}", 3600, function () {
             return \App\Models\Category::query()
                 ->active()
                 ->featured() // Only featured categories
@@ -59,11 +62,11 @@ class HandleInertiaRequests extends Middleware
                 ->map(function ($category) {
                     return [
                         'id' => $category->id,
-                        'name' => $category->name,
+                        'name' => $category->name, // Automatically translated
                         'slug' => $category->slug,
-                        'image_url' => $category->image_path 
-                            ? asset('storage/' . $category->image_path) 
-                            : null,
+                        'description' => $category->description,
+                        'image_url' => $category->image_url,
+                        'is_featured' => $category->is_featured,
                         'children' => $category->children->map(function ($child) {
                             return [
                                 'id' => $child->id,
@@ -76,16 +79,16 @@ class HandleInertiaRequests extends Middleware
         });
 
         // Fetch active promo banners for shop frontend
-        $activePromoBanners = Cache::remember('active_promo_banners', 300, function () {
+        $activePromoBanners = Cache::remember("active_promo_banners.{$locale}", 300, function () {
             return PromoBanner::active()
                 ->ordered()
                 ->get()
                 ->map(function ($banner) {
                     return [
                         'id' => $banner->id,
-                        'title' => $banner->title,
-                        'description' => $banner->description,
-                        'cta_text' => $banner->cta_text,
+                        'title' => $banner->title, // Automatically translated
+                        'description' => $banner->description, // Automatically translated
+                        'cta_text' => $banner->cta_text, // Automatically translated
                         'cta_link' => $banner->cta_link,
                         'icon' => $banner->icon,
                         'bg_gradient' => $banner->bg_gradient,
@@ -104,6 +107,8 @@ class HandleInertiaRequests extends Middleware
                     'roles' => $user->getRoleNames(),
                 ] : null,
             ],
+            'locale' => $locale,
+            'translations' => fn () => $this->getTranslations($locale, $request),
             'wishlistCount' => $user ? $user->wishlists()->count() : 0,
             'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'siteSettings' => fn() => $this->getSiteSettings(),
@@ -113,13 +118,59 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
+     * Get filtered translations for the current route.
+     *
+     * @return array<string, string>
+     */
+    private function getTranslations(string $locale, Request $request): array
+    {
+        $path = $request->path();
+
+        // Determine which namespace prefixes to include
+        $prefixes = ['common.'];
+
+        if (str_starts_with($path, 'admin')) {
+            $prefixes[] = 'admin.';
+        } elseif (str_starts_with($path, 'settings')) {
+            $prefixes[] = 'settings.';
+        } elseif (str_starts_with($path, 'shop')) {
+            $prefixes[] = 'shop.';
+        }
+
+        // Always include auth strings (login/register can appear anywhere)
+        $prefixes[] = 'auth.';
+
+        return Cache::remember("translations.{$locale}.{$path}", 3600, function () use ($locale, $prefixes) {
+            $file = lang_path("{$locale}.json");
+
+            if (! File::exists($file)) {
+                return [];
+            }
+
+            $all = json_decode(File::get($file), true) ?? [];
+
+            return collect($all)
+                ->filter(function ($value, $key) use ($prefixes) {
+                    foreach ($prefixes as $prefix) {
+                        if (str_starts_with($key, $prefix)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                ->all();
+        });
+    }
+
+    /**
      * Get site settings from cache or database.
      *
      * @return array<string, mixed>
      */
     private function getSiteSettings(): array
     {
-        return Cache::remember('site_settings', 3600, function () {
+        $locale = App::getLocale();
+        return Cache::remember("site_settings.{$locale}", 3600, function () use ($locale) {
             $settings = Setting::all()->pluck('value', 'key')->toArray();
 
             return [

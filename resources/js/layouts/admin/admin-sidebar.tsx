@@ -1,7 +1,9 @@
+import { useTranslation } from '@/hooks/use-translation';
 import { Link, usePage } from '@inertiajs/react';
 import {
     BarChart3,
     ChevronLeft,
+    FileText,
     FolderTree,
     LayoutDashboard,
     Megaphone,
@@ -19,46 +21,52 @@ import { cn } from '@/lib/utils';
 import { SiteSettings } from '@/types';
 
 interface NavItem {
-    title: string;
+    titleKey: string;
     href: string;
     icon: React.ElementType;
     permission?: string;
 }
 
 const mainNavItems: NavItem[] = [
-    { title: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { titleKey: 'admin.sidebar.dashboard', href: '/admin', icon: LayoutDashboard },
     {
-        title: 'Produk',
+        titleKey: 'admin.sidebar.products',
         href: '/admin/products',
         icon: Package,
         permission: 'view products',
     },
     {
-        title: 'Kategori',
+        titleKey: 'admin.sidebar.categories',
         href: '/admin/categories',
         icon: FolderTree,
         permission: 'view categories',
     },
     {
-        title: 'Pesanan',
+        titleKey: 'admin.sidebar.orders',
         href: '/admin/orders',
         icon: ShoppingCart,
         permission: 'view orders',
     },
     {
-        title: 'Pelanggan',
+        titleKey: 'admin.sidebar.customers',
         href: '/admin/customers',
         icon: Users,
         permission: 'view users',
     },
     {
-        title: 'Ulasan',
+        titleKey: 'admin.sidebar.reviews',
         href: '/admin/reviews',
         icon: Star,
         permission: 'view reviews',
     },
     {
-        title: 'Laporan',
+        titleKey: 'admin.sidebar.articles',
+        href: '/admin/articles',
+        icon: FileText,
+        permission: 'view articles',
+    },
+    {
+        titleKey: 'admin.sidebar.reports',
         href: '/admin/reports',
         icon: BarChart3,
         permission: 'view reports',
@@ -67,25 +75,25 @@ const mainNavItems: NavItem[] = [
 
 const settingsNavItems: NavItem[] = [
     {
-        title: 'Manajemen User',
+        titleKey: 'admin.sidebar.user_management',
         href: '/admin/users',
         icon: UserCog,
         permission: 'manage roles',
     },
     {
-        title: 'Promo Banner',
+        titleKey: 'admin.sidebar.promo_banners',
         href: '/admin/promo-banners',
         icon: Megaphone,
         permission: 'manage settings',
     },
     {
-        title: 'Profil Saya',
+        titleKey: 'admin.sidebar.my_profile',
         href: '/admin/profile',
         icon: Users,
         permission: '',
     },
     {
-        title: 'Pengaturan',
+        titleKey: 'admin.sidebar.settings',
         href: '/admin/settings',
         icon: Settings,
         permission: 'manage settings',
@@ -131,6 +139,8 @@ export default function AdminSidebar({
         // Close mobile sidebar when navigating
         setMobileOpen(false);
     };
+
+    const { t } = useTranslation();
 
     const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => (
         <>
@@ -186,7 +196,7 @@ export default function AdminSidebar({
                 <div className="space-y-1">
                     {(isMobile || !collapsed) && (
                         <p className="mb-2 px-3 text-xs font-medium tracking-wider text-white/40 uppercase">
-                            Menu Utama
+                            {t('admin.sidebar.main_menu')}
                         </p>
                     )}
                     {mainNavItems
@@ -209,7 +219,7 @@ export default function AdminSidebar({
                                 <item.icon className="h-5 w-5 flex-shrink-0" />
                                 {(isMobile || !collapsed) && (
                                     <span className="truncate">
-                                        {item.title}
+                                        {t(item.titleKey)}
                                     </span>
                                 )}
                             </Link>
@@ -220,7 +230,7 @@ export default function AdminSidebar({
                 <div className="mt-8 space-y-1">
                     {(isMobile || !collapsed) && (
                         <p className="mb-2 px-3 text-xs font-medium tracking-wider text-white/40 uppercase">
-                            Pengaturan
+                            {t('admin.sidebar.settings_section')}
                         </p>
                     )}
                     {settingsNavItems
@@ -243,7 +253,7 @@ export default function AdminSidebar({
                                 <item.icon className="h-5 w-5 flex-shrink-0" />
                                 {(isMobile || !collapsed) && (
                                     <span className="truncate">
-                                        {item.title}
+                                        {t(item.titleKey)}
                                     </span>
                                 )}
                             </Link>
@@ -263,7 +273,7 @@ export default function AdminSidebar({
                 >
                     <Store className="h-5 w-5 flex-shrink-0" />
                     {(isMobile || !collapsed) && (
-                        <span className="truncate">Lihat Toko</span>
+                        <span className="truncate">{t('admin.sidebar.view_store')}</span>
                     )}
                 </Link>
             </div>

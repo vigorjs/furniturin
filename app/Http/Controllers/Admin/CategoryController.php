@@ -104,7 +104,7 @@ class CategoryController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil ditambahkan.');
+            ->with('success', __('messages.category_created'));
     }
 
     public function edit(Category $category): Response
@@ -134,7 +134,7 @@ class CategoryController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil diperbarui.');
+            ->with('success', __('messages.category_updated'));
     }
 
     public function destroy(Category $category, DeleteCategoryAction $action): RedirectResponse
@@ -144,7 +144,7 @@ class CategoryController extends Controller implements HasMiddleware
 
             return redirect()
                 ->route('admin.categories.index')
-                ->with('success', 'Kategori berhasil dihapus.');
+                ->with('success', __('messages.category_deleted'));
         } catch (\InvalidArgumentException $e) {
             return redirect()
                 ->route('admin.categories.index')

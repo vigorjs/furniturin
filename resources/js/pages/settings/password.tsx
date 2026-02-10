@@ -6,22 +6,24 @@ import { Form, Head } from '@inertiajs/react';
 import { useRef } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
+import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function Password() {
+    const { t } = useTranslation();
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
     return (
         <SettingsLayout>
-            <Head title="Ubah Kata Sandi" />
+            <Head title={t('settings.password.title')} />
 
             <div>
                 <HeadingSmall
-                    title="Ubah Kata Sandi"
-                    description="Pastikan akun Anda menggunakan kata sandi yang panjang dan acak untuk keamanan"
+                    title={t('settings.password.update')}
+                    description={t('settings.password.update')}
                 />
 
                 <div className="mt-6">
@@ -51,7 +53,7 @@ export default function Password() {
                             <>
                                 <div className="grid gap-2">
                                     <Label htmlFor="current_password">
-                                        Kata Sandi Saat Ini
+                                        {t('settings.password.current')}
                                     </Label>
                                     <Input
                                         id="current_password"
@@ -69,7 +71,7 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password">
-                                        Kata Sandi Baru
+                                        {t('settings.password.new')}
                                     </Label>
                                     <Input
                                         id="password"
@@ -85,7 +87,7 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password_confirmation">
-                                        Konfirmasi Kata Sandi
+                                        {t('settings.password.confirm')}
                                     </Label>
                                     <Input
                                         id="password_confirmation"
@@ -106,7 +108,7 @@ export default function Password() {
                                         data-test="update-password-button"
                                         className="rounded-sm bg-teal-500 text-white hover:bg-teal-600"
                                     >
-                                        Simpan Kata Sandi
+                                        {t('settings.password.save')}
                                     </Button>
 
                                     <Transition
@@ -117,7 +119,7 @@ export default function Password() {
                                         leaveTo="opacity-0"
                                     >
                                         <p className="text-sm text-green-600">
-                                            Tersimpan
+                                            {t('common.success')}
                                         </p>
                                     </Transition>
                                 </div>

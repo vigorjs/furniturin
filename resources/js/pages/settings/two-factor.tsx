@@ -4,6 +4,7 @@ import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
+import { useTranslation } from '@/hooks/use-translation';
 import SettingsLayout from '@/layouts/settings/layout';
 import { disable, enable } from '@/routes/two-factor';
 import { Form, Head } from '@inertiajs/react';
@@ -29,16 +30,17 @@ export default function TwoFactor({
         fetchRecoveryCodes,
         errors,
     } = useTwoFactorAuth();
+    const { t } = useTranslation();
     const [showSetupModal, setShowSetupModal] = useState<boolean>(false);
 
     return (
         <SettingsLayout>
-            <Head title="Keamanan Akun" />
+            <Head title={t('settings.two_factor.title')} />
 
             <div>
                 <HeadingSmall
-                    title="Autentikasi Dua Faktor"
-                    description="Kelola pengaturan keamanan akun Anda dengan autentikasi dua faktor"
+                    title={t('admin.profile.two_factor')}
+                    description={t('admin.profile.two_factor')}
                 />
 
                 <div className="mt-6">
@@ -48,7 +50,7 @@ export default function TwoFactor({
                                 variant="default"
                                 className="bg-green-500 hover:bg-green-600"
                             >
-                                Aktif
+                                {t('common.active')}
                             </Badge>
                             <p className="text-terra-500">
                                 Dengan autentikasi dua faktor aktif, Anda akan
@@ -73,7 +75,7 @@ export default function TwoFactor({
                                             className="rounded-sm"
                                         >
                                             <ShieldBan className="mr-2 h-4 w-4" />{' '}
-                                            Nonaktifkan 2FA
+                                            {t('admin.profile.disable_2fa')}
                                         </Button>
                                     )}
                                 </Form>
@@ -85,7 +87,7 @@ export default function TwoFactor({
                                 variant="outline"
                                 className="border-terra-300 text-terra-500"
                             >
-                                Tidak Aktif
+                                {t('common.inactive')}
                             </Badge>
                             <p className="text-terra-500">
                                 Aktifkan autentikasi dua faktor untuk menambah
@@ -117,7 +119,7 @@ export default function TwoFactor({
                                                 className="rounded-sm bg-teal-500 text-white hover:bg-teal-600"
                                             >
                                                 <ShieldCheck className="mr-2 h-4 w-4" />
-                                                Aktifkan 2FA
+                                                {t('admin.profile.enable_2fa')}
                                             </Button>
                                         )}
                                     </Form>

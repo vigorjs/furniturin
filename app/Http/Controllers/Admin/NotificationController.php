@@ -43,6 +43,6 @@ class NotificationController extends Controller
     public function clearAll()
     {
         auth()->user()->notifications()->delete();
-        return back()->with('success', 'Semua notifikasi berhasil dihapus.');
+        return back()->with('success', __('messages.notifications_cleared'));
     }
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from '@/hooks/use-translation';
 import { ShopLayout } from '@/layouts/ShopLayout';
 import { SiteSettings } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -55,6 +56,7 @@ interface Props {
 export default function CartIndex({ cart }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
     const siteName = siteSettings?.site_name || 'Furniturin';
+    const { t } = useTranslation();
     const [loading, setLoading] = useState<number | null>(null);
 
     const updateQuantity = (itemId: number, quantity: number) => {
@@ -113,7 +115,7 @@ export default function CartIndex({ cart }: Props) {
 
     return (
         <>
-            <Head title={`Keranjang Belanja - ${siteName}`} />
+            <Head title={`${t('shop.cart.title')} - ${siteName}`} />
             <div className="bg-noise" />
             <ShopLayout>
                 <main className="min-h-screen bg-sand-50 pt-8 pb-20">
@@ -122,27 +124,27 @@ export default function CartIndex({ cart }: Props) {
                             href="/shop/products"
                             className="mb-6 inline-flex items-center gap-2 text-terra-600 hover:text-terra-900"
                         >
-                            <ArrowLeft className="h-4 w-4" /> Lanjutkan Belanja
+                            <ArrowLeft className="h-4 w-4" /> {t('shop.cart.continue_shopping')}
                         </Link>
 
                         <h1 className="mb-8 font-serif text-3xl text-terra-900">
-                            Keranjang Belanja
+                            {t('shop.cart.shopping_cart')}
                         </h1>
 
                         {!cart || cart.items.length === 0 ? (
                             <div className="rounded-sm bg-white p-12 text-center">
                                 <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-terra-200" />
                                 <h2 className="mb-2 font-serif text-2xl text-terra-900">
-                                    Keranjang Kosong
+                                    {t('shop.cart.empty_title')}
                                 </h2>
                                 <p className="mb-6 text-teal-600">
-                                    Mulai belanja untuk mengisi keranjang Anda
+                                    {t('shop.cart.empty_description')}
                                 </p>
                                 <Link
                                     href="/shop/products"
                                     className="inline-flex items-center gap-2 rounded-sm bg-teal-600 px-6 py-3 text-white transition-colors hover:bg-teal-700"
                                 >
-                                    Mulai Belanja{' '}
+                                    {t('shop.cart.continue_shopping')}{' '}
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
                             </div>
@@ -167,7 +169,7 @@ export default function CartIndex({ cart }: Props) {
                                         <div className="mt-8">
                                             <h2 className="mb-4 flex items-center gap-2 font-serif text-xl text-terra-900">
                                                 <Bookmark className="h-5 w-5" />{' '}
-                                                Disimpan untuk Nanti (
+                                                {t('shop.cart.saved_items')} (
                                                 {cart.saved_items.length})
                                             </h2>
                                             <div className="space-y-4">
@@ -201,29 +203,29 @@ export default function CartIndex({ cart }: Props) {
                                 <div className="lg:col-span-1">
                                     <div className="sticky top-28 rounded-sm bg-white p-6">
                                         <h2 className="mb-4 font-serif text-xl text-terra-900">
-                                            Ringkasan Pesanan
+                                            {t('shop.checkout.order_summary')}
                                         </h2>
                                         <div className="mb-6 space-y-3">
                                             <div className="flex justify-between text-terra-600">
                                                 <span>
-                                                    Subtotal ({cart.items_count}{' '}
-                                                    item)
+                                                    {t('shop.cart.subtotal')} ({cart.items_count}{' '}
+                                                    {t('common.items')})
                                                 </span>
                                                 <span>
                                                     {cart.subtotal_formatted}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between text-sm text-terra-500">
-                                                <span>Ongkos Kirim</span>
+                                                <span>{t('shop.checkout.shipping_cost')}</span>
                                                 <span>
-                                                    Dihitung saat checkout
+                                                    {t('shop.cart.shipping_note')}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="mb-6 border-t border-terra-100 pt-4">
                                             <div className="flex justify-between">
                                                 <span className="font-medium text-terra-900">
-                                                    Total
+                                                    {t('common.total')}
                                                 </span>
                                                 <span className="font-serif text-2xl text-terra-900">
                                                     {cart.subtotal_formatted}
@@ -234,7 +236,7 @@ export default function CartIndex({ cart }: Props) {
                                             href="/shop/checkout"
                                             className="block w-full rounded-sm bg-teal-600 py-4 text-center font-medium text-white transition-colors hover:bg-teal-700"
                                         >
-                                            Lanjut ke Checkout
+                                            {t('shop.cart.proceed_to_checkout')}
                                         </Link>
                                     </div>
                                 </div>
@@ -264,6 +266,7 @@ function CartItemCard({
     onSaveForLater,
     getProductImage,
 }: CartItemCardProps) {
+    const { t } = useTranslation();
     return (
         <div
             className={`flex gap-4 rounded-sm bg-white p-4 ${loading ? 'opacity-50' : ''}`}
@@ -341,7 +344,7 @@ function CartItemCard({
                             className="flex items-center gap-1 text-sm text-red-500 transition-colors hover:text-red-600"
                         >
                             <Trash2 className="h-4 w-4" />{' '}
-                            <span className="hidden sm:inline">Hapus</span>
+                            <span className="hidden sm:inline">{t('common.delete')}</span>
                         </button>
                     </div>
                 </div>
@@ -365,6 +368,7 @@ function SavedItemCard({
     onRemove,
     getProductImage,
 }: SavedItemCardProps) {
+    const { t } = useTranslation();
     return (
         <div
             className={`flex gap-4 rounded-sm bg-white p-4 ${loading ? 'opacity-50' : ''}`}
@@ -396,14 +400,14 @@ function SavedItemCard({
                         disabled={loading}
                         className="flex items-center gap-1 text-sm text-wood transition-colors hover:text-terra-900"
                     >
-                        <ShoppingCart className="h-4 w-4" /> Pindah ke Keranjang
+                        <ShoppingCart className="h-4 w-4" /> {t('shop.cart.move_to_cart')}
                     </button>
                     <button
                         onClick={() => onRemove(item.id)}
                         disabled={loading}
                         className="flex items-center gap-1 text-sm text-red-500 transition-colors hover:text-red-600"
                     >
-                        <Trash2 className="h-4 w-4" /> Hapus
+                        <Trash2 className="h-4 w-4" /> {t('common.delete')}
                     </button>
                 </div>
             </div>

@@ -20,13 +20,7 @@ enum ProductStatus: string
      */
     public function label(): string
     {
-        return match ($this) {
-            self::DRAFT => 'Draft',
-            self::ACTIVE => 'Aktif',
-            self::INACTIVE => 'Nonaktif',
-            self::OUT_OF_STOCK => 'Stok Habis',
-            self::DISCONTINUED => 'Dihentikan',
-        };
+        return __('enums.product_status.' . $this->value);
     }
 
     /**

@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
-import { type PropsWithChildren, useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { type PropsWithChildren, useEffect, useState } from 'react';
+import { toast, Toaster } from 'sonner';
 import AdminHeader from './admin-header';
 import AdminSidebar from './admin-sidebar';
 
@@ -12,6 +14,8 @@ export default function AdminLayout({
     children,
     breadcrumbs = [],
 }: PropsWithChildren<AdminLayoutProps>) {
+    const { flash } = usePage().props as any;
+
     const [collapsed, setCollapsed] = useState(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('admin-sidebar-collapsed') === 'true';
@@ -20,6 +24,22 @@ export default function AdminLayout({
     });
 
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    // Handle flash messages
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+        if (flash?.info) {
+            toast.info(flash.info);
+        }
+        if (flash?.warning) {
+            toast.warning(flash.warning);
+        }
+    }, [flash]);
 
     const handleSetCollapsed = (
         value: boolean | ((prevState: boolean) => boolean),
@@ -33,6 +53,7 @@ export default function AdminLayout({
 
     return (
         <div className="min-h-screen bg-sand-50">
+            <Toaster position="top-right" richColors />
             {/* Sidebar */}
             <AdminSidebar
                 collapsed={collapsed}

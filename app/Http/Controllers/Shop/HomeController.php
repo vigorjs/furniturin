@@ -77,26 +77,32 @@ class HomeController extends Controller
                 'location' => $review->user?->city ?? 'Indonesia',
             ]);
 
-        // Hero Settings
+        // Hero Settings (with locale support)
+        $locale = app()->getLocale();
         $heroSettings = [
-            'badge' => Setting::get('hero_badge', 'Koleksi Terbaru 2025'),
-            'title' => Setting::get('hero_title', 'Desain yang'),
-            'title_highlight' => Setting::get('hero_title_highlight', 'bernafas.'),
-            'description' => Setting::get('hero_description', 'Furniture minimalis dari bahan berkelanjutan. Dibuat untuk mereka yang menemukan kemewahan dalam kesederhanaan.'),
+            'badge' => Setting::get("hero_badge_{$locale}", Setting::get('hero_badge', $locale === 'en' ? 'Latest Collection 2025' : 'Koleksi Terbaru 2025')),
+            'title' => Setting::get("hero_title_{$locale}", Setting::get('hero_title', $locale === 'en' ? 'Design that' : 'Desain yang')),
+            'title_highlight' => Setting::get("hero_title_highlight_{$locale}", Setting::get('hero_title_highlight', $locale === 'en' ? 'breathes.' : 'bernafas.')),
+            'description' => Setting::get("hero_description_{$locale}", Setting::get('hero_description', $locale === 'en' ? 'Minimalist furniture from sustainable materials. Made for those who find luxury in simplicity.' : 'Furniture minimalis dari bahan berkelanjutan. Dibuat untuk mereka yang menemukan kemewahan dalam kesederhanaan.')),
             'image_main' => Setting::get('hero_image_main', '/images/placeholder-hero.svg'),
             'image_secondary' => Setting::get('hero_image_secondary', '/images/placeholder-hero.svg'),
-            'product_name' => Setting::get('hero_product_name', 'Kursi Santai Premium'),
+            'product_name' => Setting::get("hero_product_name_{$locale}", Setting::get('hero_product_name', $locale === 'en' ? 'Premium Lounge Chair' : 'Kursi Santai Premium')),
         ];
 
         // Trust/Press Logos
         $trustLogos = json_decode(Setting::get('trust_logos', '["Kompas", "Tempo", "Forbes Indonesia", "Bisnis Indonesia", "The Jakarta Post"]'), true);
 
-        // Values/Features
-        $values = json_decode(Setting::get('home_values', json_encode([
+        // Values/Features (with locale support)
+        $defaultValues = $locale === 'en' ? [
+            ['icon' => 'leaf', 'title' => 'Sustainable Materials', 'desc' => 'Every product uses wood from responsibly managed forests and recycled materials.'],
+            ['icon' => 'truck', 'title' => 'Free Shipping', 'desc' => 'Free shipping for purchases over Rp 5 million throughout Indonesia.'],
+            ['icon' => 'shield-check', 'title' => 'Lifetime Warranty', 'desc' => 'Lifetime warranty for all structural damage because we believe in our quality.'],
+        ] : [
             ['icon' => 'leaf', 'title' => 'Bahan Berkelanjutan', 'desc' => 'Setiap produk menggunakan kayu dari hutan yang dikelola secara bertanggung jawab dan bahan daur ulang.'],
             ['icon' => 'truck', 'title' => 'Gratis Pengiriman', 'desc' => 'Pengiriman gratis untuk pembelian di atas Rp 5 juta ke seluruh Indonesia.'],
             ['icon' => 'shield-check', 'title' => 'Garansi Selamanya', 'desc' => 'Garansi seumur hidup untuk semua kerusakan struktural karena kami percaya dengan kualitas kami.'],
-        ])), true);
+        ];
+        $values = json_decode(Setting::get("home_values_{$locale}", Setting::get('home_values', json_encode($defaultValues))), true);
 
         // Page-specific Site Settings for SEO (siteSettings is shared via middleware)
         $pageSiteSettings = [

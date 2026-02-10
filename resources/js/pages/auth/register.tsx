@@ -6,19 +6,21 @@ import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslation } from '@/hooks/use-translation';
 import AuthLayout from '@/layouts/auth-layout';
 import { SiteSettings } from '@/types';
 
 export default function Register() {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
     const siteName = siteSettings?.site_name || 'Furniturin';
+    const { t } = useTranslation();
 
     return (
         <AuthLayout
-            title="Buat Akun Baru"
-            description={`Daftar untuk mulai berbelanja di ${siteName}`}
+            title={t('auth.register.title')}
+            description={t('auth.register.description', { siteName })}
         >
-            <Head title="Daftar" />
+            <Head title={t('auth.register.page_title')} />
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -33,7 +35,7 @@ export default function Register() {
                                     htmlFor="name"
                                     className="font-medium text-neutral-700"
                                 >
-                                    Nama Lengkap
+                                    {t('auth.register.name_label')}
                                 </Label>
                                 <input
                                     id="name"
@@ -43,7 +45,7 @@ export default function Register() {
                                     tabIndex={1}
                                     autoComplete="name"
                                     name="name"
-                                    placeholder="Masukkan nama lengkap"
+                                    placeholder={t('auth.register.name_placeholder')}
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.name} />
@@ -54,7 +56,7 @@ export default function Register() {
                                     htmlFor="email"
                                     className="font-medium text-neutral-700"
                                 >
-                                    Alamat Email
+                                    {t('auth.register.email_label')}
                                 </Label>
                                 <input
                                     id="email"
@@ -63,7 +65,7 @@ export default function Register() {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="Masukkan alamat email"
+                                    placeholder={t('auth.register.email_placeholder')}
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.email} />
@@ -74,7 +76,7 @@ export default function Register() {
                                     htmlFor="password"
                                     className="font-medium text-neutral-700"
                                 >
-                                    Kata Sandi
+                                    {t('auth.register.password_label')}
                                 </Label>
                                 <input
                                     id="password"
@@ -83,7 +85,7 @@ export default function Register() {
                                     tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
-                                    placeholder="Minimal 8 karakter"
+                                    placeholder={t('auth.register.password_placeholder')}
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError message={errors.password} />
@@ -94,7 +96,7 @@ export default function Register() {
                                     htmlFor="password_confirmation"
                                     className="font-medium text-neutral-700"
                                 >
-                                    Konfirmasi Kata Sandi
+                                    {t('auth.register.confirm_password_label')}
                                 </Label>
                                 <input
                                     id="password_confirmation"
@@ -103,7 +105,7 @@ export default function Register() {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
-                                    placeholder="Ulangi kata sandi"
+                                    placeholder={t('auth.register.confirm_password_placeholder')}
                                     className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all placeholder:text-neutral-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 focus:outline-none"
                                 />
                                 <InputError
@@ -121,18 +123,18 @@ export default function Register() {
                                 {processing && (
                                     <Spinner className="text-white" />
                                 )}
-                                Daftar Sekarang
+                                {t('auth.register.submit')}
                             </button>
                         </div>
 
                         <div className="pt-2 text-center text-sm text-neutral-500">
-                            Sudah punya akun?{' '}
+                            {t('auth.register.has_account')}{' '}
                             <TextLink
                                 href={login()}
                                 tabIndex={6}
                                 className="font-medium text-teal-600 transition-colors hover:text-teal-700"
                             >
-                                Masuk di sini
+                                {t('auth.register.login_link')}
                             </TextLink>
                         </div>
                     </>

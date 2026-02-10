@@ -50,6 +50,12 @@ class RoleAndPermissionSeeder extends Seeder
             'approve reviews',
             'delete reviews',
 
+            // Article permissions
+            'view articles',
+            'create articles',
+            'edit articles',
+            'delete articles',
+
             // Report permissions
             'view reports',
             'export reports',
@@ -81,6 +87,9 @@ class RoleAndPermissionSeeder extends Seeder
             'view users',
             'view reviews',
             'approve reviews',
+            'view articles',
+            'create articles',
+            'edit articles',
             'view reports',
         ]);
 

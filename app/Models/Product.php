@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * Product Model
@@ -58,8 +59,19 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Product extends Model implements HasMedia
 {
     use HasFactory;
+    use HasTranslations;
     use InteractsWithMedia;
     use SoftDeletes;
+
+    public array $translatable = [
+        'name',
+        'short_description',
+        'description',
+        'meta_title',
+        'meta_description',
+        'material',
+        'color',
+    ];
 
     protected static function booted(): void
     {

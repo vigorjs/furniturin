@@ -118,14 +118,14 @@ export const TESTIMONIALS = [
     },
 ];
 
-// Navigation menu items
+// Navigation menu items — labelKey is a translation key resolved at render time via t()
 export const NAV_ITEMS = [
-    { label: 'Home', href: '/shop' },
-    { label: 'Katalog', href: '/shop/catalogs' },
-    { label: 'Koleksi', href: '/shop/products' },
-    { label: 'Kategori', href: '/shop/categories' },
-    { label: 'Hot Sale', href: '/shop/hot-sale' },
-    { label: 'Clearance', href: '/shop/clearance' },
-    { label: 'Tentang Kami', href: '/shop/about' },
-    { label: 'Kontak', href: '/shop/contact' },
+    { labelKey: 'shop.nav.home', href: '/shop' },
+    { labelKey: 'shop.nav.catalog', href: '/shop/catalogs' },
+    { labelKey: 'shop.nav.collection', href: '/shop/products' },
+    { labelKey: 'shop.nav.categories', href: '/shop/categories' },
+    { labelKey: 'shop.nav.hot_sale', href: '/shop/hot-sale' },
+    { labelKey: 'shop.nav.clearance', href: '/shop/clearance' },
+    { labelKey: 'shop.nav.about', href: '/shop/about' },
+    { labelKey: 'shop.nav.contact', href: '/shop/contact' },
 ];

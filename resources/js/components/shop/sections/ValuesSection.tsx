@@ -1,3 +1,4 @@
+import { useTranslation } from '@/hooks/use-translation';
 import { HomeValue } from '@/types/shop';
 import { motion } from 'framer-motion';
 import { Leaf, LucideIcon, ShieldCheck, Truck } from 'lucide-react';
@@ -31,30 +32,33 @@ const itemVariants = {
     },
 };
 
-export const ValuesSection: React.FC<ValuesSectionProps> = ({ values }) => (
-    <section className="bg-white py-24">
-        <div className="mx-auto max-w-[1400px] px-6 md:px-12">
-            {/* Section Header */}
-            <motion.div
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-                variants={containerVariants}
-                className="mb-16 text-center"
-            >
-                <motion.span
-                    variants={itemVariants}
-                    className="text-xs font-medium tracking-[0.15em] text-teal-500 uppercase"
+export const ValuesSection: React.FC<ValuesSectionProps> = ({ values }) => {
+    const { t } = useTranslation();
+
+    return (
+        <section className="bg-white py-24">
+            <div className="mx-auto max-w-[1400px] px-6 md:px-12">
+                {/* Section Header */}
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                    variants={containerVariants}
+                    className="mb-16 text-center"
                 >
-                    Why Choose Us
-                </motion.span>
-                <motion.h2
-                    variants={itemVariants}
-                    className="mt-3 font-display text-4xl font-semibold tracking-tight text-neutral-800 md:text-5xl"
-                >
-                    Our Philosophy
-                </motion.h2>
-            </motion.div>
+                    <motion.span
+                        variants={itemVariants}
+                        className="text-xs font-medium tracking-[0.15em] text-teal-500 uppercase"
+                    >
+                        {t('shop.home.values_badge')}
+                    </motion.span>
+                    <motion.h2
+                        variants={itemVariants}
+                        className="mt-3 font-display text-4xl font-semibold tracking-tight text-neutral-800 md:text-5xl"
+                    >
+                        {t('shop.home.values_title')}
+                    </motion.h2>
+                </motion.div>
 
             {/* Values Grid */}
             <motion.div
@@ -87,6 +91,7 @@ export const ValuesSection: React.FC<ValuesSectionProps> = ({ values }) => (
             </motion.div>
         </div>
     </section>
-);
+    );
+};
 
 export default ValuesSection;

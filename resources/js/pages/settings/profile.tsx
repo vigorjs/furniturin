@@ -7,6 +7,7 @@ import { Form, Head, Link, usePage } from '@inertiajs/react';
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
+import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,16 +21,17 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<SharedData>().props;
+    const { t } = useTranslation();
 
     return (
         <SettingsLayout>
-            <Head title="Pengaturan Profil" />
+            <Head title={t('settings.profile.title')} />
 
             <div className="space-y-8">
                 <div>
                     <HeadingSmall
-                        title="Informasi Profil"
-                        description="Perbarui nama dan alamat email Anda"
+                        title={t('settings.profile.update_info')}
+                        description={t('settings.profile.update_info')}
                     />
 
                     <div className="mt-6">
@@ -43,7 +45,7 @@ export default function Profile({
                             {({ processing, recentlySuccessful, errors }) => (
                                 <>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="name">Nama</Label>
+                                        <Label htmlFor="name">{t('settings.profile.name')}</Label>
                                         <Input
                                             id="name"
                                             className="mt-1 block w-full rounded-sm border-terra-200 focus:border-teal-500 focus:ring-teal-500"
@@ -61,7 +63,7 @@ export default function Profile({
 
                                     <div className="grid gap-2">
                                         <Label htmlFor="email">
-                                            Alamat Email
+                                            {t('settings.profile.email')}
                                         </Label>
                                         <Input
                                             id="email"

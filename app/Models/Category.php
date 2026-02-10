@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * Category Model
@@ -36,7 +37,15 @@ use Illuminate\Support\Str;
 class Category extends Model
 {
     use HasFactory;
+    use HasTranslations;
     use SoftDeletes;
+
+    public array $translatable = [
+        'name',
+        'description',
+        'meta_title',
+        'meta_description',
+    ];
 
     /**
      * Clear category-related caches.

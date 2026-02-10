@@ -59,7 +59,7 @@ class SettingsController extends Controller
         // Clear site settings cache
         Cache::forget('site_settings');
 
-        return back()->with('success', 'Pengaturan berhasil disimpan.');
+        return back()->with('success', __('messages.settings_saved'));
     }
 
     /**
@@ -150,7 +150,7 @@ class SettingsController extends Controller
         // Clear cache
         Cache::forget('site_settings');
 
-        return back()->with('success', 'Pengaturan homepage berhasil disimpan.');
+        return back()->with('success', __('messages.homepage_settings_saved'));
     }
 
     /**
@@ -216,7 +216,7 @@ class SettingsController extends Controller
         // Clear site settings cache
         Cache::forget('site_settings');
 
-        return back()->with('success', 'Pengaturan pembayaran berhasil disimpan.');
+        return back()->with('success', __('messages.payment_settings_saved'));
     }
 }
 
