@@ -51,7 +51,7 @@ class ArticleController extends Controller
         }
 
         return Inertia::render('Shop/Articles/Show', [
-            'article' => new ArticleResource($article->fresh()),
+            'article' => new ArticleResource($article->fresh()->load('author:id,name')),
         ]);
     }
 }

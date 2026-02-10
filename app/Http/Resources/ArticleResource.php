@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 
 class ArticleResource extends JsonResource
 {
+    public static $wrap = null;
+
     public function toArray(Request $request): array
     {
         return [
