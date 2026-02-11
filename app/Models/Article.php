@@ -64,7 +64,7 @@ class Article extends Model
         });
     }
 
-    public function author(): BelongsTo
+    public function writer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
     }
@@ -96,7 +96,7 @@ class Article extends Model
     public function getReadTimeAttribute(): int
     {
         if (isset($this->attributes['read_time']) && $this->attributes['read_time'] > 0) {
-            return $this->attributes['read_time'];
+            return (int) $this->attributes['read_time'];
         }
 
         $wordCount = str_word_count(strip_tags($this->content ?? ''));

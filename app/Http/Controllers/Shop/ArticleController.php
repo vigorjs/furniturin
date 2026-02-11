@@ -17,7 +17,7 @@ class ArticleController extends Controller
     {
         $query = Article::query()
             ->published()
-            ->with('author:id,name')
+            ->with('writer:id,name')
             ->latest('published_at');
 
         if ($request->filled('search')) {
@@ -41,7 +41,7 @@ class ArticleController extends Controller
         $article = Article::query()
             ->where('slug', $slug)
             ->published()
-            ->with('author:id,name')
+            ->with('writer:id,name')
             ->firstOrFail();
 
         $sessionKey = 'article_viewed_' . $article->id;
@@ -51,7 +51,7 @@ class ArticleController extends Controller
         }
 
         return Inertia::render('Shop/Articles/Show', [
-            'article' => new ArticleResource($article->fresh()->load('author:id,name')),
+            'article' => new ArticleResource($article->fresh()->load('writer:id,name')),
         ]);
     }
 }

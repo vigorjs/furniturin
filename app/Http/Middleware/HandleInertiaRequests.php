@@ -133,6 +133,7 @@ class HandleInertiaRequests extends Middleware
             $prefixes[] = 'admin.';
         } elseif (str_starts_with($path, 'settings')) {
             $prefixes[] = 'settings.';
+            $prefixes[] = 'shop.';
         } elseif (str_starts_with($path, 'shop')) {
             $prefixes[] = 'shop.';
         }

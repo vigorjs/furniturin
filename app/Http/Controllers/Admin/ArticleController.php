@@ -103,7 +103,8 @@ class ArticleController extends Controller implements HasMiddleware
                 'excerpt' => $article->excerpt,
                 'content' => $article->content,
                 'featured_image' => $article->featured_image,
-                'author' => $article->author,
+                'author' => $article->getAttribute('author'), // Safe access to string column
+                'writer' => $article->writer, // Access relation via new name
                 'author_id' => $article->author_id,
                 'status' => $article->status->value,
                 'tags' => $article->tags ?? [],

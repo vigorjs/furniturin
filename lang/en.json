@@ -713,5 +713,7 @@
   "settings.appearance.system": "System",
 
   "settings.addresses.title": "Addresses",
-  "settings.two_factor.title": "Two-Factor Authentication"
+  "settings.two_factor.title": "Two-Factor Authentication",
+  "settings.two_factor.enable": "Enable 2FA",
+  "settings.two_factor.disable": "Disable 2FA"
 }

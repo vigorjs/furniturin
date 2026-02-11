@@ -5,19 +5,23 @@ This guide explains how to deploy and manage the application on cPanel without S
 ## 1. Initial Setup
 
 ### 1.1 Add ARTISAN_TOKEN to .env
+
 ```env
 ARTISAN_TOKEN=your-secure-random-token-here
 ```
 
 **Generate a secure token:**
+
 - Use a password generator
 - Or run locally: `php artisan tinker --execute="echo Str::random(32)"`
 - Example: `ARTISAN_TOKEN=8xK2mP9qL5nR7wY3vB6jD4hF1gT0sA9c`
 
 ### 1.2 Upload Files via cPanel File Manager
+
 1. Upload all files to your domain's root (usually `public_html`)
 2. Make sure `.env` file is uploaded with the correct values
 3. Set proper permissions (755 for directories, 644 for files)
+4. **IMPORTANT:** Ensure `public/hot` file is **NOT** uploaded. This file is for local development only and will cause a black screen in production.
 
 ## 2. Running Artisan Commands via Browser
 
@@ -28,16 +32,19 @@ All commands require the `?token=YOUR_TOKEN` parameter for security.
 **Run in this order:**
 
 1. **Populate Locale Settings** (fixes hero section translation)
+
    ```
    https://yourdomain.com/artisan/populate-locale?token=YOUR_TOKEN
    ```
 
 2. **Create Storage Link**
+
    ```
    https://yourdomain.com/artisan/storage-link?token=YOUR_TOKEN
    ```
 
 3. **Run Migrations**
+
    ```
    https://yourdomain.com/artisan/migrate?token=YOUR_TOKEN
    ```
@@ -50,11 +57,13 @@ All commands require the `?token=YOUR_TOKEN` parameter for security.
 ### 2.2 Maintenance Commands
 
 **Clear Cache** (run after updating code or .env)
+
 ```
 https://yourdomain.com/artisan/clear-cache?token=YOUR_TOKEN
 ```
 
 **List All Available Commands**
+
 ```
 https://yourdomain.com/artisan/list?token=YOUR_TOKEN
 ```
@@ -87,9 +96,9 @@ https://yourdomain.com/artisan/list?token=YOUR_TOKEN
    - **Common Settings:** Custom
    - **Minute:** 0
    - **Hour:** 0
-   - **Day:** *
-   - **Month:** *
-   - **Weekday:** *
+   - **Day:** \*
+   - **Month:** \*
+   - **Weekday:** \*
    - **Command:**
      ```bash
      curl -s "https://yourdomain.com/artisan/clear-cache?token=YOUR_TOKEN" > /dev/null
@@ -102,6 +111,7 @@ https://yourdomain.com/artisan/list?token=YOUR_TOKEN
 **Cause:** Locale-specific settings not in database
 
 **Solution:**
+
 1. Visit: `https://yourdomain.com/artisan/populate-locale?token=YOUR_TOKEN`
 2. Visit: `https://yourdomain.com/artisan/clear-cache?token=YOUR_TOKEN`
 3. Switch language and refresh
@@ -109,11 +119,13 @@ https://yourdomain.com/artisan/list?token=YOUR_TOKEN
 ### 4.2 Check Current Locale
 
 Visit the debug route:
+
 ```
 https://yourdomain.com/debug-locale
 ```
 
 **Expected output:**
+
 ```json
 {
   "app_locale": "id",
@@ -128,12 +140,14 @@ https://yourdomain.com/debug-locale
 ### 4.3 500 Internal Server Error
 
 **Common causes:**
+
 1. `.env` file missing or incorrect
 2. APP_KEY not generated
 3. Storage directory permissions (need 755)
 4. Cache not cleared
 
 **Solution:**
+
 1. Check `.env` file exists
 2. Visit: `https://yourdomain.com/artisan/clear-cache?token=YOUR_TOKEN`
 3. Contact hosting support to check error logs
@@ -156,6 +170,7 @@ https://yourdomain.com/debug-locale
 ### 5.2 Remove Debug Route
 
 After confirming everything works, edit `routes/web.php` and remove:
+
 ```php
 // Debug route - REMOVE AFTER TESTING
 Route::get('/debug-locale', function () {
@@ -179,17 +194,18 @@ Route::get('/debug-locale', function () {
 
 ### Available Artisan Routes
 
-| Command | URL | Purpose |
-|---------|-----|---------|
-| Populate Locale | `/artisan/populate-locale?token=XXX` | Fix hero translation |
-| Clear Cache | `/artisan/clear-cache?token=XXX` | Clear all caches |
-| Optimize | `/artisan/optimize?token=XXX` | Cache config/routes/views |
-| Migrate | `/artisan/migrate?token=XXX` | Run database migrations |
-| Storage Link | `/artisan/storage-link?token=XXX` | Create storage symlink |
-| List Commands | `/artisan/list?token=XXX` | Show all available routes |
+| Command         | URL                                  | Purpose                   |
+| --------------- | ------------------------------------ | ------------------------- |
+| Populate Locale | `/artisan/populate-locale?token=XXX` | Fix hero translation      |
+| Clear Cache     | `/artisan/clear-cache?token=XXX`     | Clear all caches          |
+| Optimize        | `/artisan/optimize?token=XXX`        | Cache config/routes/views |
+| Migrate         | `/artisan/migrate?token=XXX`         | Run database migrations   |
+| Storage Link    | `/artisan/storage-link?token=XXX`    | Create storage symlink    |
+| List Commands   | `/artisan/list?token=XXX`            | Show all available routes |
 
 ### Finding Your cPanel Path
 
 Replace `/home/USERNAME/public_html` with your actual path:
+
 - Usually shown in cPanel File Manager
 - Or check in cPanel → PHP Info → `_SERVER["DOCUMENT_ROOT"]`

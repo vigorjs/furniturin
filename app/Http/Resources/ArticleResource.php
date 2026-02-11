@@ -14,6 +14,18 @@ class ArticleResource extends JsonResource
 
     public function toArray(Request $request): array
     {
+        // Safely determine author name
+        $authorName = null;
+        if ($this->resource->relationLoaded('writer')) {
+            $authorName = $this->resource->getRelation('writer')?->name;
+        }
+        if (! $authorName) {
+            $authorName = $this->resource->getAttribute('author'); // Get raw column value
+        }
+
+        // Safely get status to avoid Enum casting errors on invalid data
+        $status = $this->resource->getRawOriginal('status');
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -23,11 +35,11 @@ class ArticleResource extends JsonResource
             'content' => $this->content,
             'featured_image' => $this->featured_image,
             'featured_image_url' => $this->featured_image
-                ? asset('storage/' . $this->featured_image)
+                ? asset('storage/'.$this->featured_image)
                 : null,
-            'author' => $this->author,
-            'author_name' => $this->author?->name ?? $this->author,
-            'status' => $this->status->value,
+            // Removed 'author' object to prevent serialization issues and because it's unused
+            'author_name' => $authorName ?? 'Unknown',
+            'status' => $status,
             'tags' => $this->tags ?? [],
             'read_time' => $this->read_time,
             'views' => $this->views,

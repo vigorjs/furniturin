@@ -713,5 +713,7 @@
   "settings.appearance.system": "Sistem",
 
   "settings.addresses.title": "Alamat",
-  "settings.two_factor.title": "Autentikasi Dua Faktor"
+  "settings.two_factor.title": "Autentikasi Dua Faktor",
+  "settings.two_factor.enable": "Aktifkan 2FA",
+  "settings.two_factor.disable": "Nonaktifkan 2FA"
 }

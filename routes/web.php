@@ -24,6 +24,7 @@ Route::get('/debug-locale', function () {
     ]);
 });
 
+
 // Quick populate route - BACKUP (remove after testing)
 Route::get('/quick-populate', function () {
     $token = config('app.artisan_token');

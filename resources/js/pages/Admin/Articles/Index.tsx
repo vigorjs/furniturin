@@ -36,24 +36,16 @@ interface Article {
 interface ArticlesIndexProps {
   articles: {
     data: Article[];
-    links: {
-      first?: string;
-      last?: string;
-      prev?: string;
-      next?: string;
-    };
-    meta: {
-      current_page: number;
-      last_page: number;
-      from: number;
-      to: number;
-      total: number;
-      links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-      }>;
-    };
+    current_page: number;
+    last_page: number;
+    from: number;
+    to: number;
+    total: number;
+    links: Array<{
+      url: string | null;
+      label: string;
+      active: boolean;
+    }>;
   };
   filters?: {
     search?: string;
@@ -335,7 +327,7 @@ export default function ArticlesIndex({
 
           {articles.data.length > 0 && (
             <div className="border-t border-terra-100 bg-white px-6 py-4">
-              <Pagination meta={articles.meta} links={articles.meta.links} />
+              <Pagination paginator={articles} />
             </div>
           )}
         </div>

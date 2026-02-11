@@ -57,9 +57,12 @@ class OrderSeeder extends Seeder
         }
 
         // Update order totals
+        $discountAmount = $order->discount_amount > 0 ? (int) ($subtotal * 0.1) : 0;
+        
         $order->update([
           'subtotal' => $subtotal,
-          'total' => $subtotal - $order->discount_amount + $order->shipping_cost,
+          'discount_amount' => $discountAmount,
+          'total' => max(0, $subtotal - $discountAmount + $order->shipping_cost),
         ]);
       }
     }
