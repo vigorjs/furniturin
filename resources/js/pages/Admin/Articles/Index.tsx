@@ -335,7 +335,7 @@ export default function ArticlesIndex({
 
           {articles.data.length > 0 && (
             <div className="border-t border-terra-100 bg-white px-6 py-4">
-              <Pagination paginator={articles} />
+              <Pagination meta={articles.meta} links={articles.meta.links} />
             </div>
           )}
         </div>

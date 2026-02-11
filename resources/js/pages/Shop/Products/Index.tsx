@@ -507,7 +507,6 @@ function FilterDrawer({
           </div>
 
           {/* Categories */}
-          {/* Categories */}
           <div>
             {safeFeaturedCategories?.length > 0 && (
               <div className="mb-6">

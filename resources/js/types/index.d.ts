@@ -32,6 +32,8 @@ export interface SiteSettings {
   facebook_url: string;
   instagram_url: string;
   tiktok_url: string;
+  hot_sale_end_date?: string | null;
+  hot_sale_timer_visible?: boolean;
 }
 
 export interface PromoBannerData {

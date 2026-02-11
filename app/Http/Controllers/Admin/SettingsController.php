@@ -218,5 +218,42 @@ class SettingsController extends Controller
 
         return back()->with('success', __('messages.payment_settings_saved'));
     }
+    /**
+     * Shop settings page
+     */
+    public function shop(): Response
+    {
+        $settings = Setting::all()->pluck('value', 'key')->toArray();
+
+        return Inertia::render('Admin/Settings/Shop', [
+            'settings' => [
+                'hot_sale_end_date' => $settings['hot_sale_end_date'] ?? '',
+                'hot_sale_timer_visible' => filter_var($settings['hot_sale_timer_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
+            ],
+        ]);
+    }
+
+    /**
+     * Update shop settings
+     */
+    public function updateShop(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'hot_sale_end_date' => ['nullable', 'date', 'after:today'],
+            'hot_sale_timer_visible' => ['required', 'boolean'],
+        ]);
+
+        foreach ($validated as $key => $value) {
+            Setting::updateOrCreate(
+                ['key' => $key],
+                ['value' => is_bool($value) ? ($value ? '1' : '0') : ($value ?? '')]
+            );
+        }
+
+        // Clear site settings cache
+        Cache::forget('site_settings');
+
+        return back()->with('success', __('messages.shop_settings_saved'));
+    }
 }
 

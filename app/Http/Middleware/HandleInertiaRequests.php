@@ -169,8 +169,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function getSiteSettings(): array
     {
-        $locale = App::getLocale();
-        return Cache::remember("site_settings.{$locale}", 3600, function () use ($locale) {
+        return Cache::remember('site_settings', 3600, function () {
             $settings = Setting::all()->pluck('value', 'key')->toArray();
 
             return [
@@ -183,6 +182,8 @@ class HandleInertiaRequests extends Middleware
                 'facebook_url' => $settings['facebook_url'] ?? '',
                 'instagram_url' => $settings['instagram_url'] ?? '',
                 'tiktok_url' => $settings['tiktok_url'] ?? '',
+                'hot_sale_end_date' => $settings['hot_sale_end_date'] ?? null,
+                'hot_sale_timer_visible' => filter_var($settings['hot_sale_timer_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
             ];
         });
     }

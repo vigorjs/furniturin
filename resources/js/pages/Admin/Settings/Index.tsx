@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Phone,
   Save,
+  ShoppingBag,
   Store,
 } from 'lucide-react';
 
@@ -89,6 +90,25 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
                 </h3>
                 <p className="text-sm text-neutral-500">
                   Midtrans, WhatsApp Payment
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-neutral-400 transition-colors group-hover:text-teal-600" />
+          </Link>
+          <Link
+            href="/admin/settings/shop"
+            className="group flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-5 transition-all hover:border-teal-300 hover:shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50">
+                <ShoppingBag className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-900">
+                  Pengaturan Toko
+                </h3>
+                <p className="text-sm text-neutral-500">
+                  Hot Sale, Penawaran Spesial
                 </p>
               </div>
             </div>

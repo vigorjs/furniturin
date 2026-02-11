@@ -78,17 +78,17 @@ export default function ArticlesIndex({
       <div className="min-h-screen bg-neutral-50">
         {/* Hero Header */}
         <div className="border-b border-neutral-100 bg-white">
-          <div className="mx-auto max-w-[1400px] px-6 py-12 md:px-12 md:py-16">
-            <h1 className="font-serif text-3xl font-bold text-neutral-900 md:text-4xl">
+          <div className="mx-auto flex max-w-[1400px] flex-col items-center px-6 py-8 md:px-12 md:py-8">
+            <h1 className="font-serif text-2xl text-neutral-900 sm:text-4xl md:text-5xl">
               Artikel & Berita
             </h1>
-            <p className="mt-3 max-w-xl text-neutral-500">
+            <p className="mt-1 max-w-[400px] text-center text-sm text-neutral-500 sm:mt-2 sm:text-base">
               Temukan inspirasi, tips perawatan, dan tren terbaru seputar
               furniture untuk rumah impian Anda.
             </p>
 
             {/* Search */}
-            <div className="mt-6 max-w-lg">
+            <div className="mt-6 w-full max-w-lg">
               <div className="relative">
                 <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                 <Input
