@@ -66,29 +66,32 @@ class SettingsController extends Controller
     public function homepage(): Response
     {
         $settings = Setting::all()->pluck('value', 'key')->toArray();
+        $locale = app()->getLocale();
 
+        // Load locale-specific hero text, falling back to non-localized keys
         return Inertia::render('Admin/Settings/Homepage', [
+            'locale' => $locale,
             'settings' => [
-                // Hero Section
-                'hero_badge' => $settings['hero_badge'] ?? 'Koleksi Terbaru 2025',
-                'hero_title' => $settings['hero_title'] ?? 'Desain yang',
-                'hero_title_highlight' => $settings['hero_title_highlight'] ?? 'bernafas.',
-                'hero_description' => $settings['hero_description'] ?? 'Furniture minimalis dari bahan berkelanjutan. Dibuat untuk mereka yang menemukan kemewahan dalam kesederhanaan.',
+                // Hero Section (locale-aware)
+                'hero_badge' => $settings["hero_badge_{$locale}"] ?? $settings['hero_badge'] ?? ($locale === 'en' ? 'Latest Collection 2025' : 'Koleksi Terbaru 2025'),
+                'hero_title' => $settings["hero_title_{$locale}"] ?? $settings['hero_title'] ?? ($locale === 'en' ? 'Design that' : 'Desain yang'),
+                'hero_title_highlight' => $settings["hero_title_highlight_{$locale}"] ?? $settings['hero_title_highlight'] ?? ($locale === 'en' ? 'breathes.' : 'bernafas.'),
+                'hero_description' => $settings["hero_description_{$locale}"] ?? $settings['hero_description'] ?? ($locale === 'en' ? 'Minimalist furniture from sustainable materials. Made for those who find luxury in simplicity.' : 'Furniture minimalis dari bahan berkelanjutan. Dibuat untuk mereka yang menemukan kemewahan dalam kesederhanaan.'),
                 'hero_image_main' => $settings['hero_image_main'] ?? '/images/placeholder-hero.svg',
-                'hero_product_name' => $settings['hero_product_name'] ?? 'Kursi Santai Premium',
-                // Trust Logos (JSON array)
+                'hero_product_name' => $settings["hero_product_name_{$locale}"] ?? $settings['hero_product_name'] ?? ($locale === 'en' ? 'Premium Lounge Chair' : 'Kursi Santai Premium'),
+                // Trust Logos (JSON array, not locale-specific)
                 'trust_logos' => $settings['trust_logos'] ?? json_encode([
                     ['name' => 'Kompas', 'logo_url' => ''],
                     ['name' => 'Tempo', 'logo_url' => ''],
                     ['name' => 'Forbes Indonesia', 'logo_url' => ''],
                 ]),
-                // Values (JSON array)
-                'home_values' => $settings['home_values'] ?? json_encode([
+                // Values (JSON array, locale-aware)
+                'home_values' => $settings["home_values_{$locale}"] ?? $settings['home_values'] ?? json_encode([
                     ['icon' => 'leaf', 'title' => 'Bahan Berkelanjutan', 'desc' => 'Setiap produk menggunakan kayu dari hutan yang dikelola secara bertanggung jawab dan bahan daur ulang.'],
                     ['icon' => 'truck', 'title' => 'Gratis Pengiriman', 'desc' => 'Pengiriman gratis untuk pembelian di atas Rp 5 juta ke seluruh Indonesia.'],
                     ['icon' => 'shield-check', 'title' => 'Garansi Selamanya', 'desc' => 'Garansi seumur hidup untuk semua kerusakan struktural karena kami percaya dengan kualitas kami.'],
                 ]),
-                // Section visibility
+                // Section visibility (not locale-specific)
                 'section_hero_visible' => filter_var($settings['section_hero_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_trust_visible' => filter_var($settings['section_trust_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_categories_visible' => filter_var($settings['section_categories_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
@@ -126,15 +129,36 @@ class SettingsController extends Controller
             'section_newsletter_visible' => ['required', 'boolean'],
         ]);
 
+        $locale = app()->getLocale();
+
+        // Keys that need locale-specific storage
+        $localeKeys = [
+            'hero_badge', 'hero_title', 'hero_title_highlight',
+            'hero_description', 'hero_product_name', 'home_values',
+        ];
+
         foreach ($validated as $key => $value) {
-            Setting::updateOrCreate(
-                ['key' => $key],
-                ['value' => is_bool($value) ? ($value ? '1' : '0') : ($value ?? '')]
-            );
+            $storeValue = is_bool($value) ? ($value ? '1' : '0') : ($value ?? '');
+
+            if (in_array($key, $localeKeys)) {
+                // Save to locale-specific key (e.g., hero_badge_id)
+                Setting::updateOrCreate(
+                    ['key' => "{$key}_{$locale}"],
+                    ['value' => $storeValue]
+                );
+            } else {
+                // Save non-localized keys as-is (images, section visibility, trust logos)
+                Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $storeValue]
+                );
+            }
         }
 
-        // Clear cache
+        // Clear all locale-specific caches
         Cache::forget('site_settings');
+        Cache::forget("site_settings.id");
+        Cache::forget("site_settings.en");
 
         return back()->with('success', __('messages.homepage_settings_saved'));
     }
@@ -157,6 +181,13 @@ class SettingsController extends Controller
                 // WhatsApp Payment
                 'whatsapp_payment_enabled' => filter_var($settings['whatsapp_payment_enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'whatsapp_payment_message' => $settings['whatsapp_payment_message'] ?? 'Halo, saya ingin melakukan pemesanan:',
+                // Bank Transfer
+                'bank_name' => $settings['bank_name'] ?? 'BCA',
+                'bank_account_number' => $settings['bank_account_number'] ?? '',
+                'bank_account_name' => $settings['bank_account_name'] ?? '',
+                // General Payment
+                'cod_fee' => (int) ($settings['cod_fee'] ?? 5000),
+                'payment_deadline_hours' => (int) ($settings['payment_deadline_hours'] ?? 24),
             ],
             'midtransConfigured' => $midtransConfigured,
             'whatsappNumber' => $settings['contact_whatsapp'] ?? null,
@@ -173,6 +204,11 @@ class SettingsController extends Controller
             'midtrans_environment' => ['required', 'string', 'in:sandbox,production'],
             'whatsapp_payment_enabled' => ['required', 'boolean'],
             'whatsapp_payment_message' => ['nullable', 'string', 'max:500'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'bank_account_number' => ['nullable', 'string', 'max:50'],
+            'bank_account_name' => ['nullable', 'string', 'max:255'],
+            'cod_fee' => ['required', 'integer', 'min:0'],
+            'payment_deadline_hours' => ['required', 'integer', 'min:1', 'max:168'],
         ]);
 
         foreach ($validated as $key => $value) {

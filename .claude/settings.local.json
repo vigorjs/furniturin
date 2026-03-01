@@ -13,7 +13,10 @@
       "Bash(curl:*)",
       "Bash(netstat:*)",
       "Bash(taskkill:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(npx:*)",
+      "Bash(ls:*)"
     ]
   }
 }

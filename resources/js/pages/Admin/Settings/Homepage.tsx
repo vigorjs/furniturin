@@ -22,6 +22,7 @@ import {
 import { useState } from 'react';
 
 interface HomepageSettingsProps {
+  locale: string;
   settings: {
     hero_badge: string;
     hero_title: string;
@@ -85,7 +86,7 @@ const SECTIONS = [
   },
 ];
 
-export default function HomepageSettings({ settings }: HomepageSettingsProps) {
+export default function HomepageSettings({ settings, locale }: HomepageSettingsProps) {
   // Parse JSON strings
   const initialTrustLogos: TrustLogo[] = (() => {
     try {
@@ -279,9 +280,14 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
                 <Home className="h-5 w-5 text-blue-600" />
               </div>
-              <h2 className="text-lg font-semibold text-neutral-900">
-                Hero Section
-              </h2>
+              <div>
+                <h2 className="text-lg font-semibold text-neutral-900">
+                  Hero Section
+                </h2>
+                <p className="text-sm text-neutral-500">
+                  Editing: <span className="font-medium text-teal-600">{locale === 'id' ? 'Bahasa Indonesia' : 'English'}</span> — switch language to edit the other version
+                </p>
+              </div>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
@@ -468,9 +474,14 @@ export default function HomepageSettings({ settings }: HomepageSettingsProps) {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
                   <Quote className="h-5 w-5 text-green-600" />
                 </div>
-                <h2 className="text-lg font-semibold text-neutral-900">
-                  Nilai / Fitur Unggulan
-                </h2>
+                <div>
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Nilai / Fitur Unggulan
+                  </h2>
+                  <p className="text-sm text-neutral-500">
+                    Editing: <span className="font-medium text-teal-600">{locale === 'id' ? 'Bahasa Indonesia' : 'English'}</span>
+                  </p>
+                </div>
               </div>
               <button
                 type="button"

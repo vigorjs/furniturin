@@ -4,9 +4,11 @@ import {
   AlertTriangle,
   CheckCircle,
   ChevronLeft,
+  Clock,
   CreditCard,
   ExternalLink,
   Info,
+  Landmark,
   MessageCircle,
   Save,
 } from 'lucide-react';
@@ -17,6 +19,11 @@ interface PaymentSettingsProps {
     midtrans_environment: string;
     whatsapp_payment_enabled: boolean;
     whatsapp_payment_message: string;
+    bank_name: string;
+    bank_account_number: string;
+    bank_account_name: string;
+    cod_fee: number;
+    payment_deadline_hours: number;
   };
   midtransConfigured: boolean;
   whatsappNumber: string | null;
@@ -34,6 +41,11 @@ export default function PaymentSettings({
     whatsapp_payment_message:
       settings.whatsapp_payment_message ??
       'Halo, saya ingin melakukan pemesanan:',
+    bank_name: settings.bank_name ?? 'BCA',
+    bank_account_number: settings.bank_account_number ?? '',
+    bank_account_name: settings.bank_account_name ?? '',
+    cod_fee: settings.cod_fee ?? 5000,
+    payment_deadline_hours: settings.payment_deadline_hours ?? 24,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -252,6 +264,141 @@ export default function PaymentSettings({
                 <p className="mt-2 text-xs text-neutral-500">
                   Pesan ini akan muncul di awal chat WhatsApp saat pelanggan
                   memilih pembayaran via WhatsApp
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bank Transfer Settings */}
+          <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+            <div className="border-b border-neutral-100 p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50">
+                  <Landmark className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Transfer Bank
+                  </h2>
+                  <p className="text-sm text-neutral-500">
+                    Informasi rekening untuk pembayaran manual
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 p-6">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Nama Bank
+                </label>
+                <input
+                  type="text"
+                  value={data.bank_name}
+                  onChange={(e) => setData('bank_name', e.target.value)}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                  placeholder="BCA"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Nomor Rekening
+                </label>
+                <input
+                  type="text"
+                  value={data.bank_account_number}
+                  onChange={(e) =>
+                    setData('bank_account_number', e.target.value)
+                  }
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                  placeholder="1234567890"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Nama Pemilik Rekening
+                </label>
+                <input
+                  type="text"
+                  value={data.bank_account_name}
+                  onChange={(e) =>
+                    setData('bank_account_name', e.target.value)
+                  }
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                  placeholder="PT Furniturin Indonesia"
+                />
+                <p className="mt-2 text-xs text-neutral-500">
+                  Informasi ini ditampilkan kepada pelanggan di halaman detail
+                  pesanan
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* General Payment Settings */}
+          <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+            <div className="border-b border-neutral-100 p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50">
+                  <Clock className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Pengaturan Umum Pembayaran
+                  </h2>
+                  <p className="text-sm text-neutral-500">
+                    Biaya tambahan dan batas waktu pembayaran
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 p-6">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Biaya COD (Rp)
+                </label>
+                <div className="relative">
+                  <span className="absolute top-1/2 left-4 -translate-y-1/2 text-neutral-400">
+                    Rp
+                  </span>
+                  <input
+                    type="number"
+                    value={data.cod_fee}
+                    onChange={(e) =>
+                      setData('cod_fee', parseInt(e.target.value) || 0)
+                    }
+                    min={0}
+                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 py-3 pr-4 pl-12 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                    placeholder="5000"
+                  />
+                </div>
+                <p className="mt-2 text-xs text-neutral-500">
+                  Biaya tambahan untuk pembayaran Cash on Delivery (0 untuk
+                  gratis)
+                </p>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  Batas Waktu Pembayaran (Jam)
+                </label>
+                <input
+                  type="number"
+                  value={data.payment_deadline_hours}
+                  onChange={(e) =>
+                    setData(
+                      'payment_deadline_hours',
+                      parseInt(e.target.value) || 1,
+                    )
+                  }
+                  min={1}
+                  max={168}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                  placeholder="24"
+                />
+                <p className="mt-2 text-xs text-neutral-500">
+                  Pesanan akan otomatis dibatalkan jika belum dibayar dalam waktu
+                  ini (1-168 jam)
                 </p>
               </div>
             </div>
