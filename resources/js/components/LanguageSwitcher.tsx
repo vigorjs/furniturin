@@ -25,6 +25,10 @@ export default function LanguageSwitcher({ variant = 'dropdown', className = '' 
         router.post('/locale', { locale: code }, {
             preserveScroll: true,
             preserveState: false,
+            onSuccess: () => {
+                // Force hard reload to ensure locale is fully applied
+                window.location.reload();
+            },
             onFinish: () => setOpen(false),
         });
     };

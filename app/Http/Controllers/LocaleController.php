@@ -15,6 +15,9 @@ class LocaleController extends Controller
             'locale' => ['required', 'string', 'in:id,en'],
         ]);
 
+        // Store in session (immediate, reliable) + cookie (persists across sessions)
+        session(['locale' => $validated['locale']]);
+
         return redirect()->back()->withCookie(
             cookie('locale', $validated['locale'], 60 * 24 * 365)
         );

@@ -13,6 +13,7 @@ import {
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { destroy as profileDestroy } from '@/routes/profile';
 
 export default function DeleteUserForm({ className = '' }: { className?: string }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
@@ -36,7 +37,7 @@ export default function DeleteUserForm({ className = '' }: { className?: string 
     const deleteUser: FormEventHandler = (e) => {
         e.preventDefault();
 
-        destroy(route('profile.destroy'), {
+        destroy(profileDestroy.url(), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
             onError: () => passwordInput.current?.focus(),

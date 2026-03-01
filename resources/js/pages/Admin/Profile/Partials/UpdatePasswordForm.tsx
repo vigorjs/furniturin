@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Transition } from '@headlessui/react';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
+import { update as userPasswordUpdate } from '@/routes/user-password';
 
 export default function UpdatePasswordForm({
     className = '',
@@ -31,7 +32,7 @@ export default function UpdatePasswordForm({
     const updatePassword: FormEventHandler = (e) => {
         e.preventDefault();
 
-        put(route('user-password.update'), {
+        put(userPasswordUpdate.url(), {
             preserveScroll: true,
             onSuccess: () => reset(),
             onError: (errors) => {

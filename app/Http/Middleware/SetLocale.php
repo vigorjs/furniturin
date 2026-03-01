@@ -15,7 +15,8 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->cookie('locale', config('app.locale', 'id'));
+        // Session takes priority (set immediately on switch), cookie is fallback (persists across sessions)
+        $locale = session('locale', $request->cookie('locale', config('app.locale', 'id')));
 
         if (! in_array($locale, self::SUPPORTED_LOCALES, true)) {
             $locale = config('app.locale', 'id');

@@ -11,6 +11,9 @@ import {
 import { Order } from '@/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { home as shopHome } from '@/routes/shop';
+import { index as shopProductsIndex } from '@/routes/shop/products';
+import { index as shopOrdersIndex } from '@/routes/shop/orders';
 import {
   CheckCircle2,
   ChevronRight,
@@ -69,7 +72,7 @@ export default function Success({ order }: Props) {
         <p className="mb-8 text-gray-600">
           Maaf, kami tidak dapat menemukan informasi pesanan Anda.
         </p>
-        <Link href={route('shop.home')}>
+        <Link href={shopHome.url()}>
           <Button>{t('common.home')}</Button>
         </Link>
       </div>
@@ -255,7 +258,7 @@ export default function Success({ order }: Props) {
           </CardContent>
           <CardFooter className="flex flex-col justify-center gap-3 border-t py-6 sm:flex-row">
             <Link
-              href={route('shop.products.index')}
+              href={shopProductsIndex.url()}
               className="w-full sm:w-auto"
             >
               <Button variant="outline" className="w-full">
@@ -263,7 +266,7 @@ export default function Success({ order }: Props) {
               </Button>
             </Link>
             <Link
-              href={route('shop.orders.index')}
+              href={shopOrdersIndex.url()}
               className="w-full sm:w-auto"
             >
               <Button className="w-full gap-2">

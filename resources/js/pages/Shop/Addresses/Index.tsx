@@ -19,6 +19,12 @@ import { ShopLayout } from '@/layouts/ShopLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Edit, Loader2, MapPin, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import {
+  destroy as addressesDestroy,
+  defaultMethod as addressesDefault,
+  update as addressesUpdate,
+  store as addressesStore,
+} from '@/routes/shop/addresses';
 
 interface Address {
   id: number;
@@ -58,7 +64,7 @@ export default function AddressIndex({ addresses }: { addresses: Address[] }) {
       'Hapus Alamat',
       'Apakah Anda yakin ingin menghapus alamat ini?',
       () => {
-        router.delete(route('shop.addresses.destroy', id), {
+        router.delete(addressesDestroy.url(id), {
           onSuccess: () => console.log('Address deleted'),
           onError: () => showAlert('Gagal menghapus alamat', 'error', 'Error'),
         });
@@ -150,7 +156,7 @@ function AddressCard({
 }) {
   const handleSetDefault = () => {
     router.post(
-      route('shop.addresses.default', address.id),
+      addressesDefault.url(address.id),
       {},
       {
         onSuccess: () => console.log('Set default success'),
@@ -382,9 +388,9 @@ function AddressFormDialog({
     };
 
     if (address) {
-      put(route('shop.addresses.update', address.id), options);
+      put(addressesUpdate.url(address.id), options);
     } else {
-      post(route('shop.addresses.store'), options);
+      post(addressesStore.url(), options);
     }
   };
 

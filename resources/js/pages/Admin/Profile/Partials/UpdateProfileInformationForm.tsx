@@ -6,6 +6,8 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import { Transition } from '@headlessui/react';
 import { FormEventHandler } from 'react';
 import { SharedData } from '@/types';
+import { update as profileUpdate } from '@/routes/profile';
+import { send as verificationSend } from '@/routes/verification';
 
 export default function UpdateProfileInformationForm({
     mustVerifyEmail,
@@ -26,7 +28,7 @@ export default function UpdateProfileInformationForm({
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        patch(route('profile.update'));
+        patch(profileUpdate.url());
     };
 
     return (
@@ -76,7 +78,7 @@ export default function UpdateProfileInformationForm({
                             <p className="text-sm mt-2 text-terra-600">
                                 Alamat email Anda belum diversifikasi.{' '}
                                 <Link
-                                    href={route('verification.send')}
+                                    href={verificationSend.url()}
                                     method="post"
                                     as="button"
                                     className="underline text-terra-600 hover:text-terra-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-wood"
