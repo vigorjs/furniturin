@@ -15,8 +15,11 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        // Session takes priority (set immediately on switch), cookie is fallback (persists across sessions)
-        $locale = session('locale', $request->cookie('locale', config('app.locale', 'id')));
+        // Priority: session (explicit switch) > cookie (persists across sessions) > browser language > config
+        $locale = session('locale')
+            ?? $request->cookie('locale')
+            ?? $this->detectFromBrowser($request)
+            ?? config('app.locale', 'id');
 
         if (! in_array($locale, self::SUPPORTED_LOCALES, true)) {
             $locale = config('app.locale', 'id');
@@ -25,5 +28,18 @@ class SetLocale
         App::setLocale($locale);
 
         return $next($request);
+    }
+
+    /**
+     * Detect locale from the browser's Accept-Language header.
+     * Indonesian users (id, id-ID) get 'id', everyone else gets 'en'.
+     */
+    private function detectFromBrowser(Request $request): ?string
+    {
+        $preferred = $request->getPreferredLanguage(self::SUPPORTED_LOCALES);
+
+        return $preferred && in_array($preferred, self::SUPPORTED_LOCALES, true)
+            ? $preferred
+            : null;
     }
 }
