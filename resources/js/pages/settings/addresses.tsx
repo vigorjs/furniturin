@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/hooks/use-translation';
 import SettingsLayout from '@/layouts/settings/layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
@@ -42,6 +43,7 @@ interface Props {
 }
 
 export default function Addresses({ addresses }: Props) {
+    const { t } = useTranslation();
     const addressList = Array.isArray(addresses) ? addresses : [];
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -115,12 +117,12 @@ export default function Addresses({ addresses }: Props) {
 
     return (
         <SettingsLayout>
-            <Head title="Alamat Pengiriman" />
+            <Head title={t('shop.addresses.title')} />
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <HeadingSmall
-                        title="Alamat Pengiriman"
+                        title={t('shop.addresses.title')}
                         description="Kelola alamat untuk pengiriman pesanan"
                     />
                     <button
@@ -128,7 +130,7 @@ export default function Addresses({ addresses }: Props) {
                         className="inline-flex items-center gap-2 rounded-sm bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
                     >
                         <Plus className="h-4 w-4" />
-                        Tambah Alamat
+                        {t('shop.addresses.add_new')}
                     </button>
                 </div>
 
@@ -152,7 +154,7 @@ export default function Addresses({ addresses }: Props) {
                                             </span>
                                             {addr.is_default && (
                                                 <span className="rounded-full bg-teal-100 px-2 py-0.5 text-xs font-medium text-teal-700">
-                                                    Utama
+                                                    {t('shop.addresses.default')}
                                                 </span>
                                             )}
                                         </div>
@@ -170,7 +172,7 @@ export default function Addresses({ addresses }: Props) {
                                                     handleSetDefault(addr)
                                                 }
                                                 className="rounded-sm p-2 text-terra-500 transition-colors hover:bg-terra-50 hover:text-terra-700"
-                                                title="Jadikan Utama"
+                                                title="Jadikan {t('shop.addresses.default')}"
                                             >
                                                 <Star className="h-4 w-4" />
                                             </button>
@@ -205,7 +207,7 @@ export default function Addresses({ addresses }: Props) {
                             className="mt-4 inline-flex items-center gap-2 rounded-sm bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700"
                         >
                             <Plus className="h-4 w-4" />
-                            Tambah Alamat Pertama
+                            {t('shop.addresses.add_new')} Pertama
                         </button>
                     </div>
                 )}
@@ -225,7 +227,7 @@ export default function Addresses({ addresses }: Props) {
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingAddress ? 'Edit Alamat' : 'Tambah Alamat'}
+                            {editingAddress ? 'Edit Alamat' : t('shop.addresses.add_new')}
                         </DialogTitle>
                         <DialogDescription>
                             {editingAddress
@@ -236,7 +238,7 @@ export default function Addresses({ addresses }: Props) {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="sm:col-span-2">
-                                <Label htmlFor="label">Label Alamat</Label>
+                                <Label htmlFor="label">{t('shop.addresses.label')}</Label>
                                 <Input
                                     id="label"
                                     value={data.label}
@@ -254,7 +256,7 @@ export default function Addresses({ addresses }: Props) {
                             </div>
                             <div>
                                 <Label htmlFor="recipient_name">
-                                    Nama Penerima
+                                    {t('shop.addresses.recipient_name')}
                                 </Label>
                                 <Input
                                     id="recipient_name"
@@ -275,7 +277,7 @@ export default function Addresses({ addresses }: Props) {
                                 )}
                             </div>
                             <div>
-                                <Label htmlFor="phone">No. Telepon</Label>
+                                <Label htmlFor="phone">{t('shop.addresses.phone')}</Label>
                                 <Input
                                     id="phone"
                                     value={data.phone}
@@ -292,7 +294,7 @@ export default function Addresses({ addresses }: Props) {
                                 )}
                             </div>
                             <div className="sm:col-span-2">
-                                <Label htmlFor="address">Alamat Lengkap</Label>
+                                <Label htmlFor="address">{t('shop.addresses.full_address')}</Label>
                                 <Input
                                     id="address"
                                     value={data.address}
@@ -309,7 +311,7 @@ export default function Addresses({ addresses }: Props) {
                                 )}
                             </div>
                             <div>
-                                <Label htmlFor="city">Kota</Label>
+                                <Label htmlFor="city">{t('shop.addresses.city')}</Label>
                                 <Input
                                     id="city"
                                     value={data.city}
@@ -326,7 +328,7 @@ export default function Addresses({ addresses }: Props) {
                                 )}
                             </div>
                             <div>
-                                <Label htmlFor="province">Provinsi</Label>
+                                <Label htmlFor="province">{t('shop.addresses.province')}</Label>
                                 <Input
                                     id="province"
                                     value={data.province}
@@ -343,7 +345,7 @@ export default function Addresses({ addresses }: Props) {
                                 )}
                             </div>
                             <div>
-                                <Label htmlFor="postal_code">Kode Pos</Label>
+                                <Label htmlFor="postal_code">{t('shop.addresses.postal_code')}</Label>
                                 <Input
                                     id="postal_code"
                                     value={data.postal_code}
@@ -396,7 +398,7 @@ export default function Addresses({ addresses }: Props) {
                                 ) : (
                                     <>
                                         <Check className="h-4 w-4" />
-                                        Simpan
+                                        {t('common.save')}
                                     </>
                                 )}
                             </button>

@@ -1,4 +1,5 @@
 import { SEOHead } from '@/components/seo';
+import { useTranslation } from '@/hooks/use-translation';
 import { ShopLayout } from '@/layouts/ShopLayout';
 import { SiteSettings } from '@/types';
 import { ApiCategory } from '@/types/shop';
@@ -16,6 +17,7 @@ const PLACEHOLDER_CATEGORY = '/images/placeholder-category.svg';
 export default function CategoriesIndex({ categories }: Props) {
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
     const siteName = siteSettings?.site_name || 'Furniturin';
+    const { t } = useTranslation();
     const categoriesList = Array.isArray(categories)
         ? categories
         : categories.data;
@@ -23,8 +25,8 @@ export default function CategoriesIndex({ categories }: Props) {
     return (
         <>
             <SEOHead
-                title="Kategori Produk"
-                description={`Jelajahi kategori furnitur ${siteName}. Temukan koleksi untuk ruang tamu, ruang makan, kamar tidur, kantor, outdoor, dan lainnya.`}
+                title={t('shop.categories.title')}
+                description={t('shop.categories.seo_description', { siteName })}
                 keywords={[
                     'kategori furnitur',
                     'ruang tamu',
@@ -41,11 +43,10 @@ export default function CategoriesIndex({ categories }: Props) {
                         {/* Header */}
                         <div className="mb-16 text-center">
                             <h1 className="mb-4 font-serif text-4xl text-terra-900 md:text-5xl">
-                                Jelajahi Kategori
+                                {t('shop.categories.browse')}
                             </h1>
                             <p className="mx-auto max-w-xl text-terra-500">
-                                Temukan koleksi furniture berkualitas untuk
-                                setiap ruangan di rumah Anda
+                                {t('shop.categories.description')}
                             </p>
                         </div>
 
@@ -64,10 +65,10 @@ export default function CategoriesIndex({ categories }: Props) {
                         {categoriesList.length === 0 && (
                             <div className="py-20 text-center">
                                 <h3 className="mb-2 text-xl font-medium text-terra-900">
-                                    Belum ada kategori
+                                    {t('shop.categories.no_categories')}
                                 </h3>
                                 <p className="text-terra-500">
-                                    Kategori produk akan segera tersedia
+                                    {t('shop.categories.no_categories_desc')}
                                 </p>
                             </div>
                         )}
@@ -84,6 +85,7 @@ interface CategoryCardProps {
 }
 
 function CategoryCard({ category, index }: CategoryCardProps) {
+    const { t } = useTranslation();
     const imageUrl = category.image_url || PLACEHOLDER_CATEGORY;
 
     // Make first 2 cards larger on desktop
@@ -123,12 +125,12 @@ function CategoryCard({ category, index }: CategoryCardProps) {
                         )}
                         {category.products_count !== undefined && (
                             <span className="text-sm text-white/60">
-                                {category.products_count} Produk
+                                {t('shop.categories.products_count', { count: category.products_count })}
                             </span>
                         )}
                         <div className="mt-4 flex translate-y-2 transform items-center gap-2 text-white opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
                             <span className="text-sm font-medium">
-                                Lihat Koleksi
+                                {t('common.view_all')}
                             </span>
                             <ArrowRight
                                 size={16}
@@ -140,7 +142,7 @@ function CategoryCard({ category, index }: CategoryCardProps) {
                     {/* Featured Badge */}
                     {category.is_featured && (
                         <span className="absolute top-4 left-4 rounded-full bg-wood px-3 py-1 text-sm font-medium text-white">
-                            Unggulan
+                            {t('common.featured')}
                         </span>
                     )}
                 </div>

@@ -62,7 +62,7 @@ class AddressController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('shop.addresses.index')
-            ->with('success', 'Alamat berhasil ditambahkan.');
+            ->with('success', __('messages.address_created'));
     }
 
     public function update(AddressStoreRequest $request, Address $address): JsonResponse|RedirectResponse
@@ -93,7 +93,7 @@ class AddressController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('shop.addresses.index')
-            ->with('success', 'Alamat berhasil diperbarui.');
+            ->with('success', __('messages.address_updated'));
     }
 
     public function destroy(Request $request, Address $address): JsonResponse|RedirectResponse
@@ -116,7 +116,7 @@ class AddressController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('shop.addresses.index')
-            ->with('success', 'Alamat berhasil dihapus.');
+            ->with('success', __('messages.address_deleted'));
     }
 
     public function setDefault(Request $request, Address $address): JsonResponse|RedirectResponse
@@ -143,6 +143,6 @@ class AddressController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('shop.addresses.index')
-            ->with('success', 'Alamat utama berhasil diubah.');
+            ->with('success', __('messages.address_default_changed'));
     }
 }

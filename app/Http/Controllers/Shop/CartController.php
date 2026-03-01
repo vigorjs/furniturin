@@ -57,7 +57,7 @@ class CartController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Produk berhasil ditambahkan ke keranjang.');
+        return back()->with('success', __('messages.cart_item_added'));
     }
 
     public function update(
@@ -76,7 +76,7 @@ class CartController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Keranjang berhasil diperbarui.');
+        return back()->with('success', __('messages.cart_updated'));
     }
 
     public function destroy(Request $request, CartItem $cartItem, RemoveFromCartAction $action): JsonResponse|RedirectResponse
@@ -93,7 +93,7 @@ class CartController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Produk berhasil dihapus dari keranjang.');
+        return back()->with('success', __('messages.cart_item_removed'));
     }
 
     public function clear(Request $request, ClearCartAction $action): JsonResponse|RedirectResponse
@@ -110,7 +110,7 @@ class CartController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Keranjang berhasil dikosongkan.');
+        return back()->with('success', __('messages.cart_cleared'));
     }
 
     public function merge(Request $request, MergeCartsAction $action): JsonResponse|RedirectResponse
@@ -121,7 +121,7 @@ class CartController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['message' => 'Unauthorized'], 401);
             }
-            return back()->with('error', 'Unauthorized');
+            return back()->with('error', __('messages.unauthorized'));
         }
 
         $cart = $action->execute($user, $request->session()->getId());
@@ -133,7 +133,7 @@ class CartController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Keranjang berhasil digabungkan.');
+        return back()->with('success', __('messages.cart_merged'));
     }
 
     public function saveForLater(Request $request, CartItem $cartItem): JsonResponse|RedirectResponse
@@ -149,7 +149,7 @@ class CartController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Produk disimpan untuk nanti.');
+        return back()->with('success', __('messages.cart_saved_for_later'));
     }
 
     public function moveToCart(Request $request, CartItem $cartItem): JsonResponse|RedirectResponse
@@ -165,7 +165,7 @@ class CartController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Produk dipindahkan ke keranjang.');
+        return back()->with('success', __('messages.cart_moved_to_cart'));
     }
 
     private function getCart(Request $request): ?Cart

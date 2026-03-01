@@ -1,64 +1,66 @@
 import { SEOHead } from '@/components/seo';
+import { useTranslation } from '@/hooks/use-translation';
 import { ShopLayout } from '@/layouts/ShopLayout';
 import { SiteSettings } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { Award, Clock, Heart, Leaf, Target, Users } from 'lucide-react';
 
-const VALUES = [
-    {
-        icon: Award,
-        title: 'Kualitas Premium',
-        desc: 'Material terbaik dengan standar produksi tinggi',
-    },
-    {
-        icon: Leaf,
-        title: 'Ramah Lingkungan',
-        desc: 'Kayu dari sumber berkelanjutan dan finishing aman',
-    },
-    {
-        icon: Heart,
-        title: 'Crafted with Love',
-        desc: 'Setiap produk dibuat dengan ketelitian dan cinta',
-    },
-    {
-        icon: Users,
-        title: 'Tim Ahli',
-        desc: 'Pengrajin berpengalaman lebih dari 15 tahun',
-    },
-];
-
-const MILESTONES = [
-    {
-        year: '2010',
-        title: 'Awal Mula',
-        desc: 'Dimulai dari workshop kecil di Jepara',
-    },
-    {
-        year: '2015',
-        title: 'Ekspansi',
-        desc: 'Membuka showroom pertama di Jakarta',
-    },
-    {
-        year: '2020',
-        title: 'Go Digital',
-        desc: 'Meluncurkan platform e-commerce',
-    },
-    {
-        year: '2024',
-        title: 'Berkembang',
-        desc: 'Melayani ribuan pelanggan di seluruh Indonesia',
-    },
-];
-
 export default function About() {
+    const { t } = useTranslation();
     const { siteSettings } = usePage<{ siteSettings?: SiteSettings }>().props;
     const siteName = siteSettings?.site_name || 'Furniturin';
+
+    const VALUES = [
+        {
+            icon: Award,
+            title: t('shop.about.value_quality_title'),
+            desc: t('shop.about.value_quality_desc'),
+        },
+        {
+            icon: Leaf,
+            title: t('shop.about.value_eco_title'),
+            desc: t('shop.about.value_eco_desc'),
+        },
+        {
+            icon: Heart,
+            title: t('shop.about.value_love_title'),
+            desc: t('shop.about.value_love_desc'),
+        },
+        {
+            icon: Users,
+            title: t('shop.about.value_expert_title'),
+            desc: t('shop.about.value_expert_desc'),
+        },
+    ];
+
+    const MILESTONES = [
+        {
+            year: '2010',
+            title: t('shop.about.milestone_2010_title'),
+            desc: t('shop.about.milestone_2010_desc'),
+        },
+        {
+            year: '2015',
+            title: t('shop.about.milestone_2015_title'),
+            desc: t('shop.about.milestone_2015_desc'),
+        },
+        {
+            year: '2020',
+            title: t('shop.about.milestone_2020_title'),
+            desc: t('shop.about.milestone_2020_desc'),
+        },
+        {
+            year: '2024',
+            title: t('shop.about.milestone_2024_title'),
+            desc: t('shop.about.milestone_2024_desc'),
+        },
+    ];
 
     return (
         <>
             <SEOHead
-                title="Tentang Kami"
-                description={`${siteName} - Toko furnitur premium Indonesia sejak 2010. Menghadirkan furniture berkualitas tinggi dengan sentuhan seni untuk hunian modern Indonesia. Pengrajin berpengalaman dari Jepara.`}
+                title={t('shop.about.title')}
+                description={t('shop.about.seo_description', { siteName })}
                 keywords={[
                     'tentang kami',
                     'furnitur jepara',
@@ -74,11 +76,10 @@ export default function About() {
                     <div className="mb-16 bg-gradient-to-r from-teal-600 to-teal-700 py-20 text-white">
                         <div className="mx-auto max-w-[1400px] px-6 text-center md:px-12">
                             <h1 className="mb-4 font-serif text-4xl font-bold md:text-5xl">
-                                Tentang {siteName}
+                                {t('shop.about.hero_title', { siteName })}
                             </h1>
                             <p className="mx-auto max-w-2xl text-xl opacity-90">
-                                Menghadirkan furniture berkualitas tinggi dengan
-                                sentuhan seni untuk hunian modern Indonesia
+                                {t('shop.about.hero_subtitle')}
                             </p>
                         </div>
                     </div>
@@ -88,31 +89,17 @@ export default function About() {
                         <div className="mb-20 grid items-center gap-12 md:grid-cols-2">
                             <div>
                                 <h2 className="mb-6 font-serif text-3xl text-terra-900">
-                                    Cerita Kami
+                                    {t('shop.about.story_title')}
                                 </h2>
                                 <div className="space-y-4 leading-relaxed text-terra-600">
                                     <p>
-                                        <strong className="text-terra-900">
-                                            {siteName}
-                                        </strong>{' '}
-                                        lahir dari passion terhadap seni
-                                        furniture dan keinginan untuk
-                                        menghadirkan produk berkualitas tinggi
-                                        yang dapat dijangkau oleh keluarga
-                                        Indonesia.
+                                        {t('shop.about.story_p1', { siteName })}
                                     </p>
                                     <p>
-                                        Berawal dari workshop kecil di Jepara,
-                                        kota yang terkenal dengan keahlian ukir
-                                        kayunya, kami tumbuh menjadi brand
-                                        furniture terpercaya yang melayani
-                                        pelanggan di seluruh Indonesia.
+                                        {t('shop.about.story_p2')}
                                     </p>
                                     <p>
-                                        Setiap produk {siteName} dibuat dengan
-                                        teliti oleh pengrajin berpengalaman,
-                                        menggunakan material pilihan dan proses
-                                        quality control yang ketat.
+                                        {t('shop.about.story_p3', { siteName })}
                                     </p>
                                 </div>
                             </div>
@@ -129,7 +116,7 @@ export default function About() {
                                         14+
                                     </div>
                                     <div className="text-sm opacity-80">
-                                        Tahun Pengalaman
+                                        {t('shop.about.years_experience')}
                                     </div>
                                 </div>
                             </div>
@@ -145,14 +132,10 @@ export default function About() {
                                     />
                                 </div>
                                 <h3 className="mb-4 font-serif text-2xl text-terra-900">
-                                    Visi
+                                    {t('shop.about.vision_title')}
                                 </h3>
                                 <p className="leading-relaxed text-terra-600">
-                                    Menjadi brand furniture terdepan di
-                                    Indonesia yang menghadirkan produk
-                                    berkualitas premium dengan harga terjangkau,
-                                    serta berkontribusi pada pelestarian seni
-                                    kerajinan kayu tradisional.
+                                    {t('shop.about.vision_text')}
                                 </p>
                             </div>
                             <div className="rounded-sm border border-terra-100 bg-white p-8">
@@ -163,27 +146,24 @@ export default function About() {
                                     />
                                 </div>
                                 <h3 className="mb-4 font-serif text-2xl text-terra-900">
-                                    Misi
+                                    {t('shop.about.mission_title')}
                                 </h3>
                                 <ul className="space-y-2 text-terra-600">
                                     <li className="flex items-start gap-2">
                                         <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-500"></span>
-                                        Menghadirkan furniture berkualitas
-                                        dengan desain modern
+                                        {t('shop.about.mission_1')}
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-500"></span>
-                                        Memberdayakan pengrajin lokal dengan
-                                        upah yang layak
+                                        {t('shop.about.mission_2')}
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-500"></span>
-                                        Menggunakan material ramah lingkungan
+                                        {t('shop.about.mission_3')}
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-500"></span>
-                                        Memberikan pelayanan terbaik kepada
-                                        pelanggan
+                                        {t('shop.about.mission_4')}
                                     </li>
                                 </ul>
                             </div>
@@ -192,7 +172,7 @@ export default function About() {
                         {/* Values */}
                         <div className="mb-20">
                             <h2 className="mb-12 text-center font-serif text-3xl text-terra-900">
-                                Nilai-Nilai Kami
+                                {t('shop.about.values_title')}
                             </h2>
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                                 {VALUES.map((v, i) => (
@@ -220,7 +200,7 @@ export default function About() {
                         {/* Timeline */}
                         <div className="mb-20">
                             <h2 className="mb-12 text-center font-serif text-3xl text-terra-900">
-                                Perjalanan Kami
+                                {t('shop.about.journey_title')}
                             </h2>
                             <div className="relative">
                                 <div className="absolute top-0 bottom-0 left-1/2 hidden w-0.5 bg-terra-200 md:block"></div>
@@ -256,17 +236,16 @@ export default function About() {
                         {/* CTA */}
                         <div className="rounded-sm bg-teal-700 p-12 text-center text-white">
                             <h2 className="mb-4 font-serif text-3xl">
-                                Siap Wujudkan Hunian Impian?
+                                {t('shop.about.cta_title')}
                             </h2>
                             <p className="mx-auto mb-8 max-w-xl opacity-80">
-                                Konsultasikan kebutuhan furniture Anda dengan
-                                tim kami
+                                {t('shop.about.cta_subtitle')}
                             </p>
                             <a
                                 href="/shop/products"
                                 className="inline-flex items-center gap-2 rounded-sm bg-white px-8 py-4 font-medium text-teal-700 transition-colors hover:bg-teal-50"
                             >
-                                Lihat Koleksi Kami
+                                {t('shop.about.cta_button')}
                             </a>
                         </div>
                     </div>

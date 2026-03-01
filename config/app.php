@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Artisan Web Token
+    |--------------------------------------------------------------------------
+    |
+    | This token is used to protect artisan routes that can be accessed via
+    | web browser (useful for cPanel deployments without SSH access).
+    | Set this to a random string in your .env file.
+    |
+    */
+
+    'artisan_token' => env('ARTISAN_TOKEN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

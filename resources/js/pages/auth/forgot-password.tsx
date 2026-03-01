@@ -6,15 +6,18 @@ import { LoaderCircle } from 'lucide-react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/hooks/use-translation';
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function ForgotPassword({ status }: { status?: string }) {
+    const { t } = useTranslation();
+
     return (
         <AuthLayout
-            title="Lupa Kata Sandi?"
-            description="Masukkan email Anda untuk menerima link reset kata sandi"
+            title={t('auth.forgot_password.title')}
+            description={t('auth.forgot_password.description')}
         >
-            <Head title="Lupa Kata Sandi" />
+            <Head title={t('auth.forgot_password.page_title')} />
 
             {status && (
                 <div className="mb-6 text-center text-sm font-medium text-green-600 bg-green-50 py-3 px-4 rounded-lg border border-green-200">
@@ -28,7 +31,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                         <>
                             <div className="grid gap-2">
                                 <Label htmlFor="email" className="text-terra-700 font-medium">
-                                    Alamat Email
+                                    {t('auth.forgot_password.email_label')}
                                 </Label>
                                 <input
                                     id="email"
@@ -36,7 +39,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     name="email"
                                     autoComplete="off"
                                     autoFocus
-                                    placeholder="Masukkan alamat email"
+                                    placeholder={t('auth.forgot_password.email_placeholder')}
                                     className="w-full px-4 py-3 rounded-xl border border-terra-200 bg-sand-50 text-terra-900 placeholder:text-terra-400 focus:outline-none focus:ring-2 focus:ring-wood/50 focus:border-wood transition-all"
                                 />
                                 <InputError message={errors.email} />
@@ -52,7 +55,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     {processing && (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     )}
-                                    Kirim Link Reset
+                                    {t('auth.forgot_password.submit')}
                                 </button>
                             </div>
                         </>
@@ -60,12 +63,12 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </Form>
 
                 <div className="text-center text-sm text-terra-500">
-                    <span>Atau kembali ke </span>
+                    <span>{t('auth.forgot_password.back_to_login')} </span>
                     <TextLink
                         href={login()}
                         className="text-wood font-medium hover:text-wood-dark transition-colors"
                     >
-                        halaman masuk
+                        {t('auth.forgot_password.login_page')}
                     </TextLink>
                 </div>
             </div>

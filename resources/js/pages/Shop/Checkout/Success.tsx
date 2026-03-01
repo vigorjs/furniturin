@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Order } from '@/types';
+import { useTranslation } from '@/hooks/use-translation';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
   CheckCircle2,
@@ -26,6 +27,7 @@ interface Props {
 
 export default function Success({ order }: Props) {
   const { flash } = usePage().props;
+  const { t } = useTranslation();
   const { state: alertState, showAlert, closeAlert } = useAlertDialog();
 
   useEffect(() => {
@@ -63,12 +65,12 @@ export default function Success({ order }: Props) {
         <div className="mb-4 rounded-full bg-red-100 p-4">
           <ShoppingBag className="h-12 w-12 text-red-600" />
         </div>
-        <h1 className="mb-2 text-2xl font-bold">Pesanan Tidak Ditemukan</h1>
+        <h1 className="mb-2 text-2xl font-bold">{t('shop.orders.no_orders')}</h1>
         <p className="mb-8 text-gray-600">
           Maaf, kami tidak dapat menemukan informasi pesanan Anda.
         </p>
         <Link href={route('shop.home')}>
-          <Button>Kembali ke Beranda</Button>
+          <Button>{t('common.home')}</Button>
         </Link>
       </div>
     );
@@ -97,7 +99,7 @@ export default function Success({ order }: Props) {
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-16">
-      <Head title="Pesanan Berhasil" />
+      <Head title={t('shop.checkout_success.title')} />
 
       <div className="mx-auto max-w-2xl">
         <div className="mb-8 text-center">
@@ -105,7 +107,7 @@ export default function Success({ order }: Props) {
             <CheckCircle2 className="h-10 w-10 text-teal-600" />
           </div>
           <h1 className="mb-2 text-3xl font-bold text-gray-900">
-            Terima Kasih!
+            {t('shop.checkout_success.thank_you')}
           </h1>
           <p className="text-lg text-gray-600">
             Pesanan Anda telah berhasil dibuat.
@@ -116,7 +118,7 @@ export default function Success({ order }: Props) {
           <CardHeader>
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <CardTitle>Detail Pesanan</CardTitle>
+                <CardTitle>{t('shop.orders.order_items')}</CardTitle>
                 <CardDescription>
                   Order ID: {order.order_number}
                 </CardDescription>
@@ -140,7 +142,7 @@ export default function Success({ order }: Props) {
             <div className="rounded-lg bg-gray-50 p-4">
               <h3 className="mb-2 flex items-center gap-2 font-semibold">
                 <CreditCard className="h-4 w-4" />
-                Metode Pembayaran
+                {t('shop.checkout.payment_method')}
               </h3>
               <p className="mb-2 text-sm text-gray-600">
                 {order.payment_method.label}

@@ -1,3 +1,4 @@
+import { useTranslation } from '@/hooks/use-translation';
 import { HeroSettings } from '@/types/shop';
 import { Link } from '@inertiajs/react';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -11,6 +12,7 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ settings }) => {
+    const { t } = useTranslation();
     const { scrollY } = useScroll();
     const opacity = useTransform(scrollY, [0, 400], [1, 0]);
     // Parallax effect: Image moves slower than content
@@ -74,7 +76,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ settings }) => {
                             href="/shop/products"
                             className="group inline-flex items-center gap-3 rounded-sm bg-white px-8 py-4 font-medium text-teal-500 shadow-lg transition-all duration-300 hover:bg-accent-500 hover:text-neutral-800"
                         >
-                            Explore Collection
+                            {t('shop.home.explore_collection')}
                             <ArrowRight
                                 size={18}
                                 className="transition-transform group-hover:translate-x-1"

@@ -20,13 +20,7 @@ enum PaymentStatus: string
      */
     public function label(): string
     {
-        return match ($this) {
-            self::PENDING => 'Menunggu Pembayaran',
-            self::PAID => 'Lunas',
-            self::FAILED => 'Gagal',
-            self::EXPIRED => 'Kadaluarsa',
-            self::REFUNDED => 'Dikembalikan',
-        };
+        return __('enums.payment_status.' . $this->value);
     }
 
     /**

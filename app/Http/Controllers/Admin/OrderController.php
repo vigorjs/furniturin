@@ -79,7 +79,7 @@ class OrderController extends Controller implements HasMiddleware
 
             return redirect()
                 ->route('admin.orders.show', $order)
-                ->with('success', 'Pesanan berhasil diperbarui.');
+                ->with('success', __('messages.order_updated'));
         } catch (\InvalidArgumentException $e) {
             return redirect()
                 ->route('admin.orders.show', $order)

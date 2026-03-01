@@ -1,4 +1,6 @@
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { NAV_ITEMS } from '@/data/constants';
+import { useTranslation } from '@/hooks/use-translation';
 import { SiteSettings } from '@/types';
 import { ApiCategory } from '@/types/shop';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -46,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
     }>().props;
     const siteName = siteSettings?.site_name || 'Furniturin';
     const user = auth?.user;
+    const { t } = useTranslation();
 
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -111,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 md:px-12">
                     {/* Logo */}
                     <div
-                        className="group flex flex-1 cursor-pointer items-center justify-start"
+                        className="group flex cursor-pointer items-center"
                         onClick={onLogoClick}
                     >
                         <img
@@ -122,20 +125,23 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Navigation Links */}
-                    <div className="hidden flex-none items-center gap-8 lg:flex">
+                    <div className="hidden flex-1 items-center justify-center gap-8 lg:flex">
                         {NAV_ITEMS.map((item) => (
                             <Link
-                                key={item.label}
+                                key={item.labelKey}
                                 href={item.href}
                                 className="text-sm font-medium text-neutral-600 transition-colors hover:text-teal-500"
                             >
-                                {item.label}
+                                {t(item.labelKey)}
                             </Link>
                         ))}
                     </div>
 
                     {/* Right Side Icons */}
-                    <div className="flex flex-1 items-center justify-end gap-1 md:gap-2">
+                    <div className="flex items-center justify-end gap-1 md:gap-2">
+                        {/* Language Switcher */}
+                        <LanguageSwitcher variant="toggle" className="hidden md:flex" />
+
                         {/* Search */}
                         <button
                             onClick={() => setSearchOpen(true)}
@@ -222,14 +228,14 @@ export const Header: React.FC<HeaderProps> = ({
                                             className="flex items-center gap-3 px-4 py-2.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-teal-500"
                                         >
                                             <Package size={18} />
-                                            <span>My Orders</span>
+                                            <span>{t('shop.header.my_orders')}</span>
                                         </Link>
                                         <Link
                                             href="/shop/wishlist"
                                             className="flex items-center gap-3 px-4 py-2.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-teal-500"
                                         >
                                             <Heart size={18} />
-                                            <span>Wishlist</span>
+                                            <span>{t('shop.header.wishlist')}</span>
                                         </Link>
                                         <Link
                                             href={
@@ -245,7 +251,7 @@ export const Header: React.FC<HeaderProps> = ({
                                             className="flex items-center gap-3 px-4 py-2.5 text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-teal-500"
                                         >
                                             <Settings size={18} />
-                                            <span>Settings</span>
+                                            <span>{t('shop.header.settings')}</span>
                                         </Link>
                                         <div className="mt-2 border-t border-neutral-100 pt-2">
                                             <button
@@ -253,7 +259,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 className="flex w-full items-center gap-3 px-4 py-2.5 text-red-600 transition-colors hover:bg-red-50"
                                             >
                                                 <LogOut size={18} />
-                                                <span>Logout</span>
+                                                <span>{t('common.logout')}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -265,7 +271,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 className="hidden items-center gap-2 rounded-sm bg-teal-500 px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-teal-600 md:flex"
                             >
                                 <User size={16} />
-                                <span>Sign In</span>
+                                <span>{t('shop.header.sign_in')}</span>
                             </Link>
                         )}
 
@@ -358,26 +364,26 @@ export const Header: React.FC<HeaderProps> = ({
                                                 {/* Column 1: Static Featured Links (To make it less "sepi") */}
                                                 <div className="col-span-1 space-y-4 border-r border-neutral-100 pr-6">
                                                     <h4 className="font-serif text-sm font-bold text-neutral-900">
-                                                        Featured
+                                                        {t('shop.header.featured')}
                                                     </h4>
                                                     <div className="space-y-3">
                                                         <Link
                                                             href="/shop/products?sort=-created_at"
                                                             className="block text-sm text-neutral-600 transition-all hover:translate-x-1 hover:text-teal-600"
                                                         >
-                                                            New Arrivals
+                                                            {t('shop.header.new_arrivals')}
                                                         </Link>
                                                         <Link
                                                             href="/shop/hot-sale"
                                                             className="block text-sm text-neutral-600 transition-all hover:translate-x-1 hover:text-teal-600"
                                                         >
-                                                            Best Sellers
+                                                            {t('shop.header.best_sellers')}
                                                         </Link>
                                                         <Link
                                                             href="/shop/clearance"
                                                             className="block text-sm text-red-600 transition-all hover:translate-x-1 hover:text-red-700"
                                                         >
-                                                            Sale & Clearance
+                                                            {t('shop.header.sale_clearance')}
                                                         </Link>
                                                     </div>
                                                 </div>
@@ -391,8 +397,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                         >
                                                             {idx === 0 && (
                                                                 <h4 className="font-serif text-sm font-bold text-neutral-900">
-                                                                    Shop
-                                                                    Category
+                                                                    {t('shop.header.shop_category')}
                                                                 </h4>
                                                             )}
                                                             {/* Spacer for second column alignment if needed, or just list */}
@@ -424,7 +429,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 ) : (
                                                     // Empty children fallback
                                                     <div className="col-span-2 flex items-center justify-center text-sm text-neutral-400 italic">
-                                                        No subcategories found.
+                                                        {t('shop.header.no_subcategories')}
                                                     </div>
                                                 )}
 
@@ -452,9 +457,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                                     }
                                                                 </p>
                                                                 <p className="text-xs text-neutral-500">
-                                                                    Lihat
-                                                                    Koleksi
-                                                                    Lengkap
+                                                                    {t('shop.header.view_full_collection')}
                                                                 </p>
                                                             </div>
                                                         </Link>
@@ -469,7 +472,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                                 href={`/shop/products?filter[category_id]=${activeCategory?.id}`}
                                                                 className="mt-2 text-sm font-medium text-teal-600 hover:text-teal-700"
                                                             >
-                                                                Belanja Sekarang{' '}
+                                                                {t('shop.header.shop_now')}{' '}
                                                                 &rarr;
                                                             </Link>
                                                         </div>
@@ -517,7 +520,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
-                                    placeholder="Search furniture..."
+                                    placeholder={t('shop.header.search_placeholder')}
                                     className="flex-1 text-lg outline-none placeholder:text-neutral-400"
                                 />
                                 <button
@@ -530,15 +533,7 @@ export const Header: React.FC<HeaderProps> = ({
                             </form>
                             <div className="border-t border-neutral-100 bg-neutral-50 px-5 py-3">
                                 <p className="text-xs text-neutral-500">
-                                    Press{' '}
-                                    <kbd className="rounded-sm bg-neutral-200 px-1.5 py-0.5 font-medium text-neutral-700">
-                                        Enter
-                                    </kbd>{' '}
-                                    to search or{' '}
-                                    <kbd className="rounded-sm bg-neutral-200 px-1.5 py-0.5 font-medium text-neutral-700">
-                                        Esc
-                                    </kbd>{' '}
-                                    to close
+                                    {t('shop.header.search_hint', { key: 'Enter', esc: 'Esc' })}
                                 </p>
                             </div>
                         </motion.div>
@@ -590,19 +585,19 @@ export const Header: React.FC<HeaderProps> = ({
                                 {/* Navigation Links */}
                                 <div className="mb-6">
                                     <h3 className="mb-3 text-xs font-semibold tracking-wide text-neutral-400 uppercase">
-                                        Menu
+                                        {t('shop.header.menu')}
                                     </h3>
                                     <div className="space-y-1">
                                         {NAV_ITEMS.map((item) => (
                                             <Link
-                                                key={item.label}
+                                                key={item.labelKey}
                                                 href={item.href}
                                                 onClick={() =>
                                                     setMobileMenuOpen(false)
                                                 }
                                                 className="block rounded-sm px-3 py-2.5 font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-teal-500"
                                             >
-                                                {item.label}
+                                                {t(item.labelKey)}
                                             </Link>
                                         ))}
                                     </div>
@@ -612,7 +607,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 {featuredCategories.length > 0 && (
                                     <div className="mb-6">
                                         <h3 className="mb-3 text-xs font-semibold tracking-wide text-neutral-400 uppercase">
-                                            Kategori
+                                            {t('shop.header.categories')}
                                         </h3>
                                         <div className="space-y-1">
                                             {featuredCategories.map(
@@ -671,7 +666,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-neutral-600 hover:bg-neutral-50 hover:text-teal-500"
                                             >
                                                 <Package size={18} />
-                                                <span>Pesanan Saya</span>
+                                                <span>{t('shop.header.my_orders')}</span>
                                             </Link>
                                             <Link
                                                 href="/shop/wishlist"
@@ -681,7 +676,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-neutral-600 hover:bg-neutral-50 hover:text-teal-500"
                                             >
                                                 <Heart size={18} />
-                                                <span>Wishlist</span>
+                                                <span>{t('shop.header.wishlist')}</span>
                                                 {(wishlistCount ?? 0) > 0 && (
                                                     <span className="ml-auto rounded-full bg-teal-500 px-2 py-0.5 text-xs font-medium text-white">
                                                         {wishlistCount}
@@ -707,7 +702,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-neutral-600 hover:bg-neutral-50 hover:text-teal-500"
                                             >
                                                 <Settings size={18} />
-                                                <span>Pengaturan</span>
+                                                <span>{t('shop.header.settings')}</span>
                                             </Link>
                                             <button
                                                 onClick={() => {
@@ -717,7 +712,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                 className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-red-600 hover:bg-red-50"
                                             >
                                                 <LogOut size={18} />
-                                                <span>Logout</span>
+                                                <span>{t('common.logout')}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -731,7 +726,7 @@ export const Header: React.FC<HeaderProps> = ({
                                             className="flex w-full items-center justify-center gap-2 rounded-sm bg-teal-500 px-5 py-3 font-medium text-white transition-colors hover:bg-teal-600"
                                         >
                                             <User size={18} />
-                                            <span>Masuk / Daftar</span>
+                                            <span>{t('shop.header.sign_in_register')}</span>
                                         </Link>
                                     </div>
                                 )}

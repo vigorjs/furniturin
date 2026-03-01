@@ -93,7 +93,7 @@ class ProductController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'Produk berhasil ditambahkan.');
+            ->with('success', __('messages.product_created'));
     }
 
     public function show(Product $product): Response
@@ -149,7 +149,7 @@ class ProductController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'Produk berhasil diperbarui.');
+            ->with('success', __('messages.product_updated'));
     }
 
     public function destroy(Product $product, DeleteProductAction $action): RedirectResponse
@@ -158,6 +158,6 @@ class ProductController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'Produk berhasil dihapus.');
+            ->with('success', __('messages.product_deleted'));
     }
 }
