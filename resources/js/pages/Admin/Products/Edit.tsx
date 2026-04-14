@@ -1,7 +1,17 @@
+import { Combobox } from '@/components/ui/combobox';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { compressImage } from '@/utils/image-compress';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Loader2, Star, Upload, X } from 'lucide-react';
+import {
+    ArrowLeft,
+    Globe,
+    Loader2,
+    Plus,
+    Star,
+    Trash2,
+    Upload,
+    X,
+} from 'lucide-react';
 import { useRef, useState } from 'react';
 
 interface Category {
@@ -11,7 +21,9 @@ interface Category {
 
 interface ProductImage {
     id: number;
+    image_url: string;
     url: string;
+    alt_text: string | null;
     is_primary: boolean;
 }
 
@@ -30,14 +42,33 @@ interface Product {
     name: string;
     slug: string;
     sku: string;
+    short_description: string | null;
     description: string | null;
     price: number;
+    compare_price: number | null;
+    cost_price: number | null;
     discount_percentage: number | null;
+    discount_starts_at: string | null;
+    discount_ends_at: string | null;
     stock_quantity: number;
+    low_stock_threshold: number;
+    track_stock: boolean;
+    allow_backorder: boolean;
+    is_pre_order: boolean;
+    weight: number | null;
+    dimensions: { length?: number; width?: number; height?: number } | null;
+    shipping_class: string | null;
+    material: string | null;
+    color: string | null;
+    specifications: Record<string, string> | null;
     category_id: number | null;
     status: { value: string; label: string };
     sale_type: { value: string; label: string };
     is_featured: boolean;
+    is_new_arrival: boolean;
+    meta_title: string | null;
+    meta_description: string | null;
+    meta_keywords: string | null;
     images: ProductImage[];
 }
 
@@ -46,6 +77,17 @@ interface EditProductProps {
     categories: Category[];
     statuses: StatusOption[];
     saleTypes: SaleTypeOption[];
+}
+
+function toDatetimeLocal(iso: string | null): string {
+    if (!iso) return '';
+    try {
+        const d = new Date(iso);
+        const pad = (n: number) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    } catch {
+        return '';
+    }
 }
 
 export default function EditProduct({
@@ -57,26 +99,67 @@ export default function EditProduct({
     const [existingImages, setExistingImages] = useState<ProductImage[]>(
         product.images || [],
     );
+    const [primaryImageId, setPrimaryImageId] = useState<number | null>(
+        product.images?.find((img) => img.is_primary)?.id ?? null,
+    );
     const [newImages, setNewImages] = useState<
         { file: File; preview: string }[]
     >([]);
     const [deleteImageIds, setDeleteImageIds] = useState<number[]>([]);
     const [isCompressing, setIsCompressing] = useState(false);
+    const [specifications, setSpecifications] = useState<
+        { key: string; value: string }[]
+    >(
+        product.specifications
+            ? Object.entries(product.specifications).map(([key, value]) => ({
+                  key,
+                  value,
+              }))
+            : [],
+    );
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, processing, errors } = useForm({
         name: product.name,
         sku: product.sku,
         category_id: String(product.category_id || ''),
+        short_description: product.short_description || '',
         description: product.description || '',
         price: String(product.price),
-        discount_percentage: product.discount_percentage
-            ? String(product.discount_percentage)
+        compare_price: product.compare_price
+            ? String(product.compare_price)
             : '',
+        cost_price: product.cost_price ? String(product.cost_price) : '',
         stock_quantity: String(product.stock_quantity),
+        low_stock_threshold: String(product.low_stock_threshold),
+        track_stock: product.track_stock,
+        allow_backorder: product.allow_backorder,
+        is_pre_order: product.is_pre_order ?? false,
+        weight: product.weight ? String(product.weight) : '',
+        length: product.dimensions?.length
+            ? String(product.dimensions.length)
+            : '',
+        width: product.dimensions?.width
+            ? String(product.dimensions.width)
+            : '',
+        height: product.dimensions?.height
+            ? String(product.dimensions.height)
+            : '',
+        shipping_class: product.shipping_class || '',
+        material: product.material || '',
+        color: product.color || '',
         status: product.status.value,
         sale_type: product.sale_type?.value || 'regular',
         is_featured: product.is_featured,
+        is_new_arrival: product.is_new_arrival ?? false,
+        discount_percentage: product.discount_percentage
+            ? String(product.discount_percentage)
+            : '',
+        discount_starts_at: toDatetimeLocal(product.discount_starts_at),
+        discount_ends_at: toDatetimeLocal(product.discount_ends_at),
+        meta_title: product.meta_title || '',
+        meta_description: product.meta_description || '',
+        meta_keywords: product.meta_keywords || '',
     });
 
     const handleImageChange = async (
@@ -110,6 +193,12 @@ export default function EditProduct({
     const removeExistingImage = (imageId: number) => {
         setDeleteImageIds((prev) => [...prev, imageId]);
         setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+        if (primaryImageId === imageId) {
+            const remaining = existingImages.filter(
+                (img) => img.id !== imageId,
+            );
+            setPrimaryImageId(remaining.length > 0 ? remaining[0].id : null);
+        }
     };
 
     const removeNewImage = (index: number) => {
@@ -121,23 +210,94 @@ export default function EditProduct({
         });
     };
 
+    const addSpecification = () => {
+        setSpecifications((prev) => [...prev, { key: '', value: '' }]);
+    };
+
+    const removeSpecification = (index: number) => {
+        setSpecifications((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const updateSpecification = (
+        index: number,
+        field: 'key' | 'value',
+        value: string,
+    ) => {
+        setSpecifications((prev) =>
+            prev.map((spec, i) =>
+                i === index ? { ...spec, [field]: value } : spec,
+            ),
+        );
+    };
+
+    const marginPercentage =
+        data.price && data.cost_price
+            ? (
+                  ((Number(data.price) - Number(data.cost_price)) /
+                      Number(data.price)) *
+                  100
+              ).toFixed(1)
+            : null;
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         const formData = new FormData();
         formData.append('_method', 'PUT');
 
-        // Append form data with proper type handling
         formData.append('name', data.name);
         formData.append('sku', data.sku);
         formData.append('category_id', data.category_id);
+        formData.append('short_description', data.short_description);
         formData.append('description', data.description);
         formData.append('price', data.price);
-        formData.append('discount_percentage', data.discount_percentage);
+        if (data.compare_price)
+            formData.append('compare_price', data.compare_price);
+        if (data.cost_price) formData.append('cost_price', data.cost_price);
         formData.append('stock_quantity', data.stock_quantity);
+        formData.append('low_stock_threshold', data.low_stock_threshold);
+        formData.append('track_stock', data.track_stock ? '1' : '0');
+        formData.append('allow_backorder', data.allow_backorder ? '1' : '0');
+        formData.append('is_pre_order', data.is_pre_order ? '1' : '0');
+        if (data.weight) formData.append('weight', data.weight);
+        if (data.length) formData.append('length', data.length);
+        if (data.width) formData.append('width', data.width);
+        if (data.height) formData.append('height', data.height);
+        if (data.shipping_class)
+            formData.append('shipping_class', data.shipping_class);
+        if (data.material) formData.append('material', data.material);
+        if (data.color) formData.append('color', data.color);
+
+        // Build specifications object
+        const specsObj: Record<string, string> = {};
+        specifications.forEach((spec) => {
+            if (spec.key.trim() && spec.value.trim()) {
+                specsObj[spec.key.trim()] = spec.value.trim();
+            }
+        });
+        if (Object.keys(specsObj).length > 0) {
+            formData.append('specifications', JSON.stringify(specsObj));
+        }
+
         formData.append('status', data.status);
         formData.append('sale_type', data.sale_type);
         formData.append('is_featured', data.is_featured ? '1' : '0');
+        formData.append('is_new_arrival', data.is_new_arrival ? '1' : '0');
+        if (data.discount_percentage)
+            formData.append('discount_percentage', data.discount_percentage);
+        if (data.discount_starts_at)
+            formData.append('discount_starts_at', data.discount_starts_at);
+        if (data.discount_ends_at)
+            formData.append('discount_ends_at', data.discount_ends_at);
+        if (data.meta_title) formData.append('meta_title', data.meta_title);
+        if (data.meta_description)
+            formData.append('meta_description', data.meta_description);
+        if (data.meta_keywords)
+            formData.append('meta_keywords', data.meta_keywords);
+
+        if (primaryImageId) {
+            formData.append('primary_image_id', String(primaryImageId));
+        }
 
         newImages.forEach((img) => {
             formData.append('images[]', img.file);
@@ -154,6 +314,10 @@ export default function EditProduct({
             },
         });
     };
+
+    const inputClass =
+        'w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all placeholder:text-terra-400 focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none';
+    const labelClass = 'mb-2 block text-sm font-medium text-terra-700';
 
     return (
         <AdminLayout
@@ -185,14 +349,14 @@ export default function EditProduct({
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Basic Info */}
+                    {/* 1. Informasi Umum */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
-                            Informasi Dasar
+                            Informasi Umum
                         </h2>
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div className="md:col-span-2">
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                <label className={labelClass}>
                                     Nama Produk *
                                 </label>
                                 <input
@@ -201,7 +365,7 @@ export default function EditProduct({
                                     onChange={(e) =>
                                         setData('name', e.target.value)
                                     }
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    className={inputClass}
                                 />
                                 {errors.name && (
                                     <p className="mt-1 text-sm text-red-500">
@@ -210,77 +374,484 @@ export default function EditProduct({
                                 )}
                             </div>
                             <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    SKU *
-                                </label>
+                                <label className={labelClass}>SKU *</label>
                                 <input
                                     type="text"
                                     value={data.sku}
                                     onChange={(e) =>
                                         setData('sku', e.target.value)
                                     }
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    className={inputClass}
                                 />
+                                {errors.sku && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.sku}
+                                    </p>
+                                )}
                             </div>
                             <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                <label className={labelClass}>
                                     Kategori *
                                 </label>
-                                <select
+                                <Combobox
+                                    options={categories.map((cat) => ({
+                                        value: String(cat.id),
+                                        label: cat.name,
+                                    }))}
                                     value={data.category_id}
-                                    onChange={(e) =>
-                                        setData('category_id', e.target.value)
+                                    onChange={(val) =>
+                                        setData('category_id', val)
                                     }
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                >
-                                    <option value="">Pilih kategori</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>
-                                            {cat.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    placeholder="Pilih kategori"
+                                    searchPlaceholder="Cari kategori..."
+                                    emptyText="Kategori tidak ditemukan."
+                                />
+                                {errors.category_id && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.category_id}
+                                    </p>
+                                )}
                             </div>
                             <div className="md:col-span-2">
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Deskripsi
+                                <label className={labelClass}>
+                                    Deskripsi Singkat
+                                </label>
+                                <textarea
+                                    value={data.short_description}
+                                    onChange={(e) =>
+                                        setData(
+                                            'short_description',
+                                            e.target.value.slice(0, 500),
+                                        )
+                                    }
+                                    rows={2}
+                                    className={inputClass + ' resize-none'}
+                                    placeholder="Ringkasan singkat tentang produk..."
+                                />
+                                <p className="mt-1 text-right text-xs text-terra-400">
+                                    {data.short_description.length}/500
+                                </p>
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className={labelClass}>
+                                    Deskripsi Lengkap
                                 </label>
                                 <textarea
                                     value={data.description}
                                     onChange={(e) =>
                                         setData('description', e.target.value)
                                     }
-                                    rows={4}
-                                    className="w-full resize-none rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
+                                    rows={5}
+                                    className={inputClass + ' resize-none'}
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {/* Images */}
+                    {/* 2. Harga */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
-                            Gambar Produk
+                            Harga
+                        </h2>
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                            <div>
+                                <label className={labelClass}>
+                                    Harga Jual *
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute top-1/2 left-4 -translate-y-1/2 text-sm text-terra-400">
+                                        Rp
+                                    </span>
+                                    <input
+                                        type="number"
+                                        value={data.price}
+                                        onChange={(e) =>
+                                            setData('price', e.target.value)
+                                        }
+                                        className={inputClass + ' pl-10'}
+                                        placeholder="0"
+                                    />
+                                </div>
+                                {errors.price && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.price}
+                                    </p>
+                                )}
+                            </div>
+                            <div>
+                                <label className={labelClass}>
+                                    Harga Coret
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute top-1/2 left-4 -translate-y-1/2 text-sm text-terra-400">
+                                        Rp
+                                    </span>
+                                    <input
+                                        type="number"
+                                        value={data.compare_price}
+                                        onChange={(e) =>
+                                            setData(
+                                                'compare_price',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={inputClass + ' pl-10'}
+                                        placeholder="0"
+                                    />
+                                </div>
+                                {errors.compare_price && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.compare_price}
+                                    </p>
+                                )}
+                            </div>
+                            <div>
+                                <label className={labelClass}>
+                                    Harga Modal
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute top-1/2 left-4 -translate-y-1/2 text-sm text-terra-400">
+                                        Rp
+                                    </span>
+                                    <input
+                                        type="number"
+                                        value={data.cost_price}
+                                        onChange={(e) =>
+                                            setData(
+                                                'cost_price',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={inputClass + ' pl-10'}
+                                        placeholder="0"
+                                    />
+                                </div>
+                                {marginPercentage && (
+                                    <p className="mt-1 text-xs text-terra-500">
+                                        Margin:{' '}
+                                        <span
+                                            className={
+                                                Number(marginPercentage) > 0
+                                                    ? 'text-green-600'
+                                                    : 'text-red-500'
+                                            }
+                                        >
+                                            {marginPercentage}%
+                                        </span>
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 3. Inventori */}
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <h2 className="mb-4 text-lg font-semibold text-terra-900">
+                            Inventori
+                        </h2>
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                            <div>
+                                <label className={labelClass}>
+                                    Jumlah Stok *
+                                </label>
+                                <input
+                                    type="number"
+                                    value={data.stock_quantity}
+                                    onChange={(e) =>
+                                        setData(
+                                            'stock_quantity',
+                                            e.target.value,
+                                        )
+                                    }
+                                    className={inputClass}
+                                    placeholder="0"
+                                />
+                                {errors.stock_quantity && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.stock_quantity}
+                                    </p>
+                                )}
+                            </div>
+                            <div>
+                                <label className={labelClass}>
+                                    Batas Stok Rendah
+                                </label>
+                                <input
+                                    type="number"
+                                    value={data.low_stock_threshold}
+                                    onChange={(e) =>
+                                        setData(
+                                            'low_stock_threshold',
+                                            e.target.value,
+                                        )
+                                    }
+                                    className={inputClass}
+                                    placeholder="5"
+                                />
+                            </div>
+                            <div className="flex flex-col justify-end gap-3">
+                                <label className="flex cursor-pointer items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.track_stock}
+                                        onChange={(e) =>
+                                            setData(
+                                                'track_stock',
+                                                e.target.checked,
+                                            )
+                                        }
+                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
+                                    />
+                                    <span className="text-sm text-terra-700">
+                                        Lacak Stok
+                                    </span>
+                                </label>
+                                <label className="flex cursor-pointer items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.allow_backorder}
+                                        onChange={(e) =>
+                                            setData(
+                                                'allow_backorder',
+                                                e.target.checked,
+                                            )
+                                        }
+                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
+                                    />
+                                    <span className="text-sm text-terra-700">
+                                        Izinkan Backorder
+                                    </span>
+                                </label>
+                                <label className="flex cursor-pointer items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.is_pre_order}
+                                        onChange={(e) =>
+                                            setData(
+                                                'is_pre_order',
+                                                e.target.checked,
+                                            )
+                                        }
+                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
+                                    />
+                                    <span className="text-sm text-terra-700">
+                                        Produk Pre-Order
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 4. Pengiriman */}
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <h2 className="mb-4 text-lg font-semibold text-terra-900">
+                            Pengiriman
+                        </h2>
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label className={labelClass}>Berat (kg)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={data.weight}
+                                    onChange={(e) =>
+                                        setData('weight', e.target.value)
+                                    }
+                                    className={inputClass}
+                                    placeholder="0.00"
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>
+                                    Kelas Pengiriman
+                                </label>
+                                <Combobox
+                                    options={[
+                                        { value: 'free_shipping', label: 'Gratis Ongkir' },
+                                        { value: 'flat_rate', label: 'Tarif Tetap' },
+                                        { value: 'local_pickup', label: 'Ambil di Tempat' },
+                                    ]}
+                                    value={data.shipping_class}
+                                    onChange={(val) =>
+                                        setData('shipping_class', val)
+                                    }
+                                    placeholder="Tidak ada"
+                                    searchPlaceholder="Cari kelas pengiriman..."
+                                    emptyText="Tidak ditemukan."
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className={labelClass}>
+                                    Dimensi (cm)
+                                </label>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={data.length}
+                                        onChange={(e) =>
+                                            setData('length', e.target.value)
+                                        }
+                                        className={inputClass}
+                                        placeholder="Panjang"
+                                    />
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={data.width}
+                                        onChange={(e) =>
+                                            setData('width', e.target.value)
+                                        }
+                                        className={inputClass}
+                                        placeholder="Lebar"
+                                    />
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={data.height}
+                                        onChange={(e) =>
+                                            setData('height', e.target.value)
+                                        }
+                                        className={inputClass}
+                                        placeholder="Tinggi"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 5. Atribut */}
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <h2 className="mb-4 text-lg font-semibold text-terra-900">
+                            Atribut
+                        </h2>
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div>
+                                <label className={labelClass}>Material</label>
+                                <input
+                                    type="text"
+                                    value={data.material}
+                                    onChange={(e) =>
+                                        setData('material', e.target.value)
+                                    }
+                                    className={inputClass}
+                                    placeholder="Kayu Jati, MDF, dll"
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Warna</label>
+                                <input
+                                    type="text"
+                                    value={data.color}
+                                    onChange={(e) =>
+                                        setData('color', e.target.value)
+                                    }
+                                    className={inputClass}
+                                    placeholder="Coklat Tua, Natural, dll"
+                                />
+                            </div>
+                        </div>
+                        <div className="mt-6">
+                            <div className="mb-3 flex items-center justify-between">
+                                <label className={labelClass + ' mb-0'}>
+                                    Spesifikasi
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={addSpecification}
+                                    className="flex items-center gap-1 rounded-lg bg-terra-100 px-3 py-1.5 text-sm text-terra-700 transition-colors hover:bg-terra-200"
+                                >
+                                    <Plus className="h-4 w-4" /> Tambah
+                                </button>
+                            </div>
+                            {specifications.length > 0 ? (
+                                <div className="space-y-3">
+                                    {specifications.map((spec, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center gap-3"
+                                        >
+                                            <input
+                                                type="text"
+                                                value={spec.key}
+                                                onChange={(e) =>
+                                                    updateSpecification(
+                                                        index,
+                                                        'key',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className={inputClass}
+                                                placeholder="Nama (cth: Garansi)"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={spec.value}
+                                                onChange={(e) =>
+                                                    updateSpecification(
+                                                        index,
+                                                        'value',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                className={inputClass}
+                                                placeholder="Nilai (cth: 2 Tahun)"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    removeSpecification(index)
+                                                }
+                                                className="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-terra-400">
+                                    Belum ada spesifikasi. Klik tombol "Tambah"
+                                    untuk menambahkan.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 6. Media */}
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <h2 className="mb-4 text-lg font-semibold text-terra-900">
+                            Media
                         </h2>
                         <div className="space-y-4">
                             {/* Existing Images */}
                             {existingImages.length > 0 && (
                                 <div>
                                     <p className="mb-3 text-sm text-terra-500">
-                                        Gambar Saat Ini
+                                        Gambar Saat Ini — Klik gambar untuk
+                                        jadikan utama
                                     </p>
                                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                                         {existingImages.map((img) => (
                                             <div
                                                 key={img.id}
-                                                className="group relative"
+                                                className={`group relative cursor-pointer rounded-xl border-2 transition-colors ${
+                                                    primaryImageId === img.id
+                                                        ? 'border-wood'
+                                                        : 'border-terra-100 hover:border-terra-300'
+                                                }`}
+                                                onClick={() =>
+                                                    setPrimaryImageId(img.id)
+                                                }
                                             >
                                                 <img
-                                                    src={img.url}
+                                                    src={
+                                                        img.image_url || img.url
+                                                    }
                                                     alt="Product"
-                                                    className="aspect-square w-full rounded-xl border border-terra-100 object-cover"
+                                                    className="aspect-square w-full rounded-xl object-cover"
                                                 />
-                                                {img.is_primary && (
+                                                {primaryImageId === img.id && (
                                                     <span className="absolute top-2 left-2 flex items-center gap-1 rounded-lg bg-wood px-2 py-1 text-xs text-white">
                                                         <Star className="h-3 w-3" />{' '}
                                                         Utama
@@ -288,11 +859,12 @@ export default function EditProduct({
                                                 )}
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         removeExistingImage(
                                                             img.id,
-                                                        )
-                                                    }
+                                                        );
+                                                    }}
                                                     className="absolute top-2 right-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
                                                 >
                                                     <X className="h-4 w-4" />
@@ -375,166 +947,233 @@ export default function EditProduct({
                         </div>
                     </div>
 
-                    {/* Pricing */}
+                    {/* 7. Status & Penjualan */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
-                            Harga & Stok
+                            Status & Penjualan
                         </h2>
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                             <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Harga *
-                                </label>
-                                <input
-                                    type="number"
-                                    value={data.price}
-                                    onChange={(e) =>
-                                        setData('price', e.target.value)
-                                    }
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Diskon (%)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={data.discount_percentage}
-                                    onChange={(e) =>
-                                        setData(
-                                            'discount_percentage',
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                    placeholder="0"
-                                    min="0"
-                                    max="100"
-                                    disabled={
-                                        ![
-                                            'clearance',
-                                            'stock_sale',
-                                            'hot_sale',
-                                        ].includes(data.sale_type)
-                                    }
-                                    title={
-                                        ![
-                                            'clearance',
-                                            'stock_sale',
-                                            'hot_sale',
-                                        ].includes(data.sale_type)
-                                            ? 'Aktifkan diskon di bagian Status & Tipe Penjualan'
-                                            : ''
-                                    }
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
-                                    Stok *
-                                </label>
-                                <input
-                                    type="number"
-                                    value={data.stock_quantity}
-                                    onChange={(e) =>
-                                        setData(
-                                            'stock_quantity',
-                                            e.target.value,
-                                        )
-                                    }
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Status & Tipe Penjualan */}
-                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
-                        <h2 className="mb-4 text-lg font-semibold text-terra-900">
-                            Status & Tipe Penjualan
-                        </h2>
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                <label className={labelClass}>
                                     Status Produk
                                 </label>
-                                <select
+                                <Combobox
+                                    options={statuses.map((s) => ({
+                                        value: s.value,
+                                        label: s.name,
+                                    }))}
                                     value={data.status}
-                                    onChange={(e) =>
-                                        setData('status', e.target.value)
+                                    onChange={(val) =>
+                                        setData('status', val)
                                     }
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                >
-                                    {statuses.map((s) => (
-                                        <option key={s.value} value={s.value}>
-                                            {s.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    placeholder="Pilih status"
+                                    searchPlaceholder="Cari status..."
+                                    emptyText="Status tidak ditemukan."
+                                />
                             </div>
                             <div>
-                                <label className="mb-2 block text-sm font-medium text-terra-700">
+                                <label className={labelClass}>
                                     Tipe Penjualan
                                 </label>
-                                <select
+                                <Combobox
+                                    options={saleTypes.map((t) => ({
+                                        value: t.value,
+                                        label: t.name,
+                                    }))}
                                     value={data.sale_type}
-                                    onChange={(e) =>
-                                        setData('sale_type', e.target.value)
+                                    onChange={(val) =>
+                                        setData('sale_type', val)
                                     }
-                                    className="w-full rounded-xl border border-terra-200 bg-sand-50 px-4 py-3 text-terra-900 transition-all focus:border-wood focus:ring-2 focus:ring-wood/50 focus:outline-none"
-                                >
-                                    {saleTypes.map((t) => (
-                                        <option key={t.value} value={t.value}>
-                                            {t.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    placeholder="Pilih tipe penjualan"
+                                    searchPlaceholder="Cari tipe penjualan..."
+                                    emptyText="Tipe tidak ditemukan."
+                                />
                             </div>
-                            <label className="flex cursor-pointer items-center gap-3 self-end pb-3">
-                                <input
-                                    type="checkbox"
-                                    checked={data.is_featured}
-                                    onChange={(e) =>
-                                        setData('is_featured', e.target.checked)
-                                    }
-                                    className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
-                                />
-                                <span className="text-terra-700">
-                                    Produk Unggulan
-                                </span>
-                            </label>
-                            <label className="flex cursor-pointer items-center gap-3 self-end pb-3">
-                                <input
-                                    type="checkbox"
-                                    checked={[
-                                        'clearance',
-                                        'stock_sale',
-                                        'hot_sale',
-                                    ].includes(data.sale_type)}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            if (
-                                                ![
-                                                    'clearance',
-                                                    'stock_sale',
-                                                    'hot_sale',
-                                                ].includes(data.sale_type)
-                                            ) {
-                                                setData(
-                                                    'sale_type',
-                                                    'stock_sale',
-                                                );
-                                            }
-                                        } else {
-                                            setData('sale_type', 'regular');
+                            <div className="flex flex-col justify-end gap-3">
+                                <label className="flex cursor-pointer items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.is_featured}
+                                        onChange={(e) =>
+                                            setData(
+                                                'is_featured',
+                                                e.target.checked,
+                                            )
                                         }
-                                    }}
-                                    className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
+                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
+                                    />
+                                    <span className="text-sm text-terra-700">
+                                        Produk Unggulan
+                                    </span>
+                                </label>
+                                <label className="flex cursor-pointer items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.is_new_arrival}
+                                        onChange={(e) =>
+                                            setData(
+                                                'is_new_arrival',
+                                                e.target.checked,
+                                            )
+                                        }
+                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
+                                    />
+                                    <span className="text-sm text-terra-700">
+                                        Produk Baru
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        {['clearance', 'stock_sale', 'hot_sale'].includes(
+                            data.sale_type,
+                        ) && (
+                            <div className="mt-6 grid grid-cols-1 gap-6 border-t border-terra-100 pt-6 md:grid-cols-3">
+                                <div>
+                                    <label className={labelClass}>
+                                        Diskon (%)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={data.discount_percentage}
+                                        onChange={(e) =>
+                                            setData(
+                                                'discount_percentage',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={inputClass}
+                                        placeholder="0"
+                                        min="0"
+                                        max="100"
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>
+                                        Mulai Diskon
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        value={data.discount_starts_at}
+                                        onChange={(e) =>
+                                            setData(
+                                                'discount_starts_at',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={inputClass}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>
+                                        Akhir Diskon
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        value={data.discount_ends_at}
+                                        onChange={(e) =>
+                                            setData(
+                                                'discount_ends_at',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={inputClass}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 8. SEO */}
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <div className="mb-4 flex items-center gap-2">
+                            <Globe className="h-5 w-5 text-terra-500" />
+                            <h2 className="text-lg font-semibold text-terra-900">
+                                SEO
+                            </h2>
+                        </div>
+                        <div className="grid grid-cols-1 gap-6">
+                            <div>
+                                <label className={labelClass}>
+                                    Meta Title
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.meta_title}
+                                    onChange={(e) =>
+                                        setData('meta_title', e.target.value)
+                                    }
+                                    className={inputClass}
+                                    placeholder="Judul halaman untuk mesin pencari"
+                                    maxLength={60}
                                 />
-                                <span className="text-terra-700">
-                                    Aktifkan Diskon
-                                </span>
-                            </label>
+                                <p className="mt-1 text-right text-xs text-terra-400">
+                                    {data.meta_title.length}/60
+                                </p>
+                            </div>
+                            <div>
+                                <label className={labelClass}>
+                                    Meta Description
+                                </label>
+                                <textarea
+                                    value={data.meta_description}
+                                    onChange={(e) =>
+                                        setData(
+                                            'meta_description',
+                                            e.target.value,
+                                        )
+                                    }
+                                    rows={2}
+                                    className={inputClass + ' resize-none'}
+                                    placeholder="Deskripsi singkat untuk mesin pencari"
+                                    maxLength={160}
+                                />
+                                <p className="mt-1 text-right text-xs text-terra-400">
+                                    {data.meta_description.length}/160
+                                </p>
+                            </div>
+                            <div>
+                                <label className={labelClass}>
+                                    Meta Keywords
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.meta_keywords}
+                                    onChange={(e) =>
+                                        setData(
+                                            'meta_keywords',
+                                            e.target.value,
+                                        )
+                                    }
+                                    className={inputClass}
+                                    placeholder="kata kunci 1, kata kunci 2, kata kunci 3"
+                                />
+                                <p className="mt-1 text-xs text-terra-400">
+                                    Pisahkan dengan koma
+                                </p>
+                            </div>
+
+                            {/* SERP Preview */}
+                            {(data.meta_title || data.name) && (
+                                <div className="rounded-xl bg-sand-50 p-4">
+                                    <p className="mb-2 text-xs font-medium text-terra-500">
+                                        Preview Google
+                                    </p>
+                                    <div className="space-y-1">
+                                        <p className="truncate text-lg text-blue-700">
+                                            {data.meta_title || data.name}
+                                        </p>
+                                        <p className="text-sm text-green-700">
+                                            furniturin.com/shop/products/
+                                            {product.slug}
+                                        </p>
+                                        <p className="line-clamp-2 text-sm text-terra-600">
+                                            {data.meta_description ||
+                                                data.short_description ||
+                                                'Deskripsi produk akan tampil di sini...'}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -210,6 +210,11 @@ export default function ProductShow({
                 }
                 keywords={
                     [
+                        ...(product.meta_keywords
+                            ? product.meta_keywords
+                                  .split(',')
+                                  .map((k: string) => k.trim())
+                            : []),
                         product.name,
                         product.category?.name || 'furnitur',
                         product.sku,
@@ -558,6 +563,26 @@ function ProductInfo({
                     {product.short_description}
                 </p>
             )}
+            {(product.material || product.color) && (
+                <div className="flex flex-wrap gap-4 text-sm">
+                    {product.material && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-neutral-500">Material:</span>
+                            <span className="font-medium text-neutral-900">
+                                {product.material}
+                            </span>
+                        </div>
+                    )}
+                    {product.color && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-neutral-500">Warna:</span>
+                            <span className="font-medium text-neutral-900">
+                                {product.color}
+                            </span>
+                        </div>
+                    )}
+                </div>
+            )}
             <div className="flex items-center gap-2">
                 {product.is_in_stock ? (
                     <>
@@ -694,6 +719,59 @@ function ProductInfo({
                     <p className="text-xs text-neutral-500">Syarat Berlaku</p>
                 </div>
             </div>
+            {(product.weight ||
+                product.dimensions?.length ||
+                product.shipping_class) && (
+                <div className="border-t border-neutral-100 pt-6">
+                    <h3 className="mb-4 font-medium text-neutral-900">
+                        Informasi Pengiriman
+                    </h3>
+                    <dl className="grid grid-cols-2 gap-3 text-sm">
+                        {product.weight && (
+                            <div className="flex">
+                                <dt className="w-24 flex-shrink-0 text-neutral-500">
+                                    Berat
+                                </dt>
+                                <dd className="text-neutral-900">
+                                    {product.weight} kg
+                                </dd>
+                            </div>
+                        )}
+                        {(product.dimensions?.length ||
+                            product.dimensions?.width ||
+                            product.dimensions?.height) && (
+                            <div className="flex">
+                                <dt className="w-24 flex-shrink-0 text-neutral-500">
+                                    Dimensi
+                                </dt>
+                                <dd className="text-neutral-900">
+                                    {product.dimensions.length || 0} x{' '}
+                                    {product.dimensions.width || 0} x{' '}
+                                    {product.dimensions.height || 0} cm
+                                </dd>
+                            </div>
+                        )}
+                        {product.shipping_class && (
+                            <div className="flex">
+                                <dt className="w-24 flex-shrink-0 text-neutral-500">
+                                    Pengiriman
+                                </dt>
+                                <dd className="text-neutral-900">
+                                    {product.shipping_class === 'free_shipping'
+                                        ? 'Gratis Ongkir'
+                                        : product.shipping_class ===
+                                            'flat_rate'
+                                          ? 'Tarif Tetap'
+                                          : product.shipping_class ===
+                                              'local_pickup'
+                                            ? 'Ambil di Tempat'
+                                            : product.shipping_class}
+                                </dd>
+                            </div>
+                        )}
+                    </dl>
+                </div>
+            )}
             {product.specifications &&
                 Object.keys(product.specifications).length > 0 && (
                     <div className="border-t border-neutral-100 pt-6">

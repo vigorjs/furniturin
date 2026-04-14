@@ -14,19 +14,29 @@ use Illuminate\Support\Str;
 class UpdateProductAction
 {
     /**
-     * @param array<string, mixed> $data
-     * @param array<int, UploadedFile> $newImages
-     * @param array<int, int> $deleteImageIds
+     * @param  array<string, mixed>  $data
+     * @param  array<int, UploadedFile>  $newImages
+     * @param  array<int, int>  $deleteImageIds
      */
     public function execute(Product $product, array $data, array $newImages = [], array $deleteImageIds = []): Product
     {
         return DB::transaction(function () use ($product, $data, $newImages, $deleteImageIds) {
+            // Extract primary_image_id before updating product
+            $primaryImageId = $data['primary_image_id'] ?? null;
+            unset($data['primary_image_id']);
+
             // Generate slug if name changed and slug not provided
             if (isset($data['name']) && ! isset($data['slug'])) {
                 $data['slug'] = Str::slug($data['name']).'-'.Str::random(5);
             }
 
             $product->update($data);
+
+            // Set primary image
+            if ($primaryImageId) {
+                $product->images()->update(['is_primary' => false]);
+                $product->images()->where('id', $primaryImageId)->update(['is_primary' => true]);
+            }
 
             // Delete specified images
             if (! empty($deleteImageIds)) {
@@ -58,4 +68,3 @@ class UpdateProductAction
         });
     }
 }
-

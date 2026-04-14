@@ -27,6 +27,10 @@ class ProductResource extends JsonResource
             'specifications' => $this->specifications,
             'price' => $this->price,
             'price_formatted' => $this->formatted_price,
+            'compare_price' => $this->compare_price,
+            'compare_price_formatted' => $this->compare_price ? format_rupiah($this->compare_price) : null,
+            'cost_price' => $this->cost_price,
+            'cost_price_formatted' => $this->cost_price ? format_rupiah($this->cost_price) : null,
             'discount_percentage' => $this->discount_percentage,
             'discount_starts_at' => $this->discount_starts_at?->toISOString(),
             'discount_ends_at' => $this->discount_ends_at?->toISOString(),
@@ -36,10 +40,14 @@ class ProductResource extends JsonResource
             'stock_quantity' => $this->stock_quantity,
             'low_stock_threshold' => $this->low_stock_threshold,
             'track_stock' => $this->track_stock,
+            'allow_backorder' => $this->allow_backorder,
+            'is_pre_order' => $this->is_pre_order,
             'is_in_stock' => $this->isInStock(),
             'is_low_stock' => $this->isLowStock(),
+            'is_new_arrival' => $this->is_new_arrival,
             'weight' => $this->weight,
             'dimensions' => $this->dimensions,
+            'shipping_class' => $this->shipping_class,
             'status' => [
                 'value' => $this->status->value,
                 'label' => $this->status->label(),
@@ -53,8 +61,11 @@ class ProductResource extends JsonResource
             'review_count' => $this->review_count,
             'view_count' => $this->view_count,
             'sold_count' => $this->sold_count,
+            'material' => $this->material,
+            'color' => $this->color,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
+            'meta_keywords' => $this->meta_keywords,
             'category' => $this->relationLoaded('category') && $this->category
                 ? (new CategoryResource($this->category))->resolve()
                 : null,
@@ -74,9 +85,9 @@ class ProductResource extends JsonResource
                 ->selectRaw('rating as star, count(*) as count')
                 ->groupBy('star')
                 ->get()
-                ->map(fn($item) => [
+                ->map(fn ($item) => [
                     'star' => (int) $item->star,
-                    'count' => (int) $item->count
+                    'count' => (int) $item->count,
                 ])
                 ->values() // Ensure it's a list, not keyed object
                 ->toArray(),

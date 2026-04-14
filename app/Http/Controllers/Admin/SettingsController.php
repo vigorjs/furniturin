@@ -9,6 +9,7 @@ use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -78,6 +79,7 @@ class SettingsController extends Controller
                 'hero_title_highlight' => $settings["hero_title_highlight_{$locale}"] ?? $settings['hero_title_highlight'] ?? ($locale === 'en' ? 'breathes.' : 'bernafas.'),
                 'hero_description' => $settings["hero_description_{$locale}"] ?? $settings['hero_description'] ?? ($locale === 'en' ? 'Minimalist furniture from sustainable materials. Made for those who find luxury in simplicity.' : 'Furniture minimalis dari bahan berkelanjutan. Dibuat untuk mereka yang menemukan kemewahan dalam kesederhanaan.'),
                 'hero_image_main' => $settings['hero_image_main'] ?? '/images/placeholder-hero.svg',
+                'hero_media_type' => $settings['hero_media_type'] ?? 'image',
                 'hero_product_name' => $settings["hero_product_name_{$locale}"] ?? $settings['hero_product_name'] ?? ($locale === 'en' ? 'Premium Lounge Chair' : 'Kursi Santai Premium'),
                 // Trust Logos (JSON array, not locale-specific)
                 'trust_logos' => $settings['trust_logos'] ?? json_encode([
@@ -91,7 +93,10 @@ class SettingsController extends Controller
                     ['icon' => 'truck', 'title' => 'Gratis Pengiriman', 'desc' => 'Pengiriman gratis untuk pembelian di atas Rp 5 juta ke seluruh Indonesia.'],
                     ['icon' => 'shield-check', 'title' => 'Garansi Selamanya', 'desc' => 'Garansi seumur hidup untuk semua kerusakan struktural karena kami percaya dengan kualitas kami.'],
                 ]),
+                // Carousel Banners (JSON array, not locale-specific)
+                'carousel_banners' => $settings['carousel_banners'] ?? json_encode([]),
                 // Section visibility (not locale-specific)
+                'section_carousel_banners_visible' => filter_var($settings['section_carousel_banners_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_hero_visible' => filter_var($settings['section_hero_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_trust_visible' => filter_var($settings['section_trust_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'section_categories_visible' => filter_var($settings['section_categories_visible'] ?? true, FILTER_VALIDATE_BOOLEAN),
@@ -115,10 +120,17 @@ class SettingsController extends Controller
             'hero_title_highlight' => ['nullable', 'string', 'max:100'],
             'hero_description' => ['nullable', 'string', 'max:500'],
             'hero_image_main' => ['nullable', 'string', 'max:500'],
+            'hero_media_file' => ['nullable', 'file', 'max:51200', 'mimes:jpg,jpeg,png,webp,gif,mp4,webm'],
+            'hero_media_type' => ['nullable', 'string', 'in:image,video'],
             'hero_product_name' => ['nullable', 'string', 'max:100'],
             'trust_logos' => ['nullable', 'string'],
             'home_values' => ['nullable', 'string'],
+            // Carousel banners
+            'carousel_banners' => ['nullable', 'string'],
+            'carousel_banner_files' => ['nullable', 'array'],
+            'carousel_banner_files.*' => ['nullable', 'file', 'max:10240', 'mimes:jpg,jpeg,png,webp,gif'],
             // Section visibility
+            'section_carousel_banners_visible' => ['required', 'boolean'],
             'section_hero_visible' => ['required', 'boolean'],
             'section_trust_visible' => ['required', 'boolean'],
             'section_categories_visible' => ['required', 'boolean'],
@@ -130,6 +142,55 @@ class SettingsController extends Controller
         ]);
 
         $locale = app()->getLocale();
+
+        // Handle hero media file upload
+        if ($request->hasFile('hero_media_file')) {
+            $file = $request->file('hero_media_file');
+
+            // Delete old uploaded file if it exists
+            $this->deleteOldHeroFile();
+
+            // Store new file
+            $path = $file->store('settings/hero', 'public');
+            $validated['hero_image_main'] = '/storage/' . $path;
+
+            // Auto-detect media type from MIME
+            $mime = $file->getMimeType();
+            $validated['hero_media_type'] = str_starts_with($mime, 'video/') ? 'video' : 'image';
+        } elseif (!empty($validated['hero_image_main'])) {
+            // URL mode — clean up old uploaded file
+            $this->deleteOldHeroFile();
+
+            // Auto-detect media type from URL extension
+            $ext = strtolower(pathinfo(parse_url($validated['hero_image_main'], PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
+            if (in_array($ext, ['mp4', 'webm'])) {
+                $validated['hero_media_type'] = 'video';
+            } elseif (!isset($validated['hero_media_type'])) {
+                $validated['hero_media_type'] = 'image';
+            }
+        }
+
+        // Remove file field from validated data before saving to settings
+        unset($validated['hero_media_file']);
+
+        // Handle carousel banner file uploads
+        if (isset($validated['carousel_banners'])) {
+            $banners = json_decode($validated['carousel_banners'], true) ?? [];
+            $bannerFiles = $request->file('carousel_banner_files', []);
+
+            foreach ($bannerFiles as $index => $file) {
+                if ($file && isset($banners[$index])) {
+                    $path = $file->store('settings/carousel', 'public');
+                    $banners[$index]['image_url'] = '/storage/' . $path;
+                }
+            }
+
+            // Cleanup orphaned carousel images
+            $this->cleanupCarouselImages($banners);
+
+            $validated['carousel_banners'] = json_encode($banners);
+        }
+        unset($validated['carousel_banner_files']);
 
         // Keys that need locale-specific storage
         $localeKeys = [
@@ -161,6 +222,37 @@ class SettingsController extends Controller
         Cache::forget("site_settings.en");
 
         return back()->with('success', __('messages.homepage_settings_saved'));
+    }
+
+    /**
+     * Delete old hero file from storage if it was an uploaded file.
+     */
+    private function deleteOldHeroFile(): void
+    {
+        $oldPath = Setting::get('hero_image_main', '');
+        if (str_starts_with($oldPath, '/storage/settings/hero/')) {
+            $relativePath = str_replace('/storage/', '', $oldPath);
+            Storage::disk('public')->delete($relativePath);
+        }
+    }
+
+    /**
+     * Delete orphaned carousel images from storage.
+     */
+    private function cleanupCarouselImages(array $newBanners): void
+    {
+        $oldBannersJson = Setting::get('carousel_banners', '[]');
+        $oldBanners = json_decode($oldBannersJson, true) ?? [];
+
+        $newImageUrls = array_column($newBanners, 'image_url');
+
+        foreach ($oldBanners as $oldBanner) {
+            $url = $oldBanner['image_url'] ?? '';
+            if (str_starts_with($url, '/storage/settings/carousel/') && !in_array($url, $newImageUrls)) {
+                $relativePath = str_replace('/storage/', '', $url);
+                Storage::disk('public')->delete($relativePath);
+            }
+        }
     }
 
     /**

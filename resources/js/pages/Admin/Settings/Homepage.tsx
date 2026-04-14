@@ -1,25 +1,41 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { compressImage } from '@/utils/image-compress';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
   BookOpen,
   ChevronLeft,
   Eye,
   EyeOff,
+  Film,
   Globe,
   Home,
+  ArrowDown,
+  ArrowUp,
   Image,
   LayoutGrid,
+  Link as LinkIcon,
+  Loader2,
   Mail,
   MessageSquare,
   Plus,
   Quote,
   Save,
   ShoppingBag,
+  SlidersHorizontal,
   Trash2,
   Type,
+  Upload,
   Users,
+  X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+
+interface CarouselBanner {
+  id: string;
+  image_url: string;
+  link?: string;
+  sort_order: number;
+}
 
 interface HomepageSettingsProps {
   locale: string;
@@ -29,10 +45,13 @@ interface HomepageSettingsProps {
     hero_title_highlight: string;
     hero_description: string;
     hero_image_main: string;
+    hero_media_type: 'image' | 'video';
     hero_product_name: string;
     trust_logos: string;
     home_values: string;
+    carousel_banners: string;
     // Section visibility
+    section_carousel_banners_visible: boolean;
     section_hero_visible: boolean;
     section_trust_visible: boolean;
     section_categories_visible: boolean;
@@ -57,6 +76,7 @@ interface TrustLogo {
 
 const SECTIONS = [
   { key: 'hero', label: 'Hero', icon: Home, desc: 'Banner utama' },
+  { key: 'carousel_banners', label: 'Carousel Banner', icon: SlidersHorizontal, desc: 'Banner carousel' },
   { key: 'trust', label: 'Trust Logos', icon: Users, desc: 'Logo media/brand' },
   {
     key: 'categories',
@@ -102,12 +122,33 @@ export default function HomepageSettings({ settings, locale }: HomepageSettingsP
   })();
   const initialValues = JSON.parse(settings.home_values || '[]');
 
+  const initialCarouselBanners: CarouselBanner[] = (() => {
+    try {
+      return JSON.parse(settings.carousel_banners || '[]');
+    } catch {
+      return [];
+    }
+  })();
+
   const [trustLogos, setTrustLogos] = useState<TrustLogo[]>(initialTrustLogos);
   const [values, setValues] = useState<ValueItem[]>(initialValues);
+  const [carouselBanners, setCarouselBanners] = useState<CarouselBanner[]>(initialCarouselBanners);
+  const [bannerFiles, setBannerFiles] = useState<Map<number, File>>(new Map());
+  const [bannerPreviews, setBannerPreviews] = useState<Map<number, string>>(new Map());
   const [newLogoName, setNewLogoName] = useState('');
   const [newLogoUrl, setNewLogoUrl] = useState('');
 
-  const { data, setData, post, processing } = useForm({
+  // Hero media state
+  const isUploadedFile = settings.hero_image_main.startsWith('/storage/settings/hero/');
+  const [heroMediaMode, setHeroMediaMode] = useState<'upload' | 'url'>(isUploadedFile ? 'upload' : 'url');
+  const [heroMediaFile, setHeroMediaFile] = useState<File | null>(null);
+  const [heroMediaPreview, setHeroMediaPreview] = useState<string>(isUploadedFile ? settings.hero_image_main : '');
+  const [heroMediaType, setHeroMediaType] = useState<'image' | 'video'>(settings.hero_media_type ?? 'image');
+  const [compressing, setCompressing] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data, setData, processing: _formProcessing } = useForm({
     hero_badge: settings.hero_badge,
     hero_title: settings.hero_title,
     hero_title_highlight: settings.hero_title_highlight,
@@ -116,7 +157,9 @@ export default function HomepageSettings({ settings, locale }: HomepageSettingsP
     hero_product_name: settings.hero_product_name,
     trust_logos: settings.trust_logos,
     home_values: settings.home_values,
+    carousel_banners: settings.carousel_banners,
     // Section visibility
+    section_carousel_banners_visible: settings.section_carousel_banners_visible ?? true,
     section_hero_visible: settings.section_hero_visible ?? true,
     section_trust_visible: settings.section_trust_visible ?? true,
     section_categories_visible: settings.section_categories_visible ?? true,
@@ -127,12 +170,169 @@ export default function HomepageSettings({ settings, locale }: HomepageSettingsP
     section_newsletter_visible: settings.section_newsletter_visible ?? true,
   });
 
+  const [processing, setProcessing] = useState(false);
+
+  const detectMediaType = (file: File): 'image' | 'video' => {
+    return file.type.startsWith('video/') ? 'video' : 'image';
+  };
+
+  const detectMediaTypeFromUrl = (url: string): 'image' | 'video' => {
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase() ?? '';
+    return ['mp4', 'webm'].includes(ext) ? 'video' : 'image';
+  };
+
+  const handleFileSelect = useCallback(async (file: File) => {
+    const type = detectMediaType(file);
+    setHeroMediaType(type);
+
+    if (type === 'image') {
+      setCompressing(true);
+      try {
+        const compressed = await compressImage(file, { maxSizeMB: 2, maxWidthOrHeight: 1920 });
+        setHeroMediaFile(compressed);
+        setHeroMediaPreview(URL.createObjectURL(compressed));
+      } finally {
+        setCompressing(false);
+      }
+    } else {
+      if (file.size > 50 * 1024 * 1024) {
+        alert('Video file must be under 50MB');
+        return;
+      }
+      setHeroMediaFile(file);
+      setHeroMediaPreview(URL.createObjectURL(file));
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  }, [handleFileSelect]);
+
+  const removeMedia = () => {
+    setHeroMediaFile(null);
+    setHeroMediaPreview('');
+    setHeroMediaType('image');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Update JSON strings before submit
-    setData('trust_logos', JSON.stringify(trustLogos));
-    setData('home_values', JSON.stringify(values));
-    post('/admin/settings/homepage');
+
+    const formData = new FormData();
+    formData.append('hero_badge', data.hero_badge);
+    formData.append('hero_title', data.hero_title);
+    formData.append('hero_title_highlight', data.hero_title_highlight);
+    formData.append('hero_description', data.hero_description);
+    formData.append('hero_product_name', data.hero_product_name);
+    formData.append('trust_logos', JSON.stringify(trustLogos));
+    formData.append('home_values', JSON.stringify(values));
+    formData.append('carousel_banners', JSON.stringify(carouselBanners));
+
+    // Carousel banner files
+    bannerFiles.forEach((file, index) => {
+      formData.append(`carousel_banner_files[${index}]`, file);
+    });
+
+    // Section visibility
+    formData.append('section_carousel_banners_visible', data.section_carousel_banners_visible ? '1' : '0');
+    formData.append('section_hero_visible', data.section_hero_visible ? '1' : '0');
+    formData.append('section_trust_visible', data.section_trust_visible ? '1' : '0');
+    formData.append('section_categories_visible', data.section_categories_visible ? '1' : '0');
+    formData.append('section_catalog_visible', data.section_catalog_visible ? '1' : '0');
+    formData.append('section_values_visible', data.section_values_visible ? '1' : '0');
+    formData.append('section_products_visible', data.section_products_visible ? '1' : '0');
+    formData.append('section_testimonials_visible', data.section_testimonials_visible ? '1' : '0');
+    formData.append('section_newsletter_visible', data.section_newsletter_visible ? '1' : '0');
+
+    // Hero media
+    if (heroMediaMode === 'upload' && heroMediaFile) {
+      formData.append('hero_media_file', heroMediaFile);
+      formData.append('hero_media_type', heroMediaType);
+    } else {
+      formData.append('hero_image_main', data.hero_image_main);
+      formData.append('hero_media_type', detectMediaTypeFromUrl(data.hero_image_main));
+    }
+
+    router.post('/admin/settings/homepage', formData, {
+      forceFormData: true,
+      onStart: () => setProcessing(true),
+      onFinish: () => setProcessing(false),
+    });
+  };
+
+  // Carousel banner handlers
+  const addBanner = () => {
+    if (carouselBanners.length >= 10) return;
+    const newBanner: CarouselBanner = {
+      id: Date.now().toString(),
+      image_url: '',
+      link: '',
+      sort_order: carouselBanners.length,
+    };
+    setCarouselBanners([...carouselBanners, newBanner]);
+  };
+
+  const removeBanner = (index: number) => {
+    const updated = carouselBanners.filter((_, i) => i !== index);
+    updated.forEach((b, i) => (b.sort_order = i));
+    setCarouselBanners(updated);
+    const newFiles = new Map(bannerFiles);
+    const newPreviews = new Map(bannerPreviews);
+    newFiles.delete(index);
+    newPreviews.delete(index);
+    // Re-index files/previews after removal
+    const reindexedFiles = new Map<number, File>();
+    const reindexedPreviews = new Map<number, string>();
+    let newIdx = 0;
+    for (let i = 0; i < carouselBanners.length; i++) {
+      if (i === index) continue;
+      if (bannerFiles.has(i)) reindexedFiles.set(newIdx, bannerFiles.get(i)!);
+      if (bannerPreviews.has(i)) reindexedPreviews.set(newIdx, bannerPreviews.get(i)!);
+      newIdx++;
+    }
+    setBannerFiles(reindexedFiles);
+    setBannerPreviews(reindexedPreviews);
+  };
+
+  const updateBanner = (index: number, field: keyof CarouselBanner, value: string) => {
+    const updated = [...carouselBanners];
+    updated[index] = { ...updated[index], [field]: value };
+    setCarouselBanners(updated);
+  };
+
+  const moveBanner = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= carouselBanners.length) return;
+    const updated = [...carouselBanners];
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+    updated.forEach((b, i) => (b.sort_order = i));
+    setCarouselBanners(updated);
+    // Swap files/previews too
+    const newFiles = new Map(bannerFiles);
+    const newPreviews = new Map(bannerPreviews);
+    const fileA = newFiles.get(index);
+    const fileB = newFiles.get(newIndex);
+    const previewA = newPreviews.get(index);
+    const previewB = newPreviews.get(newIndex);
+    if (fileA) newFiles.set(newIndex, fileA); else newFiles.delete(newIndex);
+    if (fileB) newFiles.set(index, fileB); else newFiles.delete(index);
+    if (previewA) newPreviews.set(newIndex, previewA); else newPreviews.delete(newIndex);
+    if (previewB) newPreviews.set(index, previewB); else newPreviews.delete(index);
+    setBannerFiles(newFiles);
+    setBannerPreviews(newPreviews);
+  };
+
+  const handleBannerFileSelect = async (index: number, file: File) => {
+    const compressed = await compressImage(file, { maxSizeMB: 2, maxWidthOrHeight: 1920 });
+    const newFiles = new Map(bannerFiles);
+    newFiles.set(index, compressed);
+    setBannerFiles(newFiles);
+    const newPreviews = new Map(bannerPreviews);
+    newPreviews.set(index, URL.createObjectURL(compressed));
+    setBannerPreviews(newPreviews);
   };
 
   // Trust logos handlers
@@ -355,35 +555,324 @@ export default function HomepageSettings({ settings, locale }: HomepageSettingsP
             </div>
           </div>
 
-          {/* Hero Images */}
+          {/* Hero Media */}
           <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50">
                 <Image className="h-5 w-5 text-purple-600" />
               </div>
-              <h2 className="text-lg font-semibold text-neutral-900">
-                Gambar Hero
-              </h2>
+              <div>
+                <h2 className="text-lg font-semibold text-neutral-900">
+                  Media Hero
+                </h2>
+                <p className="text-sm text-neutral-500">
+                  Upload gambar/video atau masukkan URL
+                </p>
+              </div>
             </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-neutral-700">
-                Gambar Utama (URL)
-              </label>
-              <input
-                type="url"
-                value={data.hero_image_main}
-                onChange={(e) => setData('hero_image_main', e.target.value)}
-                placeholder="https://..."
-                className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
-              />
-              {data.hero_image_main && (
-                <img
-                  src={data.hero_image_main}
-                  alt="Preview"
-                  className="mt-3 h-40 w-full rounded-lg object-cover"
+
+            {/* Mode Tabs */}
+            <div className="mb-4 flex gap-1 rounded-lg bg-neutral-100 p-1">
+              <button
+                type="button"
+                onClick={() => setHeroMediaMode('upload')}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+                  heroMediaMode === 'upload'
+                    ? 'bg-white text-neutral-900 shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-700'
+                }`}
+              >
+                <Upload size={16} />
+                Upload File
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeroMediaMode('url')}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+                  heroMediaMode === 'url'
+                    ? 'bg-white text-neutral-900 shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-700'
+                }`}
+              >
+                <LinkIcon size={16} />
+                URL
+              </button>
+            </div>
+
+            {/* Upload Mode */}
+            {heroMediaMode === 'upload' && (
+              <div>
+                {!heroMediaPreview ? (
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                    onDragLeave={() => setDragging(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-all ${
+                      dragging
+                        ? 'border-teal-400 bg-teal-50'
+                        : 'border-neutral-300 bg-neutral-50 hover:border-neutral-400 hover:bg-neutral-100'
+                    }`}
+                  >
+                    {compressing ? (
+                      <>
+                        <Loader2 className="mb-3 h-10 w-10 animate-spin text-teal-500" />
+                        <p className="text-sm font-medium text-neutral-600">Mengompresi gambar...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mb-3 h-10 w-10 text-neutral-400" />
+                        <p className="text-sm font-medium text-neutral-600">
+                          Drag & drop file di sini, atau klik untuk memilih
+                        </p>
+                        <p className="mt-1 text-xs text-neutral-400">
+                          Gambar (JPG, PNG, WebP, GIF) atau Video (MP4, WebM, maks 50MB)
+                        </p>
+                      </>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileSelect(file);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="relative overflow-hidden rounded-lg">
+                    {heroMediaType === 'video' ? (
+                      <video
+                        src={heroMediaPreview}
+                        controls
+                        className="h-48 w-full rounded-lg object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={heroMediaPreview}
+                        alt="Preview"
+                        className="h-48 w-full rounded-lg object-cover"
+                      />
+                    )}
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${
+                        heroMediaType === 'video'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {heroMediaType === 'video' ? <Film size={12} /> : <Image size={12} />}
+                        {heroMediaType === 'video' ? 'Video' : 'Image'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={removeMedia}
+                        className="rounded-full bg-red-500 p-1 text-white shadow-sm transition-colors hover:bg-red-600"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* URL Mode */}
+            {heroMediaMode === 'url' && (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-neutral-700">
+                  URL Gambar / Video
+                </label>
+                <input
+                  type="url"
+                  value={data.hero_image_main}
+                  onChange={(e) => {
+                    setData('hero_image_main', e.target.value);
+                    setHeroMediaType(detectMediaTypeFromUrl(e.target.value));
+                  }}
+                  placeholder="https://example.com/hero.jpg atau .mp4"
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-neutral-900 transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
                 />
-              )}
+                {data.hero_image_main && (
+                  <div className="mt-3">
+                    {detectMediaTypeFromUrl(data.hero_image_main) === 'video' ? (
+                      <video
+                        src={data.hero_image_main}
+                        controls
+                        className="h-48 w-full rounded-lg object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={data.hero_image_main}
+                        alt="Preview"
+                        className="h-48 w-full rounded-lg object-cover"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Carousel Banners */}
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50">
+                  <SlidersHorizontal className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Carousel Banner
+                  </h2>
+                  <p className="text-sm text-neutral-500">
+                    Banner carousel di bawah hero section (maks 10)
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={addBanner}
+                disabled={carouselBanners.length >= 10}
+                className="inline-flex items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-200 disabled:opacity-50"
+              >
+                <Plus size={16} />
+                Tambah Banner
+              </button>
             </div>
+
+            {carouselBanners.length === 0 ? (
+              <div className="rounded-lg border-2 border-dashed border-neutral-200 py-12 text-center">
+                <Image className="mx-auto mb-3 h-10 w-10 text-neutral-300" />
+                <p className="text-sm text-neutral-400">
+                  Belum ada banner. Klik "Tambah Banner" untuk memulai.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {carouselBanners.map((banner, index) => {
+                  const preview = bannerPreviews.get(index);
+                  const displayImage = preview || banner.image_url;
+                  return (
+                    <div
+                      key={banner.id}
+                      className="rounded-xl border border-neutral-100 bg-neutral-50 p-4"
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className="text-sm font-medium text-neutral-500">
+                          Banner {index + 1}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => moveBanner(index, 'up')}
+                            disabled={index === 0}
+                            className="rounded p-1 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-600 disabled:opacity-30"
+                            title="Pindah ke atas"
+                          >
+                            <ArrowUp size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveBanner(index, 'down')}
+                            disabled={index === carouselBanners.length - 1}
+                            className="rounded p-1 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-600 disabled:opacity-30"
+                            title="Pindah ke bawah"
+                          >
+                            <ArrowDown size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeBanner(index)}
+                            className="rounded p-1 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                            title="Hapus banner"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {/* Image upload / preview */}
+                        <div>
+                          <label className="mb-1 block text-xs text-neutral-500">
+                            Gambar
+                          </label>
+                          {displayImage ? (
+                            <div className="relative">
+                              <img
+                                src={displayImage}
+                                alt={`Banner ${index + 1}`}
+                                className="h-32 w-full rounded-lg object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  updateBanner(index, 'image_url', '');
+                                  const newFiles = new Map(bannerFiles);
+                                  newFiles.delete(index);
+                                  setBannerFiles(newFiles);
+                                  const newPreviews = new Map(bannerPreviews);
+                                  newPreviews.delete(index);
+                                  setBannerPreviews(newPreviews);
+                                }}
+                                className="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white shadow-sm hover:bg-red-600"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-white transition-colors hover:border-neutral-400 hover:bg-neutral-100">
+                              <Upload className="mb-1 h-6 w-6 text-neutral-400" />
+                              <span className="text-xs text-neutral-500">
+                                Upload gambar
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleBannerFileSelect(index, file);
+                                }}
+                              />
+                            </label>
+                          )}
+                          {/* URL fallback */}
+                          {!displayImage && (
+                            <input
+                              type="url"
+                              value={banner.image_url}
+                              onChange={(e) => updateBanner(index, 'image_url', e.target.value)}
+                              placeholder="Atau masukkan URL gambar"
+                              className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                            />
+                          )}
+                        </div>
+
+                        {/* Link input */}
+                        <div>
+                          <label className="mb-1 block text-xs text-neutral-500">
+                            Link (opsional)
+                          </label>
+                          <input
+                            type="url"
+                            value={banner.link || ''}
+                            onChange={(e) => updateBanner(index, 'link', e.target.value)}
+                            placeholder="https://example.com/promo"
+                            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
+                          />
+                          <p className="mt-1 text-xs text-neutral-400">
+                            Klik banner akan membuka link ini di tab baru
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Trust Logos */}

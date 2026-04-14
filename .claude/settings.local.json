@@ -16,7 +16,14 @@
       "Bash(npx tsc:*)",
       "Bash(./node_modules/.bin/tsc:*)",
       "Bash(npx:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(./vendor/bin/pint:*)",
+      "Bash(php -l:*)",
+      "Bash(composer require:*)",
+      "Bash(composer show:*)",
+      "Bash(php vendor/bin/pest:*)",
+      "Bash(rm -f C:/Users/Rani/furniturin/furniturin/app/Actions/Product/GenerateProductContentAction.php C:/Users/Rani/furniturin/furniturin/app/Http/Requests/Admin/GenerateAiContentRequest.php C:/Users/Rani/furniturin/furniturin/config/ai.php)",
+      "Bash(rm -rf \"C:/Users/Rani/furniturin/furniturin/app/Services/AI/\")"
     ]
   }
 }

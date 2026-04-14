@@ -1,11 +1,13 @@
 import {
   ApiCategory,
   ApiProduct,
+  CarouselBannerSlide,
   HeroSettings,
   HomeTestimonial,
   HomeValue,
 } from '@/types/shop';
 import { motion } from 'framer-motion';
+import { CarouselBannerSection } from './sections/CarouselBannerSection';
 import { CatalogSection } from './sections/CatalogSection';
 import { CategoriesSection } from './sections/CategoriesSection';
 import { HeroSection } from './sections/HeroSection';
@@ -17,6 +19,7 @@ import { ValuesSection } from './sections/ValuesSection';
 
 interface SectionVisibility {
   hero: boolean;
+  carousel_banners: boolean;
   trust: boolean;
   categories: boolean;
   catalog: boolean;
@@ -33,6 +36,7 @@ interface LandingViewProps {
   heroSettings: HeroSettings;
   trustLogos: string[] | { name: string; logo_url?: string }[];
   values: HomeValue[];
+  carouselBanners?: CarouselBannerSlide[];
   sectionVisibility?: SectionVisibility;
 }
 
@@ -43,11 +47,13 @@ export const LandingView: React.FC<LandingViewProps> = ({
   heroSettings,
   trustLogos,
   values,
+  carouselBanners,
   sectionVisibility,
 }) => {
   // Default all sections to visible
   const visibility = sectionVisibility ?? {
     hero: true,
+    carousel_banners: true,
     trust: true,
     categories: true,
     catalog: true,
@@ -65,6 +71,11 @@ export const LandingView: React.FC<LandingViewProps> = ({
       className="overflow-hidden"
     >
       {visibility.hero && <HeroSection settings={heroSettings} />}
+      {visibility.carousel_banners &&
+        carouselBanners &&
+        carouselBanners.length > 0 && (
+          <CarouselBannerSection banners={carouselBanners} />
+        )}
       {visibility.trust && <TrustSection logos={trustLogos} />}
       {visibility.categories && (
         <CategoriesSection categories={featuredCategories} />

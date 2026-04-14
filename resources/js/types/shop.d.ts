@@ -111,6 +111,10 @@ export interface ApiProduct {
     specifications: Record<string, string> | null;
     price: number;
     price_formatted: string;
+    compare_price: number | null;
+    compare_price_formatted: string | null;
+    cost_price: number | null;
+    cost_price_formatted: string | null;
     discount_percentage: number;
     discount_starts_at: string | null;
     discount_ends_at: string | null;
@@ -120,14 +124,20 @@ export interface ApiProduct {
     stock_quantity: number;
     low_stock_threshold: number;
     track_stock: boolean;
+    allow_backorder: boolean;
+    is_pre_order: boolean;
     is_in_stock: boolean;
     is_low_stock: boolean;
+    is_new_arrival: boolean;
     weight: number | null;
     dimensions: {
         length?: number;
         width?: number;
         height?: number;
     } | null;
+    shipping_class: string | null;
+    material: string | null;
+    color: string | null;
     status: {
         value: string;
         label: string;
@@ -143,6 +153,7 @@ export interface ApiProduct {
     sold_count: number;
     meta_title: string | null;
     meta_description: string | null;
+    meta_keywords: string | null;
     category?: ApiCategory;
     images?: ProductImage[];
     primary_image?: ProductImage | null;
@@ -206,6 +217,14 @@ export interface HeroSettings {
     image_main: string;
     image_secondary: string;
     product_name: string;
+    media_type: 'image' | 'video';
+}
+
+export interface CarouselBannerSlide {
+    id: string;
+    image_url: string;
+    link?: string;
+    sort_order: number;
 }
 
 export interface HomeValue {
@@ -239,4 +258,5 @@ export interface HomePageProps {
     trustLogos: string[];
     values: HomeValue[];
     pageSiteSettings: HomeSiteSettings;
+    carouselBanners: CarouselBannerSlide[];
 }

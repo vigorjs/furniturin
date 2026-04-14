@@ -14,10 +14,14 @@
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="Furniturin">
         <meta property="og:locale" content="id_ID">
+        <meta property="og:image" content="{{ url('/Secondary-on-black@2x.png') }}">
+        <meta property="og:image:width" content="1024">
+        <meta property="og:image:height" content="400">
 
         {{-- Default Twitter Card --}}
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:site" content="@furniturin">
+        <meta name="twitter:image" content="{{ url('/Secondary-on-black@2x.png') }}">
 
         {{-- Geo Tags for Local SEO --}}
         <meta name="geo.region" content="ID">
@@ -56,8 +60,8 @@
         <title inertia>{{ config('app.name', 'Furniturin') }}</title>
 
         {{-- Favicon --}}
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="icon" href="/Furnitur-in-transparant-logo.png" type="image/png">
+        <link rel="apple-touch-icon" href="/Furnitur-in-transparant-logo.png">
         <link rel="manifest" href="/site.webmanifest">
 
         {{-- Preconnect for Performance --}}

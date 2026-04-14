@@ -51,6 +51,9 @@ use Spatie\Translatable\HasTranslations;
  * @property \Illuminate\Support\Carbon|null $discount_ends_at
  * @property string|null $meta_title
  * @property string|null $meta_description
+ * @property string|null $meta_keywords
+ * @property string|null $shipping_class
+ * @property bool $is_pre_order
  * @property int $view_count
  * @property int $sold_count
  * @property float $average_rating
@@ -69,6 +72,7 @@ class Product extends Model implements HasMedia
         'description',
         'meta_title',
         'meta_description',
+        'meta_keywords',
         'material',
         'color',
     ];
@@ -82,7 +86,7 @@ class Product extends Model implements HasMedia
         });
 
         static::updating(function (Product $product) {
-            if ($product->isDirty('name') && !$product->isDirty('slug')) {
+            if ($product->isDirty('name') && ! $product->isDirty('slug')) {
                 $product->slug = static::generateUniqueSlug($product->name, $product->id);
             }
         });
@@ -103,7 +107,7 @@ class Product extends Model implements HasMedia
         }
 
         while ($query->exists()) {
-            $slug = $originalSlug . '-' . $counter;
+            $slug = $originalSlug.'-'.$counter;
             $counter++;
             $query = static::withTrashed()->where('slug', $slug);
             if ($excludeId) {
@@ -128,10 +132,12 @@ class Product extends Model implements HasMedia
         'low_stock_threshold',
         'track_stock',
         'allow_backorder',
+        'is_pre_order',
         'weight',
         'length',
         'width',
         'height',
+        'shipping_class',
         'material',
         'color',
         'specifications',
@@ -144,6 +150,7 @@ class Product extends Model implements HasMedia
         'discount_ends_at',
         'meta_title',
         'meta_description',
+        'meta_keywords',
         'view_count',
         'sold_count',
         'average_rating',
@@ -160,6 +167,7 @@ class Product extends Model implements HasMedia
             'low_stock_threshold' => 'integer',
             'track_stock' => 'boolean',
             'allow_backorder' => 'boolean',
+            'is_pre_order' => 'boolean',
             'weight' => 'decimal:2',
             'length' => 'decimal:2',
             'width' => 'decimal:2',
@@ -266,8 +274,7 @@ class Product extends Model implements HasMedia
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Builder<Product> $query
-     * @param int $minPrice
+     * @param  \Illuminate\Database\Eloquent\Builder<Product>  $query
      * @return \Illuminate\Database\Eloquent\Builder<Product>
      */
     public function scopePriceMin($query, int $minPrice)
@@ -276,8 +283,7 @@ class Product extends Model implements HasMedia
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Builder<Product> $query
-     * @param int $maxPrice
+     * @param  \Illuminate\Database\Eloquent\Builder<Product>  $query
      * @return \Illuminate\Database\Eloquent\Builder<Product>
      */
     public function scopePriceMax($query, int $maxPrice)
@@ -299,7 +305,7 @@ class Product extends Model implements HasMedia
 
     public function getFinalPriceAttribute(): int
     {
-        if (!$this->hasActiveDiscount()) {
+        if (! $this->hasActiveDiscount()) {
             return $this->price;
         }
 
@@ -355,7 +361,7 @@ class Product extends Model implements HasMedia
 
     public function hasActiveDiscount(): bool
     {
-        if (!$this->discount_percentage || $this->discount_percentage <= 0) {
+        if (! $this->discount_percentage || $this->discount_percentage <= 0) {
             return false;
         }
 
@@ -374,7 +380,7 @@ class Product extends Model implements HasMedia
 
     public function isInStock(): bool
     {
-        if (!$this->track_stock) {
+        if (! $this->track_stock) {
             return true;
         }
 

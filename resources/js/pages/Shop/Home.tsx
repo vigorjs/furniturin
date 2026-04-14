@@ -20,6 +20,7 @@ export default function Home({
   trustLogos,
   values,
   pageSiteSettings,
+  carouselBanners,
   sectionVisibility,
 }: HomePageProps & { landingCategories: any; sectionVisibility?: any }) {
   const [bannerVisible, setBannerVisible] = useState(false);
@@ -112,6 +113,7 @@ export default function Home({
             heroSettings={heroSettings}
             trustLogos={trustLogos}
             values={values}
+            carouselBanners={carouselBanners}
             sectionVisibility={sectionVisibility}
           />{' '}
         </main>

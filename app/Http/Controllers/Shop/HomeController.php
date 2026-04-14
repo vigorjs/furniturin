@@ -59,6 +59,7 @@ class HomeController extends Controller
             'image_main' => Setting::get('hero_image_main', '/images/placeholder-hero.svg'),
             'image_secondary' => Setting::get('hero_image_secondary', '/images/placeholder-hero.svg'),
             'product_name' => Setting::get("hero_product_name_{$locale}", Setting::get('hero_product_name', $locale === 'en' ? 'Premium Lounge Chair' : 'Kursi Santai Premium')),
+            'media_type' => Setting::get('hero_media_type', 'image'),
         ];
 
         // Trust/Press Logos
@@ -76,6 +77,10 @@ class HomeController extends Controller
         ];
         $values = json_decode(Setting::get("home_values_{$locale}", Setting::get('home_values', json_encode($defaultValues))), true);
 
+        // Carousel Banners
+        $carouselBanners = json_decode(Setting::get('carousel_banners', '[]'), true) ?? [];
+        usort($carouselBanners, fn ($a, $b) => ($a['sort_order'] ?? 0) - ($b['sort_order'] ?? 0));
+
         // Page-specific Site Settings for SEO (siteSettings is shared via middleware)
         $pageSiteSettings = [
             'name' => Setting::get('site_name', 'Furniturin'),
@@ -84,6 +89,7 @@ class HomeController extends Controller
 
         // Section Visibility
         $sectionVisibility = [
+            'carousel_banners' => filter_var(Setting::get('section_carousel_banners_visible', '1'), FILTER_VALIDATE_BOOLEAN),
             'hero' => filter_var(Setting::get('section_hero_visible', '1'), FILTER_VALIDATE_BOOLEAN),
             'trust' => filter_var(Setting::get('section_trust_visible', '1'), FILTER_VALIDATE_BOOLEAN),
             'categories' => filter_var(Setting::get('section_categories_visible', '1'), FILTER_VALIDATE_BOOLEAN),
@@ -99,6 +105,7 @@ class HomeController extends Controller
             'landingCategories' => CategoryResource::collection($featuredCategories),
             'testimonials' => $testimonials,
             'heroSettings' => $heroSettings,
+            'carouselBanners' => $carouselBanners,
             'trustLogos' => $trustLogos,
             'values' => $values,
             'pageSiteSettings' => $pageSiteSettings,

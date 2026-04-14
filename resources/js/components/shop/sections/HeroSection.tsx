@@ -28,11 +28,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ settings }) => {
                 style={{ y }}
                 className="absolute -top-[12.5%] left-0 z-0 h-[125%] w-full"
             >
-                <img
-                    src={heroImage}
-                    className="h-full w-full object-cover"
-                    alt="Hero Furniture"
-                />
+                {settings.media_type === 'video' ? (
+                    <video
+                        src={heroImage}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="h-full w-full object-cover"
+                    />
+                ) : (
+                    <img
+                        src={heroImage}
+                        className="h-full w-full object-cover"
+                        alt="Hero Furniture"
+                    />
+                )}
                 {/* Subtle overlay for text readability */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
             </motion.div>
