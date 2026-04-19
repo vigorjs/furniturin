@@ -2,33 +2,57 @@
 
 Auto-deploy ke cPanel setiap push/merge ke branch `main`.
 
+## Dua Workflow Tersedia
+
+| File | Method | Trigger | Kapan dipakai |
+|---|---|---|---|
+| `deploy.yml` | **SSH + rsync** (primary) | Auto on push to `main` + manual | Default — cepat, clean, secure |
+| `deploy-ftp.yml` | **FTPS + HTTP artisan** (fallback) | **Manual only** (workflow_dispatch) | Kalau SSH bermasalah atau butuh backup path |
+
+> **Kedua workflow punya concurrency group yang sama** (`deploy-production`) — jadi tidak akan jalan bersamaan, menghindari race condition.
+
 ## Arsitektur
 
+### Workflow A — SSH (Primary)
+
 ```
-Developer push ke main
-        │
-        ▼
-  GitHub Actions (ubuntu-latest)
-        │
-        ├─ composer install --no-dev
-        ├─ npm ci && npm run build
-        │
-        ▼
-   rsync over SSH → cPanel
-        │
-        ▼
-   SSH execute post-deploy.sh
-        ├─ php artisan migrate --force
-        ├─ php artisan optimize:clear
-        ├─ config/route/view/event cache
-        └─ php artisan queue:restart
+Push ke main
+  ↓
+GitHub Actions (ubuntu-latest)
+  ├─ composer install --no-dev
+  ├─ npm ci && npm run build
+  ├─ rsync -avz --delete over SSH → /home/furnit59/public_html
+  └─ ssh exec bash deployment/post-deploy.sh
+      ├─ php artisan migrate --force
+      ├─ php artisan optimize:clear
+      ├─ config/route/view/event cache
+      └─ php artisan queue:restart
 ```
+
+### Workflow B — FTPS (Fallback)
+
+```
+Manual trigger (Actions tab → Run workflow)
+  ↓
+GitHub Actions (ubuntu-latest)
+  ├─ composer install --no-dev
+  ├─ npm ci && npm run build
+  ├─ FTP-Deploy-Action (FTPS) → /public_html
+  └─ curl dengan ARTISAN_TOKEN:
+      ├─ /artisan/test (verify token)
+      ├─ /artisan/migrate
+      ├─ /artisan/clear-cache
+      ├─ /artisan/optimize
+      └─ /artisan/storage-link
+```
+
+---
 
 ## One-Time Setup Checklist
 
-### A. Setup di cPanel
+### A. Setup di cPanel (wajib untuk BOTH)
 
-#### 1. Upgrade PHP ke 8.2+ (WAJIB)
+#### A.1. Upgrade PHP ke 8.2+ (WAJIB)
 
 1. Login cPanel → **MultiPHP Manager**
 2. Centang domain `furniturin.com`
@@ -37,63 +61,20 @@ Developer push ke main
 
 > Saat ini masih di PHP 7.4 — Laravel 12 tidak akan jalan sampai ini di-upgrade.
 
-#### 2. Generate SSH Key Pair
+#### A.2. Isi `.env` Production di Server
 
-1. cPanel → **SSH Access** → **Manage SSH Keys**
-2. **Generate a New Key**:
-   - Key Name: `github_actions_deploy`
-   - Passphrase: **KOSONGKAN** (biar bisa auto-login dari GH Actions)
-   - Key Type: `RSA`
-   - Key Size: `4096`
-3. Klik **Generate Key**
-4. Setelah dibuat, klik **Manage Authorization** di sebelah key → **Authorize**
-5. Download private key:
-   - Klik **View/Download** di key `github_actions_deploy`
-   - Download file `.ppk` atau copy isi private key (format `-----BEGIN RSA PRIVATE KEY-----`)
-   - **Simpan aman — akan dipasang di GitHub Secrets**
-
-#### 3. Catat SSH Connection Info
-
-Dari cPanel halaman utama, lihat di sidebar kanan "General Information":
-- **SSH Host**: biasanya `wirobrajan.idweb.host` (atau IP server)
-- **SSH Port**: biasanya `22` — tapi cPanel sering pakai custom port seperti `2083` atau `7822`. Tanya provider hosting kalau tidak yakin.
-- **SSH User**: `furnit59`
-- **Home Path**: `/home/furnit59`
-- **Deploy Path**: `/home/furnit59/public_html`
-
-> Untuk test SSH dari komputer lokal (setelah authorize key):
-> ```bash
-> ssh -p <PORT> furnit59@wirobrajan.idweb.host
-> ```
-
-#### 4. Setup Cron Jobs
-
-cPanel → **Cron Jobs** → tambahkan dua cron berikut:
-
-**Cron 1 — Laravel Scheduler (setiap menit)**
-```
-* * * * * cd /home/furnit59/public_html && /usr/local/bin/ea-php83 artisan schedule:run >> /dev/null 2>&1
-```
-
-**Cron 2 — Queue Worker (setiap menit, auto-restart)**
-```
-* * * * * cd /home/furnit59/public_html && /usr/local/bin/ea-php83 artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
-```
-
-> Ganti `ea-php83` sesuai versi PHP yang dipilih di step A.1.
-> `--max-time=55` memastikan worker restart tiap menit — mencegah memory leak.
-
-#### 5. Pastikan File `.env` Ada di Server
-
-Karena `.env` tidak ikut ter-deploy (by design — biar credential production aman), pastikan file `.env` di `/home/furnit59/public_html/.env` sudah terisi dengan credentials production:
+File `/home/furnit59/public_html/.env`:
 
 ```env
 APP_NAME="Furniturin"
 APP_ENV=production
-APP_KEY=base64:xxx          # jangan ubah — kalau sudah ada biarkan
+APP_KEY=base64:xxx          # kalau sudah ada, biarkan
 APP_DEBUG=false
 APP_URL=https://furniturin.com
 APP_LOCALE=id
+
+# WAJIB untuk FTP workflow (fallback). Bisa dipakai manual juga.
+ARTISAN_TOKEN=GENERATE_TOKEN_PANJANG_RANDOM_32_KARAKTER
 
 DB_CONNECTION=mysql
 DB_HOST=localhost
@@ -105,120 +86,221 @@ QUEUE_CONNECTION=database
 CACHE_STORE=database
 SESSION_DRIVER=database
 
-# Midtrans (production keys)
 midtrans_server_key=xxx
 midtrans_client_key=xxx
 midtrans_is_production=true
 
-# RajaOngkir
 RAJAONGKIR_API_KEY=xxx
 ```
 
+Generate `ARTISAN_TOKEN`:
+```bash
+# Di komputer lokal
+php -r "echo bin2hex(random_bytes(32));"
+# atau pakai password manager generate 32+ char random string
+```
+
+#### A.3. Setup Cron Jobs
+
+cPanel → **Cron Jobs**:
+
+**Cron 1 — Laravel Scheduler (setiap menit)**
+```
+* * * * * cd /home/furnit59/public_html && /usr/local/bin/ea-php83 artisan schedule:run >> /dev/null 2>&1
+```
+
+**Cron 2 — Queue Worker**
+```
+* * * * * cd /home/furnit59/public_html && /usr/local/bin/ea-php83 artisan queue:work --stop-when-empty --max-time=55 >> /dev/null 2>&1
+```
+
+> Ganti `ea-php83` sesuai versi PHP yang dipilih di A.1.
+
 ---
 
-### B. Setup di GitHub Repository
+### B. Setup untuk Workflow A (SSH)
 
-Buka repo GitHub → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.
+#### B.1. SSH Key — SUDAH DIBUAT ✅
 
-Tambahkan 5 secrets berikut:
+Key `gha_deploy` sudah di-generate (RSA 4096) dan sudah **authorized** di cPanel.
+
+**Yang Boss perlu lakukan — download & strip passphrase:**
+
+1. Login cPanel → **SSH Access** → **Manage SSH Keys** → Private Keys → `gha_deploy` → **View/Download**
+2. Download file private key
+3. Strip passphrase (wajib agar GitHub Actions bisa auto-login):
+
+```bash
+# Jalankan di komputer lokal setelah download key
+ssh-keygen -p \
+  -f gha_deploy \
+  -P "TempPass-Furniturin-2026-StripAfter!9x7K" \
+  -N ""
+
+# Hasilnya: key tanpa passphrase, siap di-paste ke GitHub Secret
+cat gha_deploy
+```
+
+4. Copy **seluruh output** `cat gha_deploy` (termasuk `-----BEGIN OPENSSH PRIVATE KEY-----` s/d `-----END OPENSSH PRIVATE KEY-----`) → paste ke GitHub Secret `SSH_PRIVATE_KEY`
+5. **Hapus file `gha_deploy` dari komputer lokal** setelah di-copy ke GitHub Secret
+
+#### B.2. Catat SSH Connection Info
+
+- **SSH Host**: `wirobrajan.idweb.host`
+- **SSH Port**: biasanya `22`, kadang custom (`2222`, `7822`) — tanya provider
+- **SSH User**: `furnit59`
+- **Deploy Path**: `/home/furnit59/public_html`
+
+Test koneksi dari laptop:
+```bash
+ssh -i ~/.ssh/deploy_key -p <PORT> furnit59@wirobrajan.idweb.host
+```
+
+#### B.3. GitHub Secrets untuk SSH Workflow
+
+Repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**:
 
 | Secret Name | Isi |
 |---|---|
 | `SSH_HOST` | `wirobrajan.idweb.host` |
-| `SSH_PORT` | `22` (atau port SSH custom dari hosting provider) |
+| `SSH_PORT` | `22` (atau port custom) |
 | `SSH_USER` | `furnit59` |
-| `SSH_PRIVATE_KEY` | Isi full private key yang di-generate di step A.2 (termasuk `-----BEGIN ... -----` dan `-----END ... -----`) |
+| `SSH_PRIVATE_KEY` | Full isi private key dari B.1 |
 | `DEPLOY_PATH` | `/home/furnit59/public_html` |
 
 ---
 
-### C. Verifikasi Setup
+### C. Setup untuk Workflow B (FTP Fallback)
 
-#### Test SSH Manual (dari komputer lokal)
+#### C.1. Buat FTP Account Khusus
 
-```bash
-# Simpan private key ke file
-nano ~/.ssh/furnit59_deploy
-chmod 600 ~/.ssh/furnit59_deploy
+> **Jangan pakai main cPanel account untuk FTP**. Buat account terpisah dengan akses terbatas supaya kalau bocor, blast radius kecil.
 
-# Test koneksi
-ssh -i ~/.ssh/furnit59_deploy -p <PORT> furnit59@wirobrajan.idweb.host
+1. cPanel → **FTP Accounts** → **Add FTP Account**
+2. Isi:
+   - **Log In**: `deploy` (hasilnya: `deploy@furniturin.com`)
+   - **Domain**: `furniturin.com`
+   - **Password**: generate password kuat 20+ karakter (pakai password manager, jangan reuse)
+   - **Directory**: `/home/furnit59/public_html` *(penting — jangan kosongkan, biar akses terbatas)*
+   - **Quota**: `Unlimited` (atau sesuai disk available)
+3. Klik **Create FTP Account**
 
-# Kalau berhasil, akan masuk ke home directory
-# Test artisan
-cd public_html && php artisan --version
-```
+#### C.2. Catat FTP Connection Info
 
-Kalau `php artisan --version` error, pastikan:
-1. PHP version sudah 8.2+ (cek `php -v`)
-2. `.env` ada di `/home/furnit59/public_html/`
-3. Folder `storage/` dan `bootstrap/cache/` writable (permission 775)
+Klik **Configure FTP Client** di account yang baru dibuat untuk lihat info:
+- **FTP Server / Host**: `ftp.furniturin.com` atau `wirobrajan.idweb.host`
+- **FTP Port (TLS/FTPS)**: `21` (FTPS explicit TLS, direkomendasikan)
+- **FTP User**: `deploy@furniturin.com`
+- **FTP Password**: yang di-set di C.1
 
-#### Test Deploy Manual Trigger
+#### C.3. GitHub Secrets untuk FTP Workflow
 
-1. GitHub → repo → **Actions** tab
-2. Pilih workflow **Deploy to cPanel**
-3. Klik **Run workflow** → pilih branch `main` → **Run workflow**
-4. Lihat logs — kalau semua hijau ✅, deploy berhasil
+Tambahkan secrets ini (selain SSH secrets kalau mau dua-duanya aktif):
+
+| Secret Name | Isi |
+|---|---|
+| `FTP_HOST` | `wirobrajan.idweb.host` |
+| `FTP_PORT` | `21` |
+| `FTP_USER` | `deploy@furniturin.com` |
+| `FTP_PASSWORD` | Password FTP dari C.1 |
+| `FTP_SERVER_DIR` | `/` (karena FTP account sudah jailed ke public_html) |
+| `APP_URL` | `https://furniturin.com` |
+| `ARTISAN_TOKEN` | Sama dengan yang di `.env` server (A.2) |
+
+> **Kenapa `FTP_SERVER_DIR = /`?** Karena FTP account di C.1 di-set directory ke `public_html`, jadi root FTP-nya sudah `public_html`.
 
 ---
 
-## Cara Kerja Deploy
+### D. Verifikasi Setup
 
-Setelah setup selesai, **setiap push ke `main` otomatis deploy**. Flow-nya:
+#### D.1. Test Workflow SSH
 
-1. **Checkout code** di GitHub runner
-2. **Build dependencies** (Composer + NPM) — vendor & public/build di-generate di runner
-3. **Sync via rsync** — hanya file yang berubah yang di-upload (cepat, biasanya < 2 menit setelah build pertama)
-4. **Execute post-deploy.sh** — migrate, cache, queue restart
+1. GitHub → repo → **Actions** tab
+2. Pilih **Deploy to cPanel** → **Run workflow** → branch `main`
+3. Tunggu selesai, cek logs
 
-## File yang TIDAK Ikut Deploy
+#### D.2. Test Workflow FTP (manual)
 
-Lihat `deployment/rsync-exclude.txt`. Secara garis besar:
-- `.env` (server punya sendiri)
-- `storage/logs/`, `storage/framework/sessions/`, dll (runtime data)
-- `.git/`, `.github/`, `node_modules/`, `tests/`, dokumentasi dev
+1. Actions tab → **Deploy to cPanel (FTP fallback)**
+2. **Run workflow** → pilih branch `main` → centang `run_migrations` kalau perlu
+3. Perhatikan: FTP deploy pertama akan **lambat** (upload semua file, ~10 menit). Subsequent deploy lebih cepat karena ada state file yang track perubahan.
+
+#### D.3. Smoke Test Manual
+
+```bash
+# Homepage harus 200/302
+curl -I https://furniturin.com
+
+# Artisan token harus valid
+curl "https://furniturin.com/artisan/test?token=YOUR_TOKEN"
+```
+
+---
+
+## Cara Kerja Day-to-Day
+
+**Normal flow:**
+- Push ke `main` → `deploy.yml` (SSH) auto-trigger → deploy selesai dalam 2-3 menit
+
+**Kalau SSH bermasalah:**
+- Actions tab → **Deploy to cPanel (FTP fallback)** → **Run workflow**
+- Pilih apakah migrate di-run atau tidak
+- Deploy selesai dalam 10-15 menit (FTP selalu lebih lambat)
+
+**Kalau perlu trigger SSH deploy manual:**
+- Actions tab → **Deploy to cPanel** → **Run workflow**
+
+---
 
 ## Troubleshooting
 
-### Deploy berhasil tapi website 500 error
+### SSH deploy gagal di step "Configure SSH"
+
+- Cek `SSH_PRIVATE_KEY` di GitHub Secrets — pastikan **full** key (termasuk BEGIN/END lines dan newlines)
+- Pastikan key sudah di-**Authorize** di cPanel SSH Access
+
+### FTP deploy gagal dengan "530 Login incorrect"
+
+- Username FTP harus full: `deploy@furniturin.com`, bukan hanya `deploy`
+- Cek password tidak mengandung karakter yang perlu escape di GitHub Secrets
+
+### Migrate gagal via HTTP (FTP workflow)
+
+- Cek `ARTISAN_TOKEN` di `.env` server **sama persis** dengan secret di GitHub
+- Cek response: `curl "https://furniturin.com/artisan/test?token=xxx"` harus return 200 OK JSON
+
+### Homepage 500 setelah deploy
 
 ```bash
-# SSH ke server, cek log
 ssh -p <PORT> furnit59@wirobrajan.idweb.host
 cd public_html
 tail -100 storage/logs/laravel.log
 ```
 
-### Migrate gagal
-
-Kemungkinan DB credentials di `.env` salah. Fix `.env` lalu re-run deploy (trigger ulang dari GitHub Actions tab).
-
-### Queue job tidak jalan
-
-Cek cron job di cPanel sudah benar dan PHP path sesuai versi yang aktif.
+Common causes:
+- `.env` salah / missing
+- PHP version masih 7.4
+- Folder permission — `chmod 775 storage bootstrap/cache`
 
 ### Rollback
 
-Jika deploy error dan production down:
-
-**Option 1 — Revert di Git**
 ```bash
 git revert <commit-sha>
 git push origin main
-# Auto-deploy akan restore ke versi sebelumnya
+# Auto-deploy akan jalan, restore versi sebelumnya
 ```
 
-**Option 2 — Manual via SSH**
-```bash
-ssh -p <PORT> furnit59@wirobrajan.idweb.host
-cd public_html
-# Restore backup terakhir (kalau pakai JetBackup) atau kembalikan manual
-```
+---
 
-## Security Notes
+## Security Checklist
 
-- Private key di GitHub Secrets **tidak bisa dibaca ulang** setelah di-save — simpan backup di password manager
-- Kalau private key bocor: langsung **Deauthorize** di cPanel → SSH Access → Manage Keys, lalu generate key baru
-- `.env` **tidak pernah ikut deploy** — production credentials hanya ada di server
-- Password cPanel yang Boss share sebelumnya **WAJIB diganti** setelah setup selesai
+- [ ] Password cPanel **sudah diganti** (yang lama pernah di-share di chat)
+- [ ] SSH key passphrase kosong hanya untuk deploy key, tidak untuk SSH user lain
+- [ ] FTP account `deploy@furniturin.com` di-jail ke `public_html` (tidak bisa akses `/home/furnit59` penuh)
+- [ ] `ARTISAN_TOKEN` 32+ karakter random
+- [ ] `.env` production **tidak pernah** di-commit atau di-deploy via workflow
+- [ ] GitHub Secrets hanya accessible oleh repo maintainer
+- [ ] Kalau ada yang bocor:
+  - SSH key bocor → cPanel → SSH Keys → **Deauthorize** → generate ulang
+  - FTP password bocor → cPanel → FTP Accounts → **Change Password**
+  - ARTISAN_TOKEN bocor → update `.env` + GitHub Secret
