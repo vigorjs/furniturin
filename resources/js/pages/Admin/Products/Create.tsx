@@ -1,12 +1,15 @@
 import { Combobox } from '@/components/ui/combobox';
+import { Switch } from '@/components/ui/switch';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { compressImage } from '@/utils/image-compress';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
+    AlertCircle,
     ArrowLeft,
     Globe,
     Loader2,
     Plus,
+    Sparkles,
     Star,
     Trash2,
     Upload,
@@ -48,6 +51,9 @@ export default function CreateProduct({
     const [specifications, setSpecifications] = useState<
         { key: string; value: string }[]
     >([]);
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [extractError, setExtractError] = useState<string | null>(null);
+    const [extractSuccess, setExtractSuccess] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, processing, errors } = useForm({
@@ -154,6 +160,139 @@ export default function CreateProduct({
               ).toFixed(1)
             : null;
 
+    const handleAiExtract = async () => {
+        if (previewImages.length === 0 || isExtracting) return;
+
+        // Send up to 5 images with primary first; gives AI multi-angle context.
+        const MAX_AI_IMAGES = 5;
+        const orderedImages = [
+            previewImages[primaryIndex] ?? previewImages[0],
+            ...previewImages.filter((_, i) => i !== primaryIndex),
+        ].slice(0, MAX_AI_IMAGES);
+
+        const formData = new FormData();
+        orderedImages.forEach((img) => {
+            formData.append('images[]', img.file);
+        });
+
+        // Send already-filled fields as context so AI uses them as reference.
+        const contextFields: Array<keyof typeof data> = [
+            'name',
+            'category_id',
+            'description',
+            'short_description',
+            'weight',
+            'length',
+            'width',
+            'height',
+            'material',
+            'color',
+            'meta_title',
+            'meta_description',
+            'meta_keywords',
+        ];
+        contextFields.forEach((key) => {
+            const value = String(data[key] ?? '').trim();
+            if (value !== '') {
+                formData.append(`context[${key}]`, value);
+            }
+        });
+
+        setIsExtracting(true);
+        setExtractError(null);
+        setExtractSuccess(false);
+
+        try {
+            const csrfToken =
+                document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute('content') ?? '';
+
+            const response = await fetch('/admin/products/ai-extract', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                credentials: 'same-origin',
+            });
+
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                // Prefer specific validation error over the generic "data invalid" message.
+                const firstValidationError =
+                    payload?.errors && typeof payload.errors === 'object'
+                        ? (Object.values(payload.errors).flat()[0] as
+                              | string
+                              | undefined)
+                        : undefined;
+
+                throw new Error(
+                    firstValidationError ??
+                        payload?.message ??
+                        'Gagal menganalisis gambar. Silakan coba lagi.',
+                );
+            }
+
+            const extracted = payload?.data ?? {};
+
+            // Only fill fields that are currently empty — never overwrite user input.
+            const preferExisting = (
+                current: string,
+                incoming: string | undefined,
+            ) => (current.trim() !== '' ? current : incoming || current);
+
+            setData((prev) => ({
+                ...prev,
+                name: preferExisting(prev.name, extracted.name),
+                sku: preferExisting(prev.sku, extracted.sku),
+                category_id: preferExisting(
+                    prev.category_id,
+                    extracted.category_id,
+                ),
+                description: preferExisting(
+                    prev.description,
+                    extracted.description,
+                ),
+                short_description: preferExisting(
+                    prev.short_description,
+                    extracted.short_description,
+                ),
+                weight: preferExisting(prev.weight, extracted.weight),
+                length: preferExisting(prev.length, extracted.length),
+                width: preferExisting(prev.width, extracted.width),
+                height: preferExisting(prev.height, extracted.height),
+                material: preferExisting(prev.material, extracted.material),
+                color: preferExisting(prev.color, extracted.color),
+                meta_title: preferExisting(
+                    prev.meta_title,
+                    extracted.meta_title,
+                ),
+                meta_description: preferExisting(
+                    prev.meta_description,
+                    extracted.meta_description,
+                ),
+                meta_keywords: preferExisting(
+                    prev.meta_keywords,
+                    extracted.meta_keywords,
+                ),
+            }));
+
+            setExtractSuccess(true);
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Gagal menganalisis gambar.';
+            setExtractError(message);
+        } finally {
+            setIsExtracting(false);
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -252,8 +391,176 @@ export default function CreateProduct({
                     </div>
                 </div>
 
+                {/* AI Auto-Fill Banner */}
+                <div className="rounded-2xl border border-wood/30 bg-gradient-to-r from-wood/5 via-sand-50 to-wood/5 p-6 shadow-sm">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-start gap-3">
+                            <div className="rounded-xl bg-wood/10 p-2.5">
+                                <Sparkles className="h-6 w-6 text-wood" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-semibold text-terra-900">
+                                    Isi Otomatis dengan AI
+                                </h3>
+                                <p className="mt-1 max-w-xl text-sm text-terra-600">
+                                    Unggah 1–5 gambar produk (berbagai sudut
+                                    lebih akurat) di bagian{' '}
+                                    <span className="font-medium">Media</span>,
+                                    lalu klik tombol di samping. AI akan
+                                    memverifikasi kelayakan furnitur lalu
+                                    mengisi nama, kategori, deskripsi, berat,
+                                    dimensi, material, warna, dan SEO.{' '}
+                                    <span className="font-medium text-terra-700">
+                                        Field yang sudah Anda isi akan
+                                        dipertahankan dan menjadi referensi
+                                        untuk AI.
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleAiExtract}
+                            disabled={
+                                isExtracting ||
+                                isCompressing ||
+                                previewImages.length === 0
+                            }
+                            className="flex items-center justify-center gap-2 rounded-xl bg-terra-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-wood-dark disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {isExtracting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Menganalisis...
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="h-4 w-4" />
+                                    {extractSuccess
+                                        ? 'Analisis Ulang'
+                                        : 'Analisis Gambar'}
+                                </>
+                            )}
+                        </button>
+                    </div>
+                    {previewImages.length === 0 && !extractError && (
+                        <p className="mt-3 text-xs text-terra-500">
+                            Unggah minimal satu gambar terlebih dahulu untuk
+                            mengaktifkan fitur ini.
+                        </p>
+                    )}
+                    {extractSuccess && !extractError && (
+                        <p className="mt-3 text-xs font-medium text-green-700">
+                            Berhasil! Periksa kembali isian form sebelum
+                            menyimpan.
+                        </p>
+                    )}
+                    {extractError && (
+                        <div className="mt-3 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                            <div className="flex-1">
+                                <p>{extractError}</p>
+                                <button
+                                    type="button"
+                                    onClick={handleAiExtract}
+                                    disabled={isExtracting}
+                                    className="mt-1 text-xs font-medium text-red-800 underline hover:text-red-900 disabled:opacity-50"
+                                >
+                                    Coba Lagi
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* 1. Informasi Umum */}
+                    {/* 1. Media */}
+                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
+                        <h2 className="mb-4 text-lg font-semibold text-terra-900">
+                            Media
+                        </h2>
+                        <div className="space-y-4">
+                            <div
+                                className={`cursor-pointer rounded-xl border-2 border-dashed border-terra-200 p-8 text-center transition-colors hover:border-wood ${isCompressing ? 'pointer-events-none opacity-50' : ''}`}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="hidden"
+                                    disabled={isCompressing}
+                                />
+                                {isCompressing ? (
+                                    <>
+                                        <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-terra-400" />
+                                        <p className="font-medium text-terra-700">
+                                            Mengompres gambar...
+                                        </p>
+                                        <p className="mt-1 text-sm text-terra-400">
+                                            Mohon tunggu sebentar
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="mx-auto mb-4 h-12 w-12 text-terra-400" />
+                                        <p className="font-medium text-terra-700">
+                                            Klik untuk upload gambar
+                                        </p>
+                                        <p className="mt-1 text-sm text-terra-400">
+                                            PNG, JPG, WEBP (otomatis dikompres
+                                            ke 2MB). Klik gambar untuk
+                                            jadikan gambar utama.
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+
+                            {previewImages.length > 0 && (
+                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                    {previewImages.map((img, index) => (
+                                        <div
+                                            key={index}
+                                            className={`group relative cursor-pointer rounded-xl border-2 transition-colors ${
+                                                index === primaryIndex
+                                                    ? 'border-wood'
+                                                    : 'border-terra-100 hover:border-terra-300'
+                                            }`}
+                                            onClick={() =>
+                                                setPrimaryIndex(index)
+                                            }
+                                        >
+                                            <img
+                                                src={img.preview}
+                                                alt={`Preview ${index + 1}`}
+                                                className="aspect-square w-full rounded-xl object-cover"
+                                            />
+                                            {index === primaryIndex && (
+                                                <span className="absolute top-2 left-2 flex items-center gap-1 rounded-lg bg-wood px-2 py-1 text-xs text-white">
+                                                    <Star className="h-3 w-3" />{' '}
+                                                    Utama
+                                                </span>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeImage(index);
+                                                }}
+                                                className="absolute top-2 right-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 2. Informasi Umum */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
                             Informasi Umum
@@ -360,7 +667,7 @@ export default function CreateProduct({
                         </div>
                     </div>
 
-                    {/* 2. Harga */}
+                    {/* 3. Harga */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
                             Harga
@@ -456,7 +763,7 @@ export default function CreateProduct({
                         </div>
                     </div>
 
-                    {/* 3. Inventori */}
+                    {/* 4. Inventori */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
                             Inventori
@@ -501,50 +808,35 @@ export default function CreateProduct({
                                     placeholder="5"
                                 />
                             </div>
-                            <div className="flex flex-col justify-end gap-3">
+                            <div className="flex flex-col justify-end gap-4">
                                 <label className="flex cursor-pointer items-center gap-3">
-                                    <input
-                                        type="checkbox"
+                                    <Switch
                                         checked={data.track_stock}
-                                        onChange={(e) =>
-                                            setData(
-                                                'track_stock',
-                                                e.target.checked,
-                                            )
+                                        onCheckedChange={(checked) =>
+                                            setData('track_stock', checked)
                                         }
-                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
                                     />
                                     <span className="text-sm text-terra-700">
                                         Lacak Stok
                                     </span>
                                 </label>
                                 <label className="flex cursor-pointer items-center gap-3">
-                                    <input
-                                        type="checkbox"
+                                    <Switch
                                         checked={data.allow_backorder}
-                                        onChange={(e) =>
-                                            setData(
-                                                'allow_backorder',
-                                                e.target.checked,
-                                            )
+                                        onCheckedChange={(checked) =>
+                                            setData('allow_backorder', checked)
                                         }
-                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
                                     />
                                     <span className="text-sm text-terra-700">
                                         Izinkan Backorder
                                     </span>
                                 </label>
                                 <label className="flex cursor-pointer items-center gap-3">
-                                    <input
-                                        type="checkbox"
+                                    <Switch
                                         checked={data.is_pre_order}
-                                        onChange={(e) =>
-                                            setData(
-                                                'is_pre_order',
-                                                e.target.checked,
-                                            )
+                                        onCheckedChange={(checked) =>
+                                            setData('is_pre_order', checked)
                                         }
-                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
                                     />
                                     <span className="text-sm text-terra-700">
                                         Produk Pre-Order
@@ -554,7 +846,7 @@ export default function CreateProduct({
                         </div>
                     </div>
 
-                    {/* 4. Pengiriman */}
+                    {/* 5. Pengiriman */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
                             Pengiriman
@@ -647,7 +939,7 @@ export default function CreateProduct({
                         </div>
                     </div>
 
-                    {/* 5. Atribut */}
+                    {/* 6. Atribut */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
                             Atribut
@@ -746,92 +1038,6 @@ export default function CreateProduct({
                         </div>
                     </div>
 
-                    {/* 6. Media */}
-                    <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
-                        <h2 className="mb-4 text-lg font-semibold text-terra-900">
-                            Media
-                        </h2>
-                        <div className="space-y-4">
-                            <div
-                                className={`cursor-pointer rounded-xl border-2 border-dashed border-terra-200 p-8 text-center transition-colors hover:border-wood ${isCompressing ? 'pointer-events-none opacity-50' : ''}`}
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    className="hidden"
-                                    disabled={isCompressing}
-                                />
-                                {isCompressing ? (
-                                    <>
-                                        <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-terra-400" />
-                                        <p className="font-medium text-terra-700">
-                                            Mengompres gambar...
-                                        </p>
-                                        <p className="mt-1 text-sm text-terra-400">
-                                            Mohon tunggu sebentar
-                                        </p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload className="mx-auto mb-4 h-12 w-12 text-terra-400" />
-                                        <p className="font-medium text-terra-700">
-                                            Klik untuk upload gambar
-                                        </p>
-                                        <p className="mt-1 text-sm text-terra-400">
-                                            PNG, JPG, WEBP (otomatis dikompres
-                                            ke 2MB). Klik gambar untuk
-                                            jadikan gambar utama.
-                                        </p>
-                                    </>
-                                )}
-                            </div>
-
-                            {previewImages.length > 0 && (
-                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                                    {previewImages.map((img, index) => (
-                                        <div
-                                            key={index}
-                                            className={`group relative cursor-pointer rounded-xl border-2 transition-colors ${
-                                                index === primaryIndex
-                                                    ? 'border-wood'
-                                                    : 'border-terra-100 hover:border-terra-300'
-                                            }`}
-                                            onClick={() =>
-                                                setPrimaryIndex(index)
-                                            }
-                                        >
-                                            <img
-                                                src={img.preview}
-                                                alt={`Preview ${index + 1}`}
-                                                className="aspect-square w-full rounded-xl object-cover"
-                                            />
-                                            {index === primaryIndex && (
-                                                <span className="absolute top-2 left-2 flex items-center gap-1 rounded-lg bg-wood px-2 py-1 text-xs text-white">
-                                                    <Star className="h-3 w-3" />{' '}
-                                                    Utama
-                                                </span>
-                                            )}
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removeImage(index);
-                                                }}
-                                                className="absolute top-2 right-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
                     {/* 7. Status & Penjualan */}
                     <div className="rounded-2xl border border-terra-100 bg-white p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-terra-900">
@@ -876,32 +1082,22 @@ export default function CreateProduct({
                             </div>
                             <div className="flex flex-col justify-end gap-3">
                                 <label className="flex cursor-pointer items-center gap-3">
-                                    <input
-                                        type="checkbox"
+                                    <Switch
                                         checked={data.is_featured}
-                                        onChange={(e) =>
-                                            setData(
-                                                'is_featured',
-                                                e.target.checked,
-                                            )
+                                        onCheckedChange={(checked) =>
+                                            setData('is_featured', checked)
                                         }
-                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
                                     />
                                     <span className="text-sm text-terra-700">
                                         Produk Unggulan
                                     </span>
                                 </label>
                                 <label className="flex cursor-pointer items-center gap-3">
-                                    <input
-                                        type="checkbox"
+                                    <Switch
                                         checked={data.is_new_arrival}
-                                        onChange={(e) =>
-                                            setData(
-                                                'is_new_arrival',
-                                                e.target.checked,
-                                            )
+                                        onCheckedChange={(checked) =>
+                                            setData('is_new_arrival', checked)
                                         }
-                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
                                     />
                                     <span className="text-sm text-terra-700">
                                         Produk Baru

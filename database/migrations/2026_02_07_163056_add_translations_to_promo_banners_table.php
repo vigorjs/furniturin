@@ -25,10 +25,17 @@ return new class extends Migration
             ]);
         });
 
-        // Now convert columns to JSON type using MySQL syntax
-        DB::statement('ALTER TABLE promo_banners MODIFY title JSON');
-        DB::statement('ALTER TABLE promo_banners MODIFY description JSON');
-        DB::statement('ALTER TABLE promo_banners MODIFY cta_text JSON');
+        $driver = Schema::getConnection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'])) {
+            DB::statement('ALTER TABLE promo_banners MODIFY title JSON');
+            DB::statement('ALTER TABLE promo_banners MODIFY description JSON');
+            DB::statement('ALTER TABLE promo_banners MODIFY cta_text JSON');
+        } else {
+            DB::statement('ALTER TABLE promo_banners ALTER COLUMN title TYPE jsonb USING title::jsonb');
+            DB::statement('ALTER TABLE promo_banners ALTER COLUMN description TYPE jsonb USING description::jsonb');
+            DB::statement('ALTER TABLE promo_banners ALTER COLUMN cta_text DROP DEFAULT');
+            DB::statement('ALTER TABLE promo_banners ALTER COLUMN cta_text TYPE jsonb USING cta_text::jsonb');
+        }
     }
 
     /**

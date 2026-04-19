@@ -28,11 +28,18 @@ return new class extends Migration
             ]);
         });
 
-        // Now convert columns to JSON type using MySQL syntax
-        DB::statement('ALTER TABLE categories MODIFY name JSON');
-        DB::statement('ALTER TABLE categories MODIFY description JSON');
-        DB::statement('ALTER TABLE categories MODIFY meta_title JSON');
-        DB::statement('ALTER TABLE categories MODIFY meta_description JSON');
+        $driver = Schema::getConnection()->getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'])) {
+            DB::statement('ALTER TABLE categories MODIFY name JSON');
+            DB::statement('ALTER TABLE categories MODIFY description JSON');
+            DB::statement('ALTER TABLE categories MODIFY meta_title JSON');
+            DB::statement('ALTER TABLE categories MODIFY meta_description JSON');
+        } else {
+            DB::statement('ALTER TABLE categories ALTER COLUMN name TYPE jsonb USING name::jsonb');
+            DB::statement('ALTER TABLE categories ALTER COLUMN description TYPE jsonb USING description::jsonb');
+            DB::statement('ALTER TABLE categories ALTER COLUMN meta_title TYPE jsonb USING meta_title::jsonb');
+            DB::statement('ALTER TABLE categories ALTER COLUMN meta_description TYPE jsonb USING meta_description::jsonb');
+        }
     }
 
     /**

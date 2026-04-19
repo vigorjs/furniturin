@@ -12,12 +12,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop FULLTEXT index first (JSON columns cannot be part of FULLTEXT index)
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropFullText('products_name_short_description_fulltext');
-        });
+        $driver = Schema::getConnection()->getDriverName();
 
-        // Migrate existing data to JSON format with 'id' locale first (slug stays string)
+        // Drop FULLTEXT index first (only exists on MySQL/MariaDB)
+        if (in_array($driver, ['mysql', 'mariadb'])) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->dropFullText('products_name_short_description_fulltext');
+            });
+        }
+
+        // Migrate existing data to JSON format with 'id' locale first
         DB::table('products')->get()->each(function ($product) {
             DB::table('products')->where('id', $product->id)->update([
                 'name' => json_encode(['id' => $product->name]),
@@ -42,14 +46,24 @@ return new class extends Migration
             ]);
         });
 
-        // Now convert columns to JSON type using MySQL syntax
-        DB::statement('ALTER TABLE products MODIFY name JSON');
-        DB::statement('ALTER TABLE products MODIFY short_description JSON');
-        DB::statement('ALTER TABLE products MODIFY description JSON');
-        DB::statement('ALTER TABLE products MODIFY meta_title JSON');
-        DB::statement('ALTER TABLE products MODIFY meta_description JSON');
-        DB::statement('ALTER TABLE products MODIFY material JSON');
-        DB::statement('ALTER TABLE products MODIFY color JSON');
+        // Convert columns to JSON type (driver-specific syntax)
+        if (in_array($driver, ['mysql', 'mariadb'])) {
+            DB::statement('ALTER TABLE products MODIFY name JSON');
+            DB::statement('ALTER TABLE products MODIFY short_description JSON');
+            DB::statement('ALTER TABLE products MODIFY description JSON');
+            DB::statement('ALTER TABLE products MODIFY meta_title JSON');
+            DB::statement('ALTER TABLE products MODIFY meta_description JSON');
+            DB::statement('ALTER TABLE products MODIFY material JSON');
+            DB::statement('ALTER TABLE products MODIFY color JSON');
+        } else {
+            DB::statement('ALTER TABLE products ALTER COLUMN name TYPE jsonb USING name::jsonb');
+            DB::statement('ALTER TABLE products ALTER COLUMN short_description TYPE jsonb USING short_description::jsonb');
+            DB::statement('ALTER TABLE products ALTER COLUMN description TYPE jsonb USING description::jsonb');
+            DB::statement('ALTER TABLE products ALTER COLUMN meta_title TYPE jsonb USING meta_title::jsonb');
+            DB::statement('ALTER TABLE products ALTER COLUMN meta_description TYPE jsonb USING meta_description::jsonb');
+            DB::statement('ALTER TABLE products ALTER COLUMN material TYPE jsonb USING material::jsonb');
+            DB::statement('ALTER TABLE products ALTER COLUMN color TYPE jsonb USING color::jsonb');
+        }
     }
 
     /**
@@ -89,9 +103,12 @@ return new class extends Migration
             $table->text('meta_description')->nullable()->change();
             $table->string('material')->nullable()->change();
             $table->string('color')->nullable()->change();
-
-            // Recreate FULLTEXT index on name and short_description
-            $table->fullText(['name', 'short_description'], 'products_name_short_description_fulltext');
         });
+
+        if (in_array(Schema::getConnection()->getDriverName(), ['mysql', 'mariadb'])) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->fullText(['name', 'short_description'], 'products_name_short_description_fulltext');
+            });
+        }
     }
 };

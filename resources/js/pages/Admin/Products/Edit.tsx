@@ -1,4 +1,5 @@
 import { Combobox } from '@/components/ui/combobox';
+import { Switch } from '@/components/ui/switch';
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { compressImage } from '@/utils/image-compress';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -589,55 +590,40 @@ export default function EditProduct({
                                     placeholder="5"
                                 />
                             </div>
-                            <div className="flex flex-col justify-end gap-3">
-                                <label className="flex cursor-pointer items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={data.track_stock}
-                                        onChange={(e) =>
-                                            setData(
-                                                'track_stock',
-                                                e.target.checked,
-                                            )
-                                        }
-                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
-                                    />
+                            <div className="flex flex-col justify-end gap-4">
+                                <div className="flex items-center justify-between gap-3">
                                     <span className="text-sm text-terra-700">
                                         Lacak Stok
                                     </span>
-                                </label>
-                                <label className="flex cursor-pointer items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={data.allow_backorder}
-                                        onChange={(e) =>
-                                            setData(
-                                                'allow_backorder',
-                                                e.target.checked,
-                                            )
+                                    <Switch
+                                        checked={data.track_stock}
+                                        onCheckedChange={(checked) =>
+                                            setData('track_stock', checked)
                                         }
-                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
                                     />
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
                                     <span className="text-sm text-terra-700">
                                         Izinkan Backorder
                                     </span>
-                                </label>
-                                <label className="flex cursor-pointer items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={data.is_pre_order}
-                                        onChange={(e) =>
-                                            setData(
-                                                'is_pre_order',
-                                                e.target.checked,
-                                            )
+                                    <Switch
+                                        checked={data.allow_backorder}
+                                        onCheckedChange={(checked) =>
+                                            setData('allow_backorder', checked)
                                         }
-                                        className="h-5 w-5 rounded border-terra-300 text-terra-900 focus:ring-wood"
                                     />
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
                                     <span className="text-sm text-terra-700">
                                         Produk Pre-Order
                                     </span>
-                                </label>
+                                    <Switch
+                                        checked={data.is_pre_order}
+                                        onCheckedChange={(checked) =>
+                                            setData('is_pre_order', checked)
+                                        }
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

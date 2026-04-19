@@ -24,12 +24,10 @@ class ProductSeeder extends Seeder
         $products = $this->getProductsData();
 
         foreach ($products as $productData) {
-            $category = Category::where('name', $productData['category'])->first();
+            $category = Category::where('name->id', $productData['category'])->first();
 
-            // Try to find sub-category if main category not found, or just fuzzy match
             if (!$category) {
-                // Try finding by like if exact match fails, or skip
-                 $category = Category::where('name', 'like', '%' . $productData['category'] . '%')->first();
+                $category = Category::where('name->id', 'like', '%' . $productData['category'] . '%')->first();
             }
 
             if (!$category) {

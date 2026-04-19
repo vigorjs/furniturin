@@ -6,10 +6,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Actions\Product\CreateProductAction;
 use App\Actions\Product\DeleteProductAction;
+use App\Actions\Product\ExtractProductFromImageAction;
 use App\Actions\Product\UpdateProductAction;
 use App\Enums\ProductStatus;
 use App\Enums\SaleType;
+use App\Exceptions\NonFurnitureImageException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ProductExtractRequest;
 use App\Http\Requests\Admin\ProductStoreRequest;
 use App\Http\Requests\Admin\ProductUpdateRequest;
 use App\Http\Resources\CategoryResource;
@@ -17,12 +20,15 @@ use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\Query\ProductQuery;
-use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 
 class ProductController extends Controller implements HasMiddleware
 {
@@ -31,7 +37,7 @@ class ProductController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:view products', only: ['index', 'show']),
-            new Middleware('permission:create products', only: ['create', 'store']),
+            new Middleware('permission:create products', only: ['create', 'store', 'extractFromImage']),
             new Middleware('permission:edit products', only: ['edit', 'update']),
             new Middleware('permission:delete products', only: ['destroy']),
         ];
@@ -51,11 +57,11 @@ class ProductController extends Controller implements HasMiddleware
             'products' => ProductResource::collection($products),
             'categories' => CategoryResource::collection($categories),
             'filters' => $request->only(['filter', 'sort']),
-            'statuses' => collect(ProductStatus::cases())->map(fn($status) => [
+            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
-            'saleTypes' => collect(SaleType::cases())->map(fn($type) => [
+            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
                 'value' => $type->value,
                 'name' => $type->label(),
             ])->all(),
@@ -68,11 +74,11 @@ class ProductController extends Controller implements HasMiddleware
 
         return Inertia::render('Admin/Products/Create', [
             'categories' => CategoryResource::collection($categories)->resolve(),
-            'statuses' => collect(ProductStatus::cases())->map(fn($status) => [
+            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
-            'saleTypes' => collect(SaleType::cases())->map(fn($type) => [
+            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
                 'value' => $type->value,
                 'name' => $type->label(),
             ])->all(),
@@ -81,11 +87,11 @@ class ProductController extends Controller implements HasMiddleware
 
     public function store(ProductStoreRequest $request, CreateProductAction $action): RedirectResponse
     {
-        /** @var array<int, \Illuminate\Http\UploadedFile> $images */
+        /** @var array<int, UploadedFile> $images */
         $images = $request->file('images') ?? [];
 
         // Ensure images is an array (could be associative from form)
-        if (!empty($images)) {
+        if (! empty($images)) {
             $images = array_values($images);
         }
 
@@ -113,11 +119,11 @@ class ProductController extends Controller implements HasMiddleware
         return Inertia::render('Admin/Products/Edit', [
             'product' => (new ProductResource($product))->resolve(),
             'categories' => CategoryResource::collection($categories)->resolve(),
-            'statuses' => collect(ProductStatus::cases())->map(fn($status) => [
+            'statuses' => collect(ProductStatus::cases())->map(fn ($status) => [
                 'value' => $status->value,
                 'name' => $status->label(),
             ])->all(),
-            'saleTypes' => collect(SaleType::cases())->map(fn($type) => [
+            'saleTypes' => collect(SaleType::cases())->map(fn ($type) => [
                 'value' => $type->value,
                 'name' => $type->label(),
             ])->all(),
@@ -129,11 +135,11 @@ class ProductController extends Controller implements HasMiddleware
         Product $product,
         UpdateProductAction $action
     ): RedirectResponse {
-        /** @var array<int, \Illuminate\Http\UploadedFile> $newImages */
+        /** @var array<int, UploadedFile> $newImages */
         $newImages = $request->file('images') ?? [];
 
         // Ensure images is an indexed array
-        if (!empty($newImages)) {
+        if (! empty($newImages)) {
             $newImages = array_values($newImages);
         }
 
@@ -141,7 +147,7 @@ class ProductController extends Controller implements HasMiddleware
         $deleteImageIds = $request->input('delete_images', []);
 
         // Ensure delete_images is an array of integers
-        if (!empty($deleteImageIds)) {
+        if (! empty($deleteImageIds)) {
             $deleteImageIds = array_map('intval', array_values($deleteImageIds));
         }
 
@@ -159,5 +165,26 @@ class ProductController extends Controller implements HasMiddleware
         return redirect()
             ->route('admin.products.index')
             ->with('success', __('messages.product_deleted'));
+    }
+
+    public function extractFromImage(
+        ProductExtractRequest $request,
+        ExtractProductFromImageAction $action,
+    ): JsonResponse {
+        /** @var array<int, UploadedFile> $images */
+        $images = array_values((array) $request->file('images'));
+
+        /** @var array<string, mixed> $context */
+        $context = $request->validated('context', []);
+
+        try {
+            $data = $action->execute($images, $context);
+        } catch (NonFurnitureImageException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+
+        return response()->json(['data' => $data]);
     }
 }

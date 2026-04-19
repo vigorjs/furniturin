@@ -44,6 +44,8 @@ Route::middleware(['auth', 'verified', 'role:admin|super-admin|manager|staff'])-
     Route::resource('categories', CategoryController::class)->except(['show']);
 
     // Products
+    Route::post('products/ai-extract', [ProductController::class, 'extractFromImage'])
+        ->name('products.ai-extract');
     Route::resource('products', ProductController::class);
 
     // Orders
