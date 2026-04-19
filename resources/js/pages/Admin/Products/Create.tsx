@@ -1,3 +1,4 @@
+import ImageCropDialog from '@/components/ImageCropDialog';
 import { Combobox } from '@/components/ui/combobox';
 import { Switch } from '@/components/ui/switch';
 import AdminLayout from '@/layouts/admin/admin-layout';
@@ -6,6 +7,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowLeft,
+    Crop,
     Globe,
     Loader2,
     Plus,
@@ -48,6 +50,7 @@ export default function CreateProduct({
     >([]);
     const [primaryIndex, setPrimaryIndex] = useState(0);
     const [isCompressing, setIsCompressing] = useState(false);
+    const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
     const [specifications, setSpecifications] = useState<
         { key: string; value: string }[]
     >([]);
@@ -131,6 +134,22 @@ export default function CreateProduct({
         }
     };
 
+    const handleCropped = async (croppedFile: File) => {
+        if (cropTargetIndex === null) return;
+        const compressed = await compressImage(croppedFile, { maxSizeMB: 2 });
+        setPreviewImages((prev) => {
+            const next = [...prev];
+            const current = next[cropTargetIndex];
+            if (!current) return prev;
+            URL.revokeObjectURL(current.preview);
+            next[cropTargetIndex] = {
+                file: compressed,
+                preview: URL.createObjectURL(compressed),
+            };
+            return next;
+        });
+    };
+
     const addSpecification = () => {
         setSpecifications((prev) => [...prev, { key: '', value: '' }]);
     };
@@ -181,10 +200,15 @@ export default function CreateProduct({
             'category_id',
             'description',
             'short_description',
+            'price',
+            'compare_price',
+            'cost_price',
+            'stock_quantity',
             'weight',
             'length',
             'width',
             'height',
+            'shipping_class',
             'material',
             'color',
             'meta_title',
@@ -195,6 +219,16 @@ export default function CreateProduct({
             const value = String(data[key] ?? '').trim();
             if (value !== '') {
                 formData.append(`context[${key}]`, value);
+            }
+        });
+
+        // Send existing specifications so AI preserves them & adds new ones.
+        specifications.forEach((spec, idx) => {
+            const k = spec.key.trim();
+            const v = spec.value.trim();
+            if (k !== '' && v !== '') {
+                formData.append(`context[specifications][${idx}][key]`, k);
+                formData.append(`context[specifications][${idx}][value]`, v);
             }
         });
 
@@ -261,10 +295,27 @@ export default function CreateProduct({
                     prev.short_description,
                     extracted.short_description,
                 ),
+                price: preferExisting(prev.price, extracted.price),
+                compare_price: preferExisting(
+                    prev.compare_price,
+                    extracted.compare_price,
+                ),
+                cost_price: preferExisting(
+                    prev.cost_price,
+                    extracted.cost_price,
+                ),
+                stock_quantity: preferExisting(
+                    prev.stock_quantity,
+                    extracted.stock_quantity,
+                ),
                 weight: preferExisting(prev.weight, extracted.weight),
                 length: preferExisting(prev.length, extracted.length),
                 width: preferExisting(prev.width, extracted.width),
                 height: preferExisting(prev.height, extracted.height),
+                shipping_class: preferExisting(
+                    prev.shipping_class,
+                    extracted.shipping_class,
+                ),
                 material: preferExisting(prev.material, extracted.material),
                 color: preferExisting(prev.color, extracted.color),
                 meta_title: preferExisting(
@@ -280,6 +331,29 @@ export default function CreateProduct({
                     extracted.meta_keywords,
                 ),
             }));
+
+            // Merge specs: keep user-filled rows, append AI rows whose key is new.
+            if (Array.isArray(extracted.specifications)) {
+                const incoming = extracted.specifications.filter(
+                    (s: { key?: string; value?: string }) =>
+                        typeof s?.key === 'string' &&
+                        typeof s?.value === 'string' &&
+                        s.key.trim() !== '' &&
+                        s.value.trim() !== '',
+                ) as { key: string; value: string }[];
+
+                setSpecifications((prev) => {
+                    const existingKeys = new Set(
+                        prev
+                            .map((s) => s.key.trim().toLowerCase())
+                            .filter((k) => k !== ''),
+                    );
+                    const toAdd = incoming.filter(
+                        (s) => !existingKeys.has(s.key.trim().toLowerCase()),
+                    );
+                    return [...prev, ...toAdd];
+                });
+            }
 
             setExtractSuccess(true);
         } catch (error) {
@@ -409,7 +483,19 @@ export default function CreateProduct({
                                     lalu klik tombol di samping. AI akan
                                     memverifikasi kelayakan furnitur lalu
                                     mengisi nama, kategori, deskripsi, berat,
-                                    dimensi, material, warna, dan SEO.{' '}
+                                    dimensi, material, warna, SEO, prediksi{' '}
+                                    <span className="font-medium">
+                                        harga jual, harga coret, harga modal
+                                    </span>
+                                    , kelas pengiriman, saran{' '}
+                                    <span className="font-medium">
+                                        jumlah stok
+                                    </span>
+                                    , serta{' '}
+                                    <span className="font-medium">
+                                        minimal 3 spesifikasi
+                                    </span>
+                                    .{' '}
                                     <span className="font-medium text-terra-700">
                                         Field yang sudah Anda isi akan
                                         dipertahankan dan menjadi referensi
@@ -511,8 +597,8 @@ export default function CreateProduct({
                                         </p>
                                         <p className="mt-1 text-sm text-terra-400">
                                             PNG, JPG, WEBP (otomatis dikompres
-                                            ke 2MB). Klik gambar untuk
-                                            jadikan gambar utama.
+                                            ke 2MB). Klik gambar untuk jadikan
+                                            utama, hover untuk crop atau hapus.
                                         </p>
                                     </>
                                 )}
@@ -543,16 +629,32 @@ export default function CreateProduct({
                                                     Utama
                                                 </span>
                                             )}
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removeImage(index);
-                                                }}
-                                                className="absolute top-2 right-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </button>
+                                            <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                                <button
+                                                    type="button"
+                                                    title="Edit / Crop"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setCropTargetIndex(
+                                                            index,
+                                                        );
+                                                    }}
+                                                    className="rounded-lg bg-white/90 p-1.5 text-terra-700 shadow-sm transition-colors hover:bg-white"
+                                                >
+                                                    <Crop className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    title="Hapus"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeImage(index);
+                                                    }}
+                                                    className="rounded-lg bg-red-500 p-1.5 text-white shadow-sm transition-colors hover:bg-red-600"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -1279,6 +1381,17 @@ export default function CreateProduct({
                     </div>
                 </form>
             </div>
+
+            <ImageCropDialog
+                open={cropTargetIndex !== null}
+                file={
+                    cropTargetIndex !== null
+                        ? (previewImages[cropTargetIndex]?.file ?? null)
+                        : null
+                }
+                onClose={() => setCropTargetIndex(null)}
+                onCropped={handleCropped}
+            />
         </AdminLayout>
     );
 }

@@ -1,3 +1,4 @@
+import ImageCropDialog from '@/components/ImageCropDialog';
 import { Combobox } from '@/components/ui/combobox';
 import { Switch } from '@/components/ui/switch';
 import AdminLayout from '@/layouts/admin/admin-layout';
@@ -5,6 +6,7 @@ import { compressImage } from '@/utils/image-compress';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
+    Crop,
     Globe,
     Loader2,
     Plus,
@@ -209,6 +211,77 @@ export default function EditProduct({
             updated.splice(index, 1);
             return updated;
         });
+    };
+
+    type CropTarget =
+        | { kind: 'new'; index: number; file: File }
+        | { kind: 'existing'; id: number; file: File };
+
+    const [cropTarget, setCropTarget] = useState<CropTarget | null>(null);
+    const [preparingCrop, setPreparingCrop] = useState(false);
+
+    const openCropForNew = (index: number) => {
+        const item = newImages[index];
+        if (!item) return;
+        setCropTarget({ kind: 'new', index, file: item.file });
+    };
+
+    const openCropForExisting = async (img: ProductImage) => {
+        setPreparingCrop(true);
+        try {
+            const src = img.image_url || img.url;
+            const response = await fetch(src, { credentials: 'same-origin' });
+            if (!response.ok) throw new Error('Gagal memuat gambar');
+            const blob = await response.blob();
+            const ext = (blob.type.split('/')[1] || 'jpg').split('+')[0];
+            const file = new File(
+                [blob],
+                `existing-${img.id}.${ext}`,
+                { type: blob.type || 'image/jpeg' },
+            );
+            setCropTarget({ kind: 'existing', id: img.id, file });
+        } catch (error) {
+            console.error('Failed to load existing image for crop:', error);
+        } finally {
+            setPreparingCrop(false);
+        }
+    };
+
+    const handleCropped = async (croppedFile: File) => {
+        if (!cropTarget) return;
+        const compressed = await compressImage(croppedFile, { maxSizeMB: 2 });
+
+        if (cropTarget.kind === 'new') {
+            const idx = cropTarget.index;
+            setNewImages((prev) => {
+                const next = [...prev];
+                const current = next[idx];
+                if (!current) return prev;
+                URL.revokeObjectURL(current.preview);
+                next[idx] = {
+                    file: compressed,
+                    preview: URL.createObjectURL(compressed),
+                };
+                return next;
+            });
+            return;
+        }
+
+        const existingId = cropTarget.id;
+        setNewImages((prev) => [
+            ...prev,
+            {
+                file: compressed,
+                preview: URL.createObjectURL(compressed),
+            },
+        ]);
+        setDeleteImageIds((prev) =>
+            prev.includes(existingId) ? prev : [...prev, existingId],
+        );
+        setExistingImages((prev) => prev.filter((img) => img.id !== existingId));
+        if (primaryImageId === existingId) {
+            setPrimaryImageId(null);
+        }
     };
 
     const addSpecification = () => {
@@ -815,7 +888,8 @@ export default function EditProduct({
                                 <div>
                                     <p className="mb-3 text-sm text-terra-500">
                                         Gambar Saat Ini — Klik gambar untuk
-                                        jadikan utama
+                                        jadikan utama, hover untuk crop atau
+                                        hapus
                                     </p>
                                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                                         {existingImages.map((img) => (
@@ -843,18 +917,35 @@ export default function EditProduct({
                                                         Utama
                                                     </span>
                                                 )}
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        removeExistingImage(
-                                                            img.id,
-                                                        );
-                                                    }}
-                                                    className="absolute top-2 right-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </button>
+                                                <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                                    <button
+                                                        type="button"
+                                                        title="Edit / Crop"
+                                                        disabled={preparingCrop}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openCropForExisting(
+                                                                img,
+                                                            );
+                                                        }}
+                                                        className="rounded-lg bg-white/90 p-1.5 text-terra-700 shadow-sm transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        <Crop className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        title="Hapus"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removeExistingImage(
+                                                                img.id,
+                                                            );
+                                                        }}
+                                                        className="rounded-lg bg-red-500 p-1.5 text-white shadow-sm transition-colors hover:bg-red-600"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -916,15 +1007,32 @@ export default function EditProduct({
                                                     alt={`New ${index + 1}`}
                                                     className="aspect-square w-full rounded-xl border border-terra-100 object-cover"
                                                 />
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        removeNewImage(index)
-                                                    }
-                                                    className="absolute top-2 right-2 rounded-lg bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </button>
+                                                <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                                    <button
+                                                        type="button"
+                                                        title="Edit / Crop"
+                                                        onClick={() =>
+                                                            openCropForNew(
+                                                                index,
+                                                            )
+                                                        }
+                                                        className="rounded-lg bg-white/90 p-1.5 text-terra-700 shadow-sm transition-colors hover:bg-white"
+                                                    >
+                                                        <Crop className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        title="Hapus"
+                                                        onClick={() =>
+                                                            removeNewImage(
+                                                                index,
+                                                            )
+                                                        }
+                                                        className="rounded-lg bg-red-500 p-1.5 text-white shadow-sm transition-colors hover:bg-red-600"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -1181,6 +1289,13 @@ export default function EditProduct({
                     </div>
                 </form>
             </div>
+
+            <ImageCropDialog
+                open={cropTarget !== null}
+                file={cropTarget?.file ?? null}
+                onClose={() => setCropTarget(null)}
+                onCropped={handleCropped}
+            />
         </AdminLayout>
     );
 }
