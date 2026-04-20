@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      run_migrations:
+        description: 'Jalankan database migrations setelah deploy'
+        required: true
+        type: boolean
+        default: true
 
 concurrency:
   group: deploy-production
@@ -11,9 +17,9 @@ concurrency:
 
 jobs:
   deploy:
-    name: Build & Deploy
+    name: Build & Deploy via FTPS
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -49,26 +55,104 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftps
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          local-dir: ./
+          state-name: .ftp-deploy-sync-state.json
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/node_modules/**
+            **/tests/**
+            **/.env*
+            !**/.env.example
+            **/storage/logs/**
+            **/storage/framework/cache/data/**
+            **/storage/framework/sessions/**
+            **/storage/framework/views/**
+            **/storage/app/public/**
+            **/storage/pail/**
+            **/bootstrap/cache/*.php
+            **/.phpunit.cache/**
+            **/.phpunit.result.cache
+            **/phpunit.xml
+            **/phpstan.neon
+            **/eslint.config.js
+            **/tsconfig.json
+            **/README.md
+            **/CLAUDE.md
+            **/gemini.md
+            **/build_log.txt
+            **/CPANEL_DEPLOYMENT.md
+            **/docs/**
+            **/.vscode/**
+            **/.idea/**
+            **/.fleet/**
+            **/.nova/**
+            **/.zed/**
+            **/.claude/**
+            **/.editorconfig
+            **/.prettier*
+            **/resources/js/actions/**
+            **/resources/js/routes/**
+            **/resources/js/wayfinder/**
+            **/deployment/**
+            **/.ftp-deploy-sync-state.json
 
-      - name: Deploy via rsync
+      - name: Verify ARTISAN_TOKEN is configured
         run: |
-          rsync -avz --delete \
-            --exclude-from='deployment/rsync-exclude.txt' \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
-            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.APP_URL }}/artisan/test?token=${{ secrets.ARTISAN_TOKEN }}")
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::ARTISAN_TOKEN verification failed (HTTP $STATUS)"
+            echo "Pastikan ARTISAN_TOKEN di GitHub Secrets cocok dengan .env di server"
+            exit 1
+          fi
+          echo "ARTISAN_TOKEN valid"
 
-      - name: Run post-deploy commands via SSH
+      - name: Run migrations
+        if: ${{ github.event_name == 'push' || inputs.run_migrations }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "cd ${{ secrets.DEPLOY_PATH }} && bash deployment/post-deploy.sh"
+          echo "Running database migrations..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            "${{ secrets.APP_URL }}/artisan/migrate?token=${{ secrets.ARTISAN_TOKEN }}")
+          echo "$RESPONSE"
+          STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Migration failed"
+            exit 1
+          fi
 
-      - name: Cleanup SSH key
-        if: always()
-        run: rm -f ~/.ssh/deploy_key
+      - name: Clear caches
+        run: |
+          echo "Clearing caches..."
+          curl -f -s "${{ secrets.APP_URL }}/artisan/clear-cache?token=${{ secrets.ARTISAN_TOKEN }}" | head -c 500
+          echo ""
+
+      - name: Rebuild production caches
+        run: |
+          echo "Rebuilding caches (config, route, view)..."
+          curl -f -s "${{ secrets.APP_URL }}/artisan/optimize?token=${{ secrets.ARTISAN_TOKEN }}" | head -c 500
+          echo ""
+
+      - name: Ensure storage symlink
+        run: |
+          curl -f -s "${{ secrets.APP_URL }}/artisan/storage-link?token=${{ secrets.ARTISAN_TOKEN }}" | head -c 500 || true
+          echo ""
+
+      - name: Smoke test
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.APP_URL }}")
+          if [ "$STATUS" != "200" ] && [ "$STATUS" != "302" ]; then
+            echo "::warning::Homepage returned HTTP $STATUS — verifikasi manual"
+          else
+            echo "Homepage OK (HTTP $STATUS)"
+          fi
