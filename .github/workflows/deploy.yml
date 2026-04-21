@@ -43,6 +43,11 @@ jobs:
       - name: Install PHP dependencies (production)
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
 
+      - name: Archive vendor directory
+        run: |
+          tar -czf vendor.tar.gz vendor/
+          ls -lh vendor.tar.gz
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -71,6 +76,7 @@ jobs:
             **/.git*/**
             **/.github/**
             **/node_modules/**
+            **/vendor/**
             **/tests/**
             **/.env*
             !**/.env.example
@@ -117,6 +123,18 @@ jobs:
             exit 1
           fi
           echo "ARTISAN_TOKEN valid"
+
+      - name: Extract vendor.tar.gz on server
+        run: |
+          echo "Extracting vendor.tar.gz on server (may take up to 10 min on slow hosts)..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" --max-time 900 \
+            "${{ secrets.APP_URL }}/artisan/extract-vendor?token=${{ secrets.ARTISAN_TOKEN }}")
+          echo "$RESPONSE"
+          STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Vendor extraction failed (HTTP $STATUS)"
+            exit 1
+          fi
 
       - name: Run migrations
         if: ${{ github.event_name == 'push' || inputs.run_migrations }}

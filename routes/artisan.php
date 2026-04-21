@@ -130,6 +130,80 @@ Route::prefix('artisan')->middleware('web')->group(function () {
         }
     })->name('artisan.storage-link');
 
+    // Extract vendor.tar.gz uploaded by CI pipeline
+    // Supports ?force=1 to re-extract even if hash matches last extraction
+    Route::get('/extract-vendor', function () {
+        checkArtisanToken();
+
+        @set_time_limit(0);
+        @ini_set('memory_limit', '512M');
+
+        $tarGz = base_path('vendor.tar.gz');
+        $hashFile = base_path('vendor.tar.gz.extracted');
+
+        if (!file_exists($tarGz)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'vendor.tar.gz not found at ' . $tarGz,
+            ], 404);
+        }
+
+        $currentHash = sha1_file($tarGz);
+        $lastHash = file_exists($hashFile) ? trim(file_get_contents($hashFile)) : null;
+
+        if ($currentHash === $lastHash && !request()->boolean('force')) {
+            return response()->json([
+                'success' => true,
+                'skipped' => true,
+                'message' => 'Vendor already extracted for this hash, skipping',
+                'hash' => $currentHash,
+            ]);
+        }
+
+        $method = null;
+
+        try {
+            // Try tar binary first (much faster than PHP-based extraction)
+            if (function_exists('exec')) {
+                $cmd = 'tar -xzf ' . escapeshellarg($tarGz) . ' -C ' . escapeshellarg(base_path()) . ' 2>&1';
+                $output = [];
+                $exitCode = 1;
+                exec($cmd, $output, $exitCode);
+
+                if ($exitCode === 0) {
+                    $method = 'tar';
+                }
+            }
+
+            // Fallback: PharData (pure PHP, works even if exec() is disabled)
+            if ($method === null) {
+                $phar = new PharData($tarGz);
+                $phar->extractTo(base_path(), null, true);
+                // PharData may leave a .tar sidecar when decompressing .tar.gz
+                $tarSidecar = base_path('vendor.tar');
+                if (file_exists($tarSidecar)) {
+                    @unlink($tarSidecar);
+                }
+                $method = 'phardata';
+            }
+
+            file_put_contents($hashFile, $currentHash);
+
+            return response()->json([
+                'success' => true,
+                'method' => $method,
+                'hash' => $currentHash,
+                'vendor_exists' => is_dir(base_path('vendor')),
+                'message' => 'Vendor extracted successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    })->name('artisan.extract-vendor');
+
     // List all available commands
     Route::get('/list', function () {
         checkArtisanToken();
@@ -141,6 +215,7 @@ Route::prefix('artisan')->middleware('web')->group(function () {
                 'optimize' => url('/artisan/optimize?token=YOUR_TOKEN'),
                 'migrate' => url('/artisan/migrate?token=YOUR_TOKEN'),
                 'storage-link' => url('/artisan/storage-link?token=YOUR_TOKEN'),
+                'extract-vendor' => url('/artisan/extract-vendor?token=YOUR_TOKEN'),
             ],
             'note' => 'Replace YOUR_TOKEN with the value from ARTISAN_TOKEN in .env',
         ]);
