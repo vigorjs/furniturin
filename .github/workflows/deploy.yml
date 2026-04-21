@@ -124,6 +124,12 @@ jobs:
           fi
           echo "ARTISAN_TOKEN valid"
 
+      - name: Clear route cache (so new artisan routes are recognized)
+        run: |
+          echo "Clearing stale caches before calling new endpoints..."
+          curl -f -s "${{ secrets.APP_URL }}/artisan/clear-cache?token=${{ secrets.ARTISAN_TOKEN }}" | head -c 500
+          echo ""
+
       - name: Extract vendor.tar.gz on server
         run: |
           echo "Extracting vendor.tar.gz on server (may take up to 10 min on slow hosts)..."
