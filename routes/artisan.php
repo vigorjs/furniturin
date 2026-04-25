@@ -12,24 +12,20 @@ use Illuminate\Support\Facades\Route;
 | IMPORTANT: Set ARTISAN_TOKEN in your .env file
 */
 
-// Helper function to check token.
-// function_exists guard: route:cache loads this file twice in the same process,
-// which would otherwise trigger "Cannot redeclare" fatal error.
-if (!function_exists('checkArtisanToken')) {
-    function checkArtisanToken()
-    {
+Route::prefix('artisan')->middleware('web')->group(function () {
+    // Token guard defined as a closure so SerializableClosure can embed it
+    // directly in each route's serialized form — avoids "undefined function"
+    // errors when routes are loaded from bootstrap/cache (route:cache).
+    $guard = static function (): void {
         $token = config('app.artisan_token');
-
-        if (!$token || request()->input('token') !== $token) {
+        if (! $token || request()->input('token') !== $token) {
             abort(403, 'Unauthorized. Invalid or missing token.');
         }
-    }
-}
+    };
 
-Route::prefix('artisan')->middleware('web')->group(function () {
     // Populate locale-specific settings
-    Route::get('/populate-locale', function () {
-        checkArtisanToken();
+    Route::get('/populate-locale', function () use ($guard) {
+        $guard();
 
         try {
             Artisan::call('settings:populate-locale');
@@ -49,8 +45,8 @@ Route::prefix('artisan')->middleware('web')->group(function () {
     })->name('artisan.populate-locale');
 
     // Clear all caches
-    Route::get('/clear-cache', function () {
-        checkArtisanToken();
+    Route::get('/clear-cache', function () use ($guard) {
+        $guard();
 
         try {
             Artisan::call('cache:clear');
@@ -72,8 +68,8 @@ Route::prefix('artisan')->middleware('web')->group(function () {
     })->name('artisan.clear-cache');
 
     // Optimize for production
-    Route::get('/optimize', function () {
-        checkArtisanToken();
+    Route::get('/optimize', function () use ($guard) {
+        $guard();
 
         try {
             Artisan::call('config:cache');
@@ -94,8 +90,8 @@ Route::prefix('artisan')->middleware('web')->group(function () {
     })->name('artisan.optimize');
 
     // Run migrations
-    Route::get('/migrate', function () {
-        checkArtisanToken();
+    Route::get('/migrate', function () use ($guard) {
+        $guard();
 
         try {
             Artisan::call('migrate', ['--force' => true]);
@@ -115,8 +111,8 @@ Route::prefix('artisan')->middleware('web')->group(function () {
     })->name('artisan.migrate');
 
     // Storage link
-    Route::get('/storage-link', function () {
-        checkArtisanToken();
+    Route::get('/storage-link', function () use ($guard) {
+        $guard();
 
         try {
             Artisan::call('storage:link');
@@ -136,8 +132,8 @@ Route::prefix('artisan')->middleware('web')->group(function () {
 
     // Extract vendor.tar.gz uploaded by CI pipeline
     // Supports ?force=1 to re-extract even if hash matches last extraction
-    Route::get('/extract-vendor', function () {
-        checkArtisanToken();
+    Route::get('/extract-vendor', function () use ($guard) {
+        $guard();
 
         @set_time_limit(0);
         @ini_set('memory_limit', '512M');
@@ -145,17 +141,17 @@ Route::prefix('artisan')->middleware('web')->group(function () {
         $tarGz = base_path('vendor.tar.gz');
         $hashFile = base_path('vendor.tar.gz.extracted');
 
-        if (!file_exists($tarGz)) {
+        if (! file_exists($tarGz)) {
             return response()->json([
                 'success' => false,
-                'error' => 'vendor.tar.gz not found at ' . $tarGz,
+                'error' => 'vendor.tar.gz not found at '.$tarGz,
             ], 404);
         }
 
         $currentHash = sha1_file($tarGz);
         $lastHash = file_exists($hashFile) ? trim(file_get_contents($hashFile)) : null;
 
-        if ($currentHash === $lastHash && !request()->boolean('force')) {
+        if ($currentHash === $lastHash && ! request()->boolean('force')) {
             return response()->json([
                 'success' => true,
                 'skipped' => true,
@@ -169,7 +165,7 @@ Route::prefix('artisan')->middleware('web')->group(function () {
         try {
             // Try tar binary first (much faster than PHP-based extraction)
             if (function_exists('exec')) {
-                $cmd = 'tar -xzf ' . escapeshellarg($tarGz) . ' -C ' . escapeshellarg(base_path()) . ' 2>&1';
+                $cmd = 'tar -xzf '.escapeshellarg($tarGz).' -C '.escapeshellarg(base_path()).' 2>&1';
                 $output = [];
                 $exitCode = 1;
                 exec($cmd, $output, $exitCode);
@@ -197,7 +193,7 @@ Route::prefix('artisan')->middleware('web')->group(function () {
             $cacheDir = base_path('bootstrap/cache');
             $clearedCaches = [];
             if (is_dir($cacheDir)) {
-                foreach (glob($cacheDir . '/*.php') as $cacheFile) {
+                foreach (glob($cacheDir.'/*.php') as $cacheFile) {
                     if (@unlink($cacheFile)) {
                         $clearedCaches[] = basename($cacheFile);
                     }
@@ -225,14 +221,14 @@ Route::prefix('artisan')->middleware('web')->group(function () {
     // On cPanel, public_html is the DocumentRoot but Laravel lives in /home/USER/laravel/.
     // Build assets and storage live under laravel/public/, not reachable from web — symlinks
     // expose them under public_html/{build,storage} so /build/* and /storage/* URLs resolve.
-    Route::get('/setup-public-symlinks', function () {
-        checkArtisanToken();
+    Route::get('/setup-public-symlinks', function () use ($guard) {
+        $guard();
 
         $publicHtml = realpath(base_path('../public_html'));
-        if (!$publicHtml) {
+        if (! $publicHtml) {
             return response()->json([
                 'success' => false,
-                'error' => 'Could not resolve public_html directory at ' . base_path('../public_html'),
+                'error' => 'Could not resolve public_html directory at '.base_path('../public_html'),
             ], 500);
         }
 
@@ -242,21 +238,22 @@ Route::prefix('artisan')->middleware('web')->group(function () {
         ];
 
         $rmrf = function ($dir) use (&$rmrf) {
-            if (is_link($dir) || !is_dir($dir)) {
+            if (is_link($dir) || ! is_dir($dir)) {
                 return @unlink($dir);
             }
             foreach (array_diff(scandir($dir), ['.', '..']) as $item) {
-                $rmrf($dir . DIRECTORY_SEPARATOR . $item);
+                $rmrf($dir.DIRECTORY_SEPARATOR.$item);
             }
+
             return @rmdir($dir);
         };
 
         $results = [];
         foreach ($links as $name => $target) {
-            $linkPath = $publicHtml . DIRECTORY_SEPARATOR . $name;
+            $linkPath = $publicHtml.DIRECTORY_SEPARATOR.$name;
             $info = ['target' => $target, 'link' => $linkPath];
 
-            if (!file_exists($target) && !is_link($target)) {
+            if (! file_exists($target) && ! is_link($target)) {
                 $results[$name] = $info + ['status' => 'target_missing'];
                 continue;
             }
@@ -286,8 +283,8 @@ Route::prefix('artisan')->middleware('web')->group(function () {
     })->name('artisan.setup-public-symlinks');
 
     // List all available commands
-    Route::get('/list', function () {
-        checkArtisanToken();
+    Route::get('/list', function () use ($guard) {
+        $guard();
 
         return response()->json([
             'available_routes' => [
@@ -304,8 +301,8 @@ Route::prefix('artisan')->middleware('web')->group(function () {
     })->name('artisan.list');
 
     // Test route (no sensitive actions)
-    Route::get('/test', function () {
-        checkArtisanToken();
+    Route::get('/test', function () use ($guard) {
+        $guard();
 
         return response()->json([
             'success' => true,
