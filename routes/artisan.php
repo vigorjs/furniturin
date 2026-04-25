@@ -187,6 +187,19 @@ Route::prefix('artisan')->middleware('web')->group(function () {
                 $method = 'phardata';
             }
 
+            // Bootstrap cache references classes from vendor — stale entries
+            // (e.g. dev-only providers) must be cleared after vendor changes,
+            // otherwise next request boots with cached refs to missing classes.
+            $cacheDir = base_path('bootstrap/cache');
+            $clearedCaches = [];
+            if (is_dir($cacheDir)) {
+                foreach (glob($cacheDir . '/*.php') as $cacheFile) {
+                    if (@unlink($cacheFile)) {
+                        $clearedCaches[] = basename($cacheFile);
+                    }
+                }
+            }
+
             file_put_contents($hashFile, $currentHash);
 
             return response()->json([
@@ -194,6 +207,7 @@ Route::prefix('artisan')->middleware('web')->group(function () {
                 'method' => $method,
                 'hash' => $currentHash,
                 'vendor_exists' => is_dir(base_path('vendor')),
+                'cleared_caches' => $clearedCaches,
                 'message' => 'Vendor extracted successfully',
             ]);
         } catch (\Exception $e) {
