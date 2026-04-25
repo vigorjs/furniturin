@@ -189,7 +189,12 @@ export default function CreateProduct({
             ...previewImages.filter((_, i) => i !== primaryIndex),
         ].slice(0, MAX_AI_IMAGES);
 
+        const csrfMeta = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content') ?? '';
+
         const formData = new FormData();
+        formData.append('_token', csrfMeta);
         orderedImages.forEach((img) => {
             formData.append('images[]', img.file);
         });
@@ -237,18 +242,13 @@ export default function CreateProduct({
         setExtractSuccess(false);
 
         try {
-            const csrfToken =
-                document
-                    .querySelector('meta[name="csrf-token"]')
-                    ?.getAttribute('content') ?? '';
-
             const response = await fetch('/admin/products/ai-extract', {
                 method: 'POST',
                 body: formData,
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-CSRF-TOKEN': csrfMeta,
                 },
                 credentials: 'same-origin',
             });
