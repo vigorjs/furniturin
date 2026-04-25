@@ -12,13 +12,17 @@ use Illuminate\Support\Facades\Route;
 | IMPORTANT: Set ARTISAN_TOKEN in your .env file
 */
 
-// Helper function to check token
-function checkArtisanToken()
-{
-    $token = config('app.artisan_token');
+// Helper function to check token.
+// function_exists guard: route:cache loads this file twice in the same process,
+// which would otherwise trigger "Cannot redeclare" fatal error.
+if (!function_exists('checkArtisanToken')) {
+    function checkArtisanToken()
+    {
+        $token = config('app.artisan_token');
 
-    if (!$token || request()->input('token') !== $token) {
-        abort(403, 'Unauthorized. Invalid or missing token.');
+        if (!$token || request()->input('token') !== $token) {
+            abort(403, 'Unauthorized. Invalid or missing token.');
+        }
     }
 }
 
@@ -218,6 +222,69 @@ Route::prefix('artisan')->middleware('web')->group(function () {
         }
     })->name('artisan.extract-vendor');
 
+    // On cPanel, public_html is the DocumentRoot but Laravel lives in /home/USER/laravel/.
+    // Build assets and storage live under laravel/public/, not reachable from web — symlinks
+    // expose them under public_html/{build,storage} so /build/* and /storage/* URLs resolve.
+    Route::get('/setup-public-symlinks', function () {
+        checkArtisanToken();
+
+        $publicHtml = realpath(base_path('../public_html'));
+        if (!$publicHtml) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Could not resolve public_html directory at ' . base_path('../public_html'),
+            ], 500);
+        }
+
+        $links = [
+            'build' => base_path('public/build'),
+            'storage' => base_path('public/storage'),
+        ];
+
+        $rmrf = function ($dir) use (&$rmrf) {
+            if (is_link($dir) || !is_dir($dir)) {
+                return @unlink($dir);
+            }
+            foreach (array_diff(scandir($dir), ['.', '..']) as $item) {
+                $rmrf($dir . DIRECTORY_SEPARATOR . $item);
+            }
+            return @rmdir($dir);
+        };
+
+        $results = [];
+        foreach ($links as $name => $target) {
+            $linkPath = $publicHtml . DIRECTORY_SEPARATOR . $name;
+            $info = ['target' => $target, 'link' => $linkPath];
+
+            if (!file_exists($target) && !is_link($target)) {
+                $results[$name] = $info + ['status' => 'target_missing'];
+                continue;
+            }
+
+            if (is_link($linkPath) && readlink($linkPath) === $target) {
+                $results[$name] = $info + ['status' => 'already_linked'];
+                continue;
+            }
+
+            if (is_link($linkPath) || file_exists($linkPath)) {
+                $rmrf($linkPath);
+            }
+
+            if (@symlink($target, $linkPath)) {
+                $results[$name] = $info + ['status' => 'created'];
+            } else {
+                $err = error_get_last();
+                $results[$name] = $info + ['status' => 'failed', 'error' => $err['message'] ?? 'unknown'];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'public_html' => $publicHtml,
+            'links' => $results,
+        ]);
+    })->name('artisan.setup-public-symlinks');
+
     // List all available commands
     Route::get('/list', function () {
         checkArtisanToken();
@@ -230,6 +297,7 @@ Route::prefix('artisan')->middleware('web')->group(function () {
                 'migrate' => url('/artisan/migrate?token=YOUR_TOKEN'),
                 'storage-link' => url('/artisan/storage-link?token=YOUR_TOKEN'),
                 'extract-vendor' => url('/artisan/extract-vendor?token=YOUR_TOKEN'),
+                'setup-public-symlinks' => url('/artisan/setup-public-symlinks?token=YOUR_TOKEN'),
             ],
             'note' => 'Replace YOUR_TOKEN with the value from ARTISAN_TOKEN in .env',
         ]);

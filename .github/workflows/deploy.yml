@@ -178,6 +178,17 @@ jobs:
           curl -f -s "${{ secrets.APP_URL }}/artisan/storage-link?token=${{ secrets.ARTISAN_TOKEN }}" | head -c 500 || true
           echo ""
 
+      - name: Setup public_html symlinks (build & storage)
+        run: |
+          echo "Setting up public_html → laravel/public symlinks..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            "${{ secrets.APP_URL }}/artisan/setup-public-symlinks?token=${{ secrets.ARTISAN_TOKEN }}")
+          echo "$RESPONSE"
+          STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          if [ "$STATUS" != "200" ]; then
+            echo "::warning::Public symlink setup returned HTTP $STATUS — verifikasi manual"
+          fi
+
       - name: Smoke test
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.APP_URL }}")
