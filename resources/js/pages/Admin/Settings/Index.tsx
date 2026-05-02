@@ -1,6 +1,7 @@
 import AdminLayout from '@/layouts/admin/admin-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import {
+  Bot,
   ChevronRight,
   CreditCard,
   Facebook,
@@ -93,6 +94,25 @@ export default function SettingsIndex({ settings }: SettingsIndexProps) {
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-neutral-400 transition-colors group-hover:text-teal-600" />
+          </Link>
+          <Link
+            href="/admin/settings/ai"
+            className="group flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-5 transition-all hover:border-violet-300 hover:shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50">
+                <Bot className="h-6 w-6 text-violet-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-neutral-900">
+                  Pengaturan AI Auto-Fill
+                </h3>
+                <p className="text-sm text-neutral-500">
+                  Prompt, Model Gemini, Temperature
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-neutral-400 transition-colors group-hover:text-violet-600" />
           </Link>
         </div>
 

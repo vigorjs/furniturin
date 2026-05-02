@@ -85,6 +85,10 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->prefix('admin
     Route::get('/settings/payment', [SettingsController::class, 'payment'])->name('settings.payment');
     Route::post('/settings/payment', [SettingsController::class, 'updatePayment'])->name('settings.payment.update');
 
+    // AI Settings
+    Route::get('/settings/ai', [SettingsController::class, 'ai'])->name('settings.ai');
+    Route::post('/settings/ai', [SettingsController::class, 'updateAi'])->name('settings.ai.update');
+
     // Promo Banners
     Route::resource('promo-banners', PromoBannerController::class)->except(['show']);
     Route::patch('/promo-banners/{promo_banner}/toggle', [PromoBannerController::class, 'toggleActive'])

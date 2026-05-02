@@ -40,6 +40,8 @@ class GeminiVisionService
         array $images,
         string $prompt,
         array $jsonSchema,
+        ?string $model = null,
+        float $temperature = 0.4,
     ): array {
         if ($this->apiKey === '') {
             throw new RuntimeException('Gemini API key is not configured.');
@@ -48,6 +50,8 @@ class GeminiVisionService
         if ($images === []) {
             throw new RuntimeException('Minimal satu gambar diperlukan.');
         }
+
+        $activeModel = $model ?? $this->model;
 
         $parts = [['text' => $prompt]];
         foreach ($images as $image) {
@@ -62,11 +66,11 @@ class GeminiVisionService
             'generationConfig' => [
                 'responseMimeType' => 'application/json',
                 'responseSchema' => $jsonSchema,
-                'temperature' => 0.4,
+                'temperature' => $temperature,
             ],
         ];
 
-        $url = "{$this->baseUrl}/models/{$this->model}:generateContent";
+        $url = "{$this->baseUrl}/models/{$activeModel}:generateContent";
 
         $response = Http::timeout($this->timeout)
             ->withQueryParameters(['key' => $this->apiKey])

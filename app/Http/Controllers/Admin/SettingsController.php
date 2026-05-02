@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Product\ExtractProductFromImageAction;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
@@ -222,6 +223,64 @@ class SettingsController extends Controller
         Cache::forget("site_settings.en");
 
         return back()->with('success', __('messages.homepage_settings_saved'));
+    }
+
+    /**
+     * AI settings page
+     */
+    public function ai(): Response
+    {
+        $settings = Setting::all()->pluck('value', 'key')->toArray();
+
+        return Inertia::render('Admin/Settings/AI', [
+            'settings' => [
+                'ai_prompt_template' => $settings['ai_prompt_template'] ?? '',
+                'ai_model' => $settings['ai_model'] ?? '',
+                'ai_temperature' => (float) ($settings['ai_temperature'] ?? 0.4),
+            ],
+            'defaultPrompt' => ExtractProductFromImageAction::defaultPromptTemplate(),
+            'configuredModel' => config('services.gemini.model', 'gemini-2.0-flash'),
+            'availableModels' => [
+                'gemini-2.0-flash',
+                'gemini-2.0-flash-lite',
+                'gemini-2.5-flash-preview-05-20',
+                'gemini-1.5-flash',
+                'gemini-1.5-flash-8b',
+                'gemini-1.5-pro',
+            ],
+        ]);
+    }
+
+    /**
+     * Update AI settings
+     */
+    public function updateAi(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ai_prompt_template' => [
+                'nullable',
+                'string',
+                'max:10000',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if ($value !== null && $value !== '' && ! str_contains($value, '{{CATEGORY_LIST}}')) {
+                        $fail('Template prompt harus mengandung placeholder {{CATEGORY_LIST}}.');
+                    }
+                },
+            ],
+            'ai_model' => ['nullable', 'string', 'max:100'],
+            'ai_temperature' => ['nullable', 'numeric', 'min:0', 'max:1'],
+        ]);
+
+        foreach ($validated as $key => $value) {
+            Setting::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value !== null ? (string) $value : '']
+            );
+        }
+
+        Cache::forget('site_settings');
+
+        return back()->with('success', __('messages.ai_settings_saved'));
     }
 
     /**

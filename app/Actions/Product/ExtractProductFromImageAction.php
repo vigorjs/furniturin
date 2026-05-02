@@ -7,6 +7,7 @@ namespace App\Actions\Product;
 use App\Exceptions\NonFurnitureImageException;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Services\Ai\GeminiVisionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -38,10 +39,15 @@ class ExtractProductFromImageAction
             ->map(fn (Category $c) => $c->getTranslation('name', app()->getLocale(), false) ?: $c->name)
             ->all();
 
+        $model = Setting::get('ai_model', '') ?: null;
+        $temperature = max(0.0, min(1.0, (float) (Setting::get('ai_temperature', '') ?: '0.4')));
+
         $extracted = $this->vision->generateJsonFromImages(
             images: $images,
             prompt: $this->buildPrompt($categories, $this->contextHints($context)),
             jsonSchema: $this->responseSchema(),
+            model: $model,
+            temperature: $temperature,
         );
 
         if (! (bool) ($extracted['is_furniture'] ?? false)) {
@@ -92,50 +98,52 @@ class ExtractProductFromImageAction
 
         $contextBlock = '';
         if ($contextHints !== []) {
-            $joined = implode("\n        - ", $contextHints);
-            $contextBlock = <<<CTX
-
-
-            Pengguna sudah mengisi sebagian informasi sebagai acuan. Perlakukan sebagai fakta yang benar dan pastikan output Anda KONSISTEN dengannya:
-            - {$joined}
-
-            Untuk field di atas, Anda tetap harus mengembalikan nilai JSON agar struktur lengkap, tetapi gunakan nilai referensi tersebut (atau versi yang kompatibel) — jangan bertentangan. Untuk field yang belum diisi pengguna, ekstrak dari gambar dengan mempertimbangkan konteks ini.
-            CTX;
+            $joined = implode("\n- ", $contextHints);
+            $contextBlock = "\n\nPengguna sudah mengisi sebagian informasi sebagai acuan. Perlakukan sebagai fakta yang benar dan pastikan output Anda KONSISTEN dengannya:\n- {$joined}\n\nUntuk field di atas, Anda tetap harus mengembalikan nilai JSON agar struktur lengkap, tetapi gunakan nilai referensi tersebut (atau versi yang kompatibel) — jangan bertentangan. Untuk field yang belum diisi pengguna, ekstrak dari gambar dengan mempertimbangkan konteks ini.";
         }
 
-        return <<<PROMPT
-        Anda adalah asisten katalog untuk Furniturin, toko furnitur online berbahasa Indonesia.
+        $template = Setting::get('ai_prompt_template', '') ?: self::defaultPromptTemplate();
 
-        Anda akan menerima satu atau lebih gambar dari produk yang SAMA (berbagai sudut). Gabungkan informasi dari semua gambar untuk hasil yang lebih akurat.
+        return str_replace(
+            ['{{CATEGORY_LIST}}', '{{CONTEXT_BLOCK}}'],
+            [$categoryList, $contextBlock],
+            $template,
+        );
+    }
 
-        LANGKAH PERTAMA — Verifikasi kelayakan:
-        - Tentukan apakah gambar menampilkan sebuah furnitur (meja, kursi, sofa, lemari, rak, tempat tidur, kabinet, bufet, dll.) yang layak dijual di toko furnitur.
-        - Tolak jika gambar adalah: orang, hewan, pemandangan, makanan, mobil, gadget/elektronik, pakaian, aksesoris non-furnitur, konten dewasa, atau gambar yang tidak jelas/buram.
-        - Jika TIDAK layak: kembalikan "is_furniture": false dan isi "rejection_reason" dengan alasan singkat dalam Bahasa Indonesia (maks 120 karakter). Semua field lain boleh kosong.
-        - Jika layak: isi "is_furniture": true, "rejection_reason": "", dan lanjutkan mengisi semua field di bawah.
+    public static function defaultPromptTemplate(): string
+    {
+        return 'Anda adalah asisten katalog untuk Furniturin, toko furnitur online berbahasa Indonesia.
 
-        Kategori yang tersedia (pilih TEPAT salah satu, gunakan ejaan persis): {$categoryList}.{$contextBlock}
+Anda akan menerima satu atau lebih gambar dari produk yang SAMA (berbagai sudut). Gabungkan informasi dari semua gambar untuk hasil yang lebih akurat.
 
-        Aturan keluaran JSON (hanya relevan jika is_furniture = true):
-        - "name": nama produk yang menjual, maksimum 120 karakter.
-        - "category": pilih satu nama kategori dari daftar di atas. Jika tidak ada yang cocok, pilih yang paling dekat.
-        - "description": deskripsi lengkap dalam Bahasa Indonesia, MINIMAL 50 kata, ceritakan material, gaya, fungsi, dan kesan visual.
-        - "weight_kg": estimasi berat dalam kilogram sebagai angka desimal yang masuk akal untuk furnitur sejenis.
-        - "length_cm": estimasi panjang dalam sentimeter (sisi terpanjang saat dilihat dari atas).
-        - "width_cm": estimasi lebar dalam sentimeter (sisi kedua saat dilihat dari atas).
-        - "height_cm": estimasi tinggi dalam sentimeter (dari dasar ke puncak).
-        - "price_idr": estimasi harga jual dalam Rupiah (integer, tanpa titik/koma) berdasarkan material, ukuran, dan gaya. Gunakan harga pasar Indonesia yang wajar untuk furnitur sejenis (bukan harga impor premium).
-        - "compare_price_idr": harga coret (sebelum diskon) dalam Rupiah. Harus LEBIH BESAR dari price_idr — biasanya 15%-30% di atas price_idr untuk kesan promo.
-        - "cost_price_idr": estimasi harga modal/HPP dalam Rupiah. Harus LEBIH KECIL dari price_idr — biasanya 50%-65% dari price_idr (margin retail furnitur 35%-50%).
-        - "shipping_class": pilih TEPAT salah satu dari: "free_shipping" (item kecil & ringan, <5 kg, aksesoris), "flat_rate" (default untuk mayoritas furnitur ukuran sedang), "local_pickup" (item besar/berat seperti lemari besar, tempat tidur king, sofa besar >80 kg).
-        - "stock_quantity": saran stok awal yang realistis untuk toko furnitur retail (integer). Pedoman: item kecil/aksesoris (kursi, meja kecil, rak) 10-20 unit, item ukuran sedang (meja makan, lemari sedang, sofa single) 5-10 unit, item besar/custom (lemari besar, sofa L, tempat tidur king, furniture mewah) 2-5 unit. Jangan lebih dari 30.
-        - "material": material utama (contoh: "Kayu Jati", "MDF dilapisi HPL", "Besi & Kayu").
-        - "color": warna dominan dalam Bahasa Indonesia (contoh: "Coklat Tua", "Putih Natural").
-        - "meta_title": judul SEO maksimum 60 karakter.
-        - "meta_description": deskripsi SEO maksimum 160 karakter.
-        - "meta_keywords": 3-7 kata kunci dipisahkan koma, lowercase.
-        - "specifications": array berisi MINIMAL 3 dan maksimal 6 objek {"key": "...", "value": "..."} yang relevan dan informatif. JANGAN duplikasi field yang sudah ada terpisah (material utama, warna, dimensi, berat). Contoh key yang bagus: "Gaya" (Modern/Minimalis/Klasik/Scandinavian/Industrial), "Perakitan" (Sudah Dirakit/Perlu Dirakit), "Garansi" (mis. "1 Tahun"), "Kapasitas" (jumlah orang/beban maks), "Finishing" (Matte/Gloss/Natural), "Jumlah Laci", "Jumlah Rak", "Fitur Khusus", "Cocok Untuk" (Ruang Tamu/Kamar/Kantor), "Negara Asal". Gunakan key dalam Bahasa Indonesia, Title Case, dan value yang ringkas (maks 60 karakter).
-        PROMPT;
+LANGKAH PERTAMA — Verifikasi kelayakan:
+- Tentukan apakah gambar menampilkan sebuah furnitur (meja, kursi, sofa, lemari, rak, tempat tidur, kabinet, bufet, dll.) yang layak dijual di toko furnitur.
+- Tolak jika gambar adalah: orang, hewan, pemandangan, makanan, mobil, gadget/elektronik, pakaian, aksesoris non-furnitur, konten dewasa, atau gambar yang tidak jelas/buram.
+- Jika TIDAK layak: kembalikan "is_furniture": false dan isi "rejection_reason" dengan alasan singkat dalam Bahasa Indonesia (maks 120 karakter). Semua field lain boleh kosong.
+- Jika layak: isi "is_furniture": true, "rejection_reason": "", dan lanjutkan mengisi semua field di bawah.
+
+Kategori yang tersedia (pilih TEPAT salah satu, gunakan ejaan persis): {{CATEGORY_LIST}}.{{CONTEXT_BLOCK}}
+
+Aturan keluaran JSON (hanya relevan jika is_furniture = true):
+- "name": nama produk yang menjual, maksimum 120 karakter.
+- "category": pilih satu nama kategori dari daftar di atas. Jika tidak ada yang cocok, pilih yang paling dekat.
+- "description": deskripsi lengkap dalam Bahasa Indonesia, MINIMAL 50 kata, ceritakan material, gaya, fungsi, dan kesan visual.
+- "weight_kg": estimasi berat dalam kilogram sebagai angka desimal yang masuk akal untuk furnitur sejenis.
+- "length_cm": estimasi panjang dalam sentimeter (sisi terpanjang saat dilihat dari atas).
+- "width_cm": estimasi lebar dalam sentimeter (sisi kedua saat dilihat dari atas).
+- "height_cm": estimasi tinggi dalam sentimeter (dari dasar ke puncak).
+- "price_idr": estimasi harga jual dalam Rupiah (integer, tanpa titik/koma) berdasarkan material, ukuran, dan gaya. Gunakan harga pasar Indonesia yang wajar untuk furnitur sejenis (bukan harga impor premium).
+- "compare_price_idr": harga coret (sebelum diskon) dalam Rupiah. Harus LEBIH BESAR dari price_idr — biasanya 15%-30% di atas price_idr untuk kesan promo.
+- "cost_price_idr": estimasi harga modal/HPP dalam Rupiah. Harus LEBIH KECIL dari price_idr — biasanya 50%-65% dari price_idr (margin retail furnitur 35%-50%).
+- "shipping_class": pilih TEPAT salah satu dari: "free_shipping" (item kecil & ringan, <5 kg, aksesoris), "flat_rate" (default untuk mayoritas furnitur ukuran sedang), "local_pickup" (item besar/berat seperti lemari besar, tempat tidur king, sofa besar >80 kg).
+- "stock_quantity": saran stok awal yang realistis untuk toko furnitur retail (integer). Pedoman: item kecil/aksesoris (kursi, meja kecil, rak) 10-20 unit, item ukuran sedang (meja makan, lemari sedang, sofa single) 5-10 unit, item besar/custom (lemari besar, sofa L, tempat tidur king, furniture mewah) 2-5 unit. Jangan lebih dari 30.
+- "material": material utama (contoh: "Kayu Jati", "MDF dilapisi HPL", "Besi & Kayu").
+- "color": warna dominan dalam Bahasa Indonesia (contoh: "Coklat Tua", "Putih Natural").
+- "meta_title": judul SEO maksimum 60 karakter.
+- "meta_description": deskripsi SEO maksimum 160 karakter.
+- "meta_keywords": 3-7 kata kunci dipisahkan koma, lowercase.
+- "specifications": array berisi MINIMAL 3 dan maksimal 6 objek {"key": "...", "value": "..."} yang relevan dan informatif. JANGAN duplikasi field yang sudah ada terpisah (material utama, warna, dimensi, berat). Contoh key yang bagus: "Gaya" (Modern/Minimalis/Klasik/Scandinavian/Industrial), "Perakitan" (Sudah Dirakit/Perlu Dirakit), "Garansi" (mis. "1 Tahun"), "Kapasitas" (jumlah orang/beban maks), "Finishing" (Matte/Gloss/Natural), "Jumlah Laci", "Jumlah Rak", "Fitur Khusus", "Cocok Untuk" (Ruang Tamu/Kamar/Kantor), "Negara Asal". Gunakan key dalam Bahasa Indonesia, Title Case, dan value yang ringkas (maks 60 karakter).';
     }
 
     /**

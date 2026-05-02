@@ -45,6 +45,7 @@ return [
     'settings_saved' => 'Pengaturan berhasil disimpan.',
     'homepage_settings_saved' => 'Pengaturan homepage berhasil disimpan.',
     'payment_settings_saved' => 'Pengaturan pembayaran berhasil disimpan.',
+    'ai_settings_saved' => 'Pengaturan AI berhasil disimpan.',
 
     // Cart
     'cart_item_added' => 'Produk berhasil ditambahkan ke keranjang.',
