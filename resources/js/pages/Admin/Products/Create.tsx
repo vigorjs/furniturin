@@ -474,7 +474,7 @@ export default function CreateProduct({
                             </div>
                             <div>
                                 <h3 className="text-base font-semibold text-terra-900">
-                                    Isi Otomatis dengan AI test ci/cd
+                                    Isi Otomatis dengan AI
                                 </h3>
                                 <p className="mt-1 max-w-xl text-sm text-terra-600">
                                     Unggah 1–5 gambar produk (berbagai sudut
